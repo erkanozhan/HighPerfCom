@@ -118,7 +118,7 @@ java -cp <WEKA_JAR_YOLU> -Xmx<MAKS_BELLEK> -Djava.awt.headless=true weka.Run Wek
 - `-host`: Master sunucunun IP adresi veya `localhost`.
 - `-port`: Dinlenecek port.
 - `-load-adjust`: Genelde `4` olarak ayarlanır.
-- `-slots`: Master'ın kaç görevi eş zamanlı işleyebileceği.
+- `-slots`: Slave ve Master'ın kaç görevi eş zamanlı işleyebileceği.
 - `-staleTime -1`: Görev zaman aşımı yoktur.
 
 **Örnek Komut (localhost, 5GB RAM):**
