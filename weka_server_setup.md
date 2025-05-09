@@ -34,7 +34,31 @@ Java HotSpot(TM) 64-Bit Server VM (build DD.XYZ-bAA, mixed mode)
 
 **Windows için Java:**
 
-Oracle veya AdoptOpenJDK (Temurin) gibi resmi kaynaklardan Java 8 JRE veya JDK'yı indirip kurun.
+Oracle veya AdoptOpenJDK (Temurin) gibi resmi kaynaklardan Java 8 JRE veya JDK'yı indirip kurun. Windows'ta birden fazla Java sürümünü yönetmek için şu adımları izleyin:
+
+- Java 1.8'i yükleyin.
+- Daha yüksek Java sürümlerine ihtiyaç duyan yazılımlarınız varsa, bu sürümleri kaldırmayın.
+- Java 1.8'i öncelikli yapmak için:
+  1. Windows ortam değişkenlerini açın.
+  JAVA_HOME değişkeni açarak değerini "C:\Program Files\Java\jre-1.8" yapın. Ortamda örneğin Java 21 de yüklüyse bu durumda System Variables başlığı altında (Ortam değişkenleri penceresinin altındaki bölümde) bulunan Path değişkeninin içeriğini açarak Java 1.8'in yolunu diğer sürümlerin üstüne taşıyın. Alternatif olarak, birden fazla Java sürümünü yönetmek için `jenv` gibi bir Java sürüm yöneticisi kullanabilirsiniz. Bu araç, farklı projeler için kolayca Java sürümleri arasında geçiş yapmanıza olanak tanır.
+
+  Değişikliklerden sonra aktif Java sürümünü doğrulamak için aşağıdaki komutu çalıştırın:
+  ```bash
+  java -version
+  ```
+  Bu komut, sistemde etkin olan Java sürümünü gösterecektir.
+   - `JAVA_HOME` değişkenini "C:\Program Files\Java\jre-1.8" olarak ayarlayın.
+
+2. Eğer sistemde birden fazla Java sürümü yüklüyse:
+   - `Path` değişkenini düzenleyin ve "C:\Program Files\Common Files\Oracle\Java\javapath" yolunun sonuna bir rakam ekleyerek (örneğin, "2") Java 21'in devreye girmesini engelleyin.
+
+3. Java 21'e tekrar ihtiyaç duyarsanız:
+   - "2" rakamını kaldırın veya `JAVA_HOME` değerini istediğiniz Java sürümüne ayarlayın.
+
+**Örnek:**
+- `JAVA_HOME`: "C:\Program Files\Java\jre-1.8"
+- `Path`: "C:\Program Files\Common Files\Oracle\Java\javapath2"
+  2. PATH değişkeninde Java 1.8'in yolunu bulun ve diğer sürümlerin üstüne taşıyın.
 
 ### b. Weka JAR Dosyası
 
@@ -73,7 +97,10 @@ sudo ufw reload
 
 ## 2. Master Server'ı Başlatma
 
-Master server, Weka görevlerini kabul eder ve uygun slave'lere dağıtır.
+Master server, Weka görevlerini kabul eder ve uygun slave'lere dağıtır. Master makinenin IP adresini öğrenmek için:
+
+- **Windows**: Komut istemcisini (cmd) açın ve `ipconfig` komutunu çalıştırın. Çıktıda "IPv4 Address" satırını bulun.
+- **Linux**: Terminalde `ifconfig` veya `ip addr` komutlarından birini çalıştırın. Çıktıda "inet" ile başlayan satırda IP adresini görebilirsiniz.
 
 **Genel Komut Yapısı:**
 
@@ -99,6 +126,25 @@ java -cp <WEKA_JAR_YOLU> -Xmx<MAKS_BELLEK> -Djava.awt.headless=true weka.Run Wek
 ```bash
 java -cp weka.jar -Xmx5000m -Djava.awt.headless=true weka.Run WekaServer -host localhost -port 8085 -load-adjust 4 -slots 1 -staleTime -1
 ```
+Bu komutu başlattıktan sonra, **Windows** ortamlarında güvenlik duvarı uyarı ekranı çıkabilir. Bu durum diğer işletim sistemlerinde görülmeyebilir. Eğer bir uyarı alırsanız, "İzin Ver" seçeneğini tıklayarak ilgili portun WekaServer tarafından kullanılmasına izin vermelisiniz. 
+
+**Linux için**, ilgili portun izinli olduğundan emin olmak için aşağıdaki adımları izleyin:
+1. Güvenlik duvarı durumunu kontrol edin:
+   ```bash
+   sudo ufw status
+   ```
+2. Eğer port izinli değilse, aşağıdaki komutla izin verin:
+   ```bash
+   sudo ufw allow <PORT_NUMARASI>/tcp
+   ```
+3. Değişiklikleri doğrulamak için güvenlik duvarı durumunu tekrar kontrol edin:
+   ```bash
+   sudo ufw status
+   ```
+4. Gerekirse güvenlik duvarını yeniden başlatın:
+   ```bash
+   sudo ufw reload
+   ```
 
 **Örnek Komut (IP üzerinden, Windows):**
 
@@ -108,9 +154,9 @@ java -classpath "C:\Program Files\Weka-3-8-6\weka.jar" -Xmx8G -Djava.awt.headles
 
 ---
 
-## 3. Slave Server'ları Master'a Bağlama
+## 3. Slave Makineleri Master'a Bağlama
 
-Slave server'lar, master'dan aldıkları görevleri işleyen makinelerdir. Her bir slave, ayrı bir işlem olarak başlatılır.
+Slave makineler, master'dan aldıkları görevleri işleyen makinelerdir. Her bir slave, kendi komut ekranına (cmd) komut girilerek işlem olarak başlatılır. Slave'lerin doğru şekilde çalışabilmesi için, her birinin master server ile iletişim kurabilmesi adına doğru IP adresi ve port ayarlarıyla yapılandırıldığından emin olunmalıdır. Bu, bağlantı sorunlarını önlemek ve sistemin düzgün çalışmasını sağlamak için kritik bir adımdır.
 
 **Genel Komut Yapısı:**
 
