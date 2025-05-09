@@ -130,7 +130,7 @@ java -cp <WEKA_JAR_YOLU> -Xmx<MAKS_BELLEK> -Djava.awt.headless=true weka.Run Wek
 **Örnek Komut (Windows, 6GB RAM, 4 slot):**
 
 ```bash
-java -Djava.awt.headless=true -classpath "C:\Program Files\Weka-3-8-6\weka.jar" -Xmx6G weka.Run WekaServer -host 10.202.17.35 -port 8080 -master 10.222.18.190:8080 -slots 4 -staleTime -1
+java -Djava.awt.headless=true -classpath "C:\Program Files\Weka-3-8-6\weka.jar" -Xmx6G weka.Run WekaServer -host 10.202.17.35 -port 8080 -master 10.202.16.171:8080 -slots 4 -staleTime -1
 ```
 
 ---
