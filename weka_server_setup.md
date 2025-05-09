@@ -119,14 +119,14 @@ java -cp <WEKA_JAR_YOLU> -Xmx<MAKS_BELLEK> -Djava.awt.headless=true weka.Run Wek
 - `-port`: Dinlenecek port.
 - `-load-adjust`: Genelde `4` olarak ayarlanır.
 - `-slots`: Slave ve Master'ın kaç görevi eş zamanlı işleyebileceği.
-- `-staleTime -1`: Görev zaman aşımı yoktur.
+- `-staleTime -1`: Görev zaman aşımı yoktur. Buraya dakika cinsinden maksiumum server'ın çalışacağı süreyi girebilirsiniz. Ancak bazı hesaplamaların slave'ler tarafından ne zaman bitirileceğini kestiremezsiniz. Dolayısı ile buraya bir süre koymak Örneğin 20 (dakika) slave'lerden biri 45 dak. sonunda hesaplamayı tamamladığında server kapandığı için hesaplama sonucunu gönderemeyecektir. Bir slave'den bile hesaplama sonucu gelmezse tüm hesaplama boşa çıkar ve sonuç alınamaz.
 
-**Örnek Komut (localhost, 5GB RAM):**
+**Örnek Master Başlatma Komutu (localhost, 5GB RAM):**
 
 ```bash
 java -cp weka.jar -Xmx5000m -Djava.awt.headless=true weka.Run WekaServer -host localhost -port 8085 -load-adjust 4 -slots 1 -staleTime -1
 ```
-Bu komutu başlattıktan sonra, **Windows** ortamlarında güvenlik duvarı uyarı ekranı çıkabilir. Bu durum diğer işletim sistemlerinde görülmeyebilir. Eğer bir uyarı alırsanız, "İzin Ver" seçeneğini tıklayarak ilgili portun WekaServer tarafından kullanılmasına izin vermelisiniz. 
+Bu komutu başlattıktan sonra, **Windows** ortamlarında güvenlik duvarı uyarı ekranı çıkabilir. Bu durum diğer işletim sistemlerinde görülmeyebilir. Eğer bir uyarı alırsanız, "İzin Ver" seçeneğini tıklayarak ilgili portun WekaServer tarafından kullanılmasına izin vermelisiniz. Localhost yerine bilgisayarınızın-server IP sini yazmak DNS probmleri yaşamamak adına tavsiye edilir.
 
 **Linux için**, ilgili portun izinli olduğundan emin olmak için aşağıdaki adımları izleyin:
 1. Güvenlik duvarı durumunu kontrol edin:
