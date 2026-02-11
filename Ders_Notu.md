@@ -25,7 +25,7 @@ Ham veriyi alıp temizlediğimizde, düzenlediğimizde ve örneğin bir Excel ta
 Örnek: `[01-10-2023, 10:00, 3.5 kg]`  
 Artık elimizde bir tarih, saat ve birim var. Bu veri, işlenmeye hazır hammaddedir.
 
-### 3. Enformasyon (Information - Malumat)
+### 3. Enformasyon (Information)
 
 Veriyi alıp "Bu ne anlama geliyor?" sorusunu sorduğumuzda **Enformasyon** seviyesine çıkarız. Veriyi analiz eder, özetler ve bir bağlam katarız.  
 Örnek: "Yeni doğan bu bebeğin ağırlığı 3.5 kg'dır ve bu hastanenin bu ayki ortalamasıdır." demek enformasyondur. Karar verme sürecinin ilk basamağıdır.
