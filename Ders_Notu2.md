@@ -8,13 +8,13 @@ Bilgisayar bilimlerinin ilk yıllarından itibaren işlemci performansındaki ar
 2003'ten itibaren tek çekirdekli performans artışı yavaşlamış ve yıllık %4'lerin altına düşmüştür. Bunun temel nedeni **Güç Duvarı (Power Wall)** olarak anılan fiziksel sınırlardır. Bu sınırlamaların akademik literatürdeki temel nedeni **Dennard Ölçeklemesinin (Dennard Scaling)** çöküşüdür: transistörler küçüldükçe uygulanan voltajın aynı oranda düşürülememesi güç yoğunluğunu fırlatmıştır.
 
 - **Güç ve ısı:** Transistörler küçüldükçe saat frekansı artırılabilse de güç tüketimi frekansın küpü oranında artar; ortaya çıkan ısı soğutma sınırlarına takılır.
-- Bu yüzden çip üreticileri monolitik tek hızlı çekirdekler yerine aynı çipte birden fazla çekirdek (multicore) tasarımlarına yönelmiştir.
+- Bu yüzden çip üreticileri monolitik tek hızlı çekirdekler yerine aynı çipte birden fazla çekirdek (multicore) tasarımlarına yönelmiştir. *(Günlük Hayat Örneği: Mutfakta çok hızlı çalışan ama ısıdan bayılmak üzere olan tek bir şefe yüklenmek yerine, işi normal hızda çalışan 4 ayrı şefe dağıtmak gibidir.)*
 
 Sonuç: Artık donanım ekleyerek eski seri yazılımları otomatik hızlandırmak mümkün değil; programcıların hesaplamaları paralel alt parçalara bölmesi gerekir.
 
 ## Bölüm 2 — Paralel Mimariler ve Flynn Taksonomisi
 
-Paralel bilgisayar donanımları, aynı anda yönetebildikleri komut ve veri akışlarının sayısına göre sınıflandırılır (Flynn Taksonomisi, 1966).
+Paralel bilgisayar donanımları, eşzamanlı olarak yönetebildikleri komut (instruction) ve veri (data) akışlarının sayısına göre sınıflandırılır (Flynn Taksonomisi, 1966). Bu sınıflandırma, **Şekil 1'de** de özetlendiği gibi temelde donanımın veriyi ve talimatı nasıl işlediğine odaklanan dört farklı kategoriden (SISD, SIMD, MISD, MIMD) oluşur.
 
 **Şekil 1: Flynn Taksonomisi**
 ```mermaid
@@ -38,17 +38,21 @@ mindmap
 
 ### 2.1 SISD (Single Instruction, Single Data)
 Klasik von Neumann mimarisi: tek bir komut tek bir veri üzerinde çalışır — seri, tek çekirdekli sistemleri tanımlar.
+> *Analoji: Sadece bir garsonun, sadece tek bir masanın siparişini alıp mutfağa götürmesidir. Her şey sırayla yapılır.*
 
 ### 2.2 SIMD (Single Instruction, Multiple Data)
 Tek bir kontrol birimi aynı komutu birden çok veri öğesine uygular. Döngü seviyesindeki veri paralelliği için idealdir.
 Örnekler: GPU'lar, CPU vektör uzantıları (SSE, AVX). GPU hesaplamalarında bunun türevi olan **SIMT (Single Instruction, Multiple Threads)** mimarisi kullanılır.
+> *Analoji: Bir garsonun kocaman bir tepsiyle 4 farklı müşteriye aynı anda kahve (aynı işlem) götürmesidir. Tek hareketle çok veri işlenmiş olur.*
 
 ### 2.3 MIMD (Multiple Instruction, Multiple Data)
 Birden çok bağımsız işlem birimi farklı komutları ve verileri aynı anda işler. Günümüz büyük paralel sistemlerinin çoğu MIMD'dir.
 Alt türler: Paylaşımlı bellek (shared-memory) ve dağıtık bellek (distributed-memory) sistemleri. Pratikte çok sık olarak **SPMD (Single Program, Multiple Data)** modeliyle (ör. MPI) programlanır.
+> *Analoji: 4 farklı garsonun (işlemci), 4 farklı masanın birbirinden tamamen bağımsız ve farklı siparişlerini (farklı veri ve komut) aynı anda işleyip servis etmesidir.*
 
 ### 2.4 MISD (Multiple Instruction, Single Data)
 Nadir kullanılan bir yapı; aynı veri üzerinde farklı komutların çalıştırıldığı, genellikle yüksek güvenilirlik/yedeklilik gerektiren sistemlerde rastlanır.
+> *Analoji: Aşçının pişirdiği tek bir tabağın (tek veri), hem mutfak şefi hem de bir gurme tarafından aynı anda (farklı talimatlarla) tadılıp puanlanmasıdır. Çift kontrol mekanizmasıdır.*
 
 ## Bölüm 3 — Paralel Hesaplamanın Temel Metrikleri ve Yasaları
 
@@ -71,6 +75,8 @@ $$
 
 ### 3.2 Amdahl Yasası (Amdahl's Law)
 Amdahl yasası paralelleştirilemeyen bölümün (oranı $r$) maksimum hızlanmayı sınırladığını söyler.
+
+> *Analoji: Elinizde süpersonik devasa hızda bir uçak olsun. Uçuş süresini sıfıra yaklaştırsanız bile, yolcuların uçağa binme (boarding) süresi değişmeyecektir. Bu biniş süresi (seri kısım), toplam yolculuğun ne kadar kısalabileceğini acımasızca sınırlar.*
 
 Genel formülü şu şekildedir ($p$ işlemci sayısı):
 
@@ -107,13 +113,17 @@ Bu performans darboğazını aşmak için bilgisayar mimarları, çok hızlı ç
 #### 1.1 Yerellik Prensipleri (Locality of Reference)
 Önbelleklerin verimli çalışması, yazılımların genel davranışı olan yerellik prensiplerine dayanır.
 
+> *Analoji: İşlemciyi bir aşçı (CPU), tezgahı önbellek (Cache) ve kileri de ana bellek (RAM) olarak düşünün. Aşçı her baharat için kilere gitmek istemez.*
+> - **Zamansal Yerellik:** *Bir yemeğe tuz atıyorsanız, 5 dakika sonra başka bir yemeğe de tuz atma ihtimaliniz yüksektir. O yüzden tuzu tezgaha (önbelleğe) koyarsınız.*
+> - **Uzamsal Yerellik:** *Kilere tuz almaya gittiğinizde, hemen yanındaki karabiberi de tezgaha getirirsiniz; çünkü tuz kullanılan yerde genelde karabiber de kullanılıyordur.*
+
 - Zamansal Yerellik (Temporal Locality): Yakın zamanda erişilen veriye yakın gelecekte tekrar erişilme olasılığı yüksektir.
 - Uzamsal Yerellik (Spatial Locality): Bir bellek adresine erişildiğinde, o adrese fiziksel olarak yakın adreslere de yakında erişilme olasılığı yüksektir.
 
 Sistemler uzamsal yerellikten yararlanmak için verileri ana bellekten tek tek değil, önbellek satırları (cache line) adı verilen bitişik bloklar hâlinde (genellikle 64 byte) çeker.
 
 #### 1.2 Önbellek Iskalamaları ve Üç C Kuralı
-CPU'nun ihtiyaç duyduğu veri önbellekte bulunamazsa buna önbellek ıskalaması (cache miss) denir. Bu durumda CPU, veri ana bellekten gelene kadar duraklar (stall). Önbellek ıskalamaları genelde Üç C (Three Cs) kuralı ile sınıflandırılır:
+CPU'nun ihtiyaç duyduğu veri önbellekte bulunamazsa buna önbellek ıskalaması (cache miss) denir. Bu durumda CPU, veri ana bellekten gelene kadar duraklar (stall). Önbellek ıskalamalarının arkasında yatan sebepler donanım mimarisinde "Üç C Kuralı" ile tanımlanır (**Bkz. Şekil 2**). Bu grafikte ıskalamaların yaygın karşılaşılan temel motivasyon dağılımları verilmiştir.
 
 **Şekil 2: Önbellek Iskalamaları (Üç C Kuralı)**
 ```mermaid
@@ -132,8 +142,10 @@ Nesne Yönelimli Programlama (OOP), kod organizasyonunu kolaylaştırsa da çoğ
 
 Veri Odaklı Tasarım, odağı kod yazma konforundan donanım düzeyinde performansa ve veri yerleşimine (data layout) kaydırır. Temel amaç, veriyi diziler hâlinde düzenleyip toplu ve sıralı işlemektir.
 
+> *Analoji: AoS mantığında, mutfak için her personelin önüne bir 'set' menüyü (Havuç, Patates, Soğan paketi) eksiksiz koyarsınız. Ancak sadece patates soyması gereken aşçı, kullanmayacağı havuç ve soğanı da kucağında taşımak zorunda kalır. SoA ise endüstriyel mutfak gibidir: Bütün patatesler bir kapta, soğanlar başka bir kaptadır. Patates soyan aşçı, çuvaldan ardışık olarak sürekli patates (sıralı erişim) alır ve çok daha hızlı çalışır.*
+
 #### 2.1 AoS (Array of Structures)
-AoS yaklaşımında bir varlığa ait alanlar tek bir yapı içinde tutulur ve bu yapıların dizisi oluşturulur.
+AoS yaklaşımında bir varlığa ait alanlar (örneğin X, Y, Z koordinatları) tek bir yapı içinde tutulur ve bu bütün halindeki yapıların dizisi oluşturulur. **Şekil 3'te** görüldüğü gibi, her bir bloğun yan yana kendi bileşenlerini (X1, Y1, Z1) taşıdığı bu bellek serilimi geleneksel Nesne Yönelimli (OOP) kodların varsayılan durumudur.
 
 **Şekil 3: AoS (Array of Structures) Bellek Yerleşimi**
 ```mermaid
@@ -151,7 +163,7 @@ block-beta
 - Dezavantaj: Yalnızca tek bir alan işleniyorsa gereksiz veri taşınır; SIMD verimi düşebilir.
 
 #### 2.2 SoA (Structure of Arrays)
-SoA yaklaşımında her alan kendi ayrı dizisinde tutulur.
+SoA pendekatanında, Vektörel işlemciler (SIMD vb.) için uygun veri dizilimidir. Her bir alan kendi ayrı dizisinde tutulur. **Şekil 4'te**, bir varlığın tüm uzaysal alanlarını (Örneğin tüm X değerleri: X1, X2, X3) aynı bellek satırında ardışık saklayan SoA mimarisi sunulmaktadır. Bu yerleşim sayesinde önbellekten alınan bir "Satır" tamamıyla aynı tür ve işlem görecek verilere sahip olur.
 
 **Şekil 4: SoA (Structure of Arrays) Bellek Yerleşimi**
 ```mermaid
@@ -185,7 +197,9 @@ Değerlendirmede sık kullanılan iki metrik:
 - Makine Dengesi (Machine Balance): Maksimum flop/s değerinin maksimum bant genişliğine oranı.
 
 #### 3.1 Roofline Modeli
-Roofline modeli, uygulamanın donanım sınırlarına ne kadar yakın olduğunu gösteren görsel bir modeldir.
+Roofline modeli, uygulamanın donanım sınırlarına ne kadar yakın olduğunu gösteren görsel bir modeldir. Bu model, tabir-i caizse "Hız yapmamıza motor mu izin vermiyor, yoksa yol mu dar?" sorusunun teknik karşılığıdır. **Şekil 5'te** yer alan Roofline çizelgesi, hesaplama (motor gücü) ile bellek (yol genişliği) kısıtlamalarını görselleştirir.
+
+> *Analoji: Altınızda 300 km/s hız yapabilen bir yarış arabası (Güçlü İşlemci) olabilir. Ancak onu daracık topraklı, tek şeritli bir köy yolunda (Düşük Bellek Bant Genişliği) kullanmaya çalışırsanız, o arabanın gerçek potansiyeline asla ulaşamazsınız. Performansınızı sınırlayan şey motor değil, yoldur (Memory-bound).*
 
 **Şekil 5: Örnek Roofline Modeli**
 ```mermaid
