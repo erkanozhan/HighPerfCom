@@ -1,4 +1,4 @@
-# Yüksek Başarımlı Hesaplama ve Büyük Veri Sistemleri
+ # Yüksek Başarımlı Hesaplama ve Büyük Veri Sistemleri
 
 Gençler, bu dönem boyunca yüksek başarımlı hesaplama sistemlerini konuşacağız, ama motoru çalıştırmadan önce yakıtı tanımamız lazım. Bizim yakıtımız **Veri**. Çoğu zaman "veri", "bilgi", "enformasyon" kelimelerini günlük hayatta birbirinin yerine kullanıyorsunuz. Ancak mühendislikte, özellikle de büyük veri (Big Data) dünyasında bu kavramlar arasında dağlar kadar fark vardır. Eğer bu temel hiyerarşiyi oturtamazsak, kuracağımız bilgisayarlar sadece elektrik israf eden ısıtıcılar olur.
 
