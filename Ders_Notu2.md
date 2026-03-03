@@ -56,12 +56,15 @@ Paralel program performansını değerlendirirken seri çözüme göre sağlanan
 
 ### 3.1 Hızlanma (Speedup) ve Verimlilik (Efficiency)
 Hızlanma $S$ şu şekilde tanımlanır:
+
 $$
 S = \frac{T_{\mathrm{serial}}}{T_{\mathrm{parallel}}}
 $$
+
 İdeal durumda $p$ işlemci ile $S=p$ (lineer hızlanma) beklenir; ancak iletişim ve senkronizasyon overhead'i buna engel olur.
 
 Verimlilik $E$ ise:
+
 $$
 E = \frac{S}{p} = \frac{T_{\mathrm{serial}}}{p\,T_{\mathrm{parallel}}}
 $$
@@ -70,20 +73,24 @@ $$
 Amdahl yasası paralelleştirilemeyen bölümün (oranı $r$) maksimum hızlanmayı sınırladığını söyler.
 
 Genel formülü şu şekildedir ($p$ işlemci sayısı):
+
 $$
 S(p) = \frac{1}{r + \frac{1-r}{p}}
 $$
 
 Eğer programın $r$ kadarı seri ise, işlemci sayısı $p\to\infty$ olursa hızlanmanın üst sınırı:
+
 $$
 S_{\max} = \frac{1}{r}
 $$
+
 Örnek: Programın %90'ı paralelleştirilebiliyorsa ($r=0.1$), en fazla $1/0.1=10$ kat hızlanma elde edilir.
 
 ### 3.3 Gustafson–Barsis Yasası (Gustafson's Law)
 Gustafson ve Barsis, problem boyutu işlemci sayısıyla birlikte artırıldığında (weak scaling) seri kısmın göreli etkisinin küçüldüğünü gösterdiler. Pratikte daha fazla çekirdek mevcutsa problem boyutu büyütülerek toplam hızlanma korunabilir veya artırılabilir. 
 
 Ölçeklenmiş hızlanma (scaled speedup) formülü:
+
 $$
 S(p) = p - r(p-1)
 $$
