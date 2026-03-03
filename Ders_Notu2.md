@@ -1,4 +1,4 @@
-Yüksek Başarılı Hesaplama (HPC) - Hafta 1 Ders Notları
+Yüksek Başarımlı Hesaplama (HPC) - Hafta 1 Ders Notları
 
 ## Bölüm 1 — Modern Donanım ve Paralel Hesaplamaya Giriş
 
@@ -16,6 +16,7 @@ Sonuç: Artık donanım ekleyerek eski seri yazılımları otomatik hızlandırm
 
 Paralel bilgisayar donanımları, aynı anda yönetebildikleri komut ve veri akışlarının sayısına göre sınıflandırılır (Flynn Taksonomisi, 1966).
 
+**Şekil 1: Flynn Taksonomisi**
 ```mermaid
 mindmap
   root((Flynn<br/>Taksonomisi))
@@ -89,7 +90,7 @@ $$
 
 Sonuç: Amdahl'ın kısıtlayıcı öngörüsü her zaman geçerli olmayabilir; ölçeklendirme stratejisi önemlidir.
 
-## Yüksek Başarılı Hesaplama (HPC) - Hafta 2 Ders Notları
+## Yüksek Başarımlı Hesaplama (HPC) - Hafta 2 Ders Notları
 
 ### Bölüm 1 — İşlemci Mimarisi ve Bellek Hiyerarşisi
 Modern işlemciler (CPU), komutları ve hesaplamaları ana bellekten (DRAM) veri getirme hızına kıyasla çok daha hızlı işleyebilir. İşlemci hızı ile bellek hızı arasındaki bu giderek açılan farka von Neumann darboğazı veya DRAM boşluğu (DRAM gap) adı verilir.
@@ -107,6 +108,7 @@ Sistemler uzamsal yerellikten yararlanmak için verileri ana bellekten tek tek d
 #### 1.2 Önbellek Iskalamaları ve Üç C Kuralı
 CPU'nun ihtiyaç duyduğu veri önbellekte bulunamazsa buna önbellek ıskalaması (cache miss) denir. Bu durumda CPU, veri ana bellekten gelene kadar duraklar (stall). Önbellek ıskalamaları genelde Üç C (Three Cs) kuralı ile sınıflandırılır:
 
+**Şekil 2: Önbellek Iskalamaları (Üç C Kuralı)**
 ```mermaid
 pie title Üç C Kuralı (Cache Misses)
   "Compulsory (Zorunlu)\nİlk erişim" : 30
@@ -126,6 +128,7 @@ Veri Odaklı Tasarım, odağı kod yazma konforundan donanım düzeyinde perform
 #### 2.1 AoS (Array of Structures)
 AoS yaklaşımında bir varlığa ait alanlar tek bir yapı içinde tutulur ve bu yapıların dizisi oluşturulur.
 
+**Şekil 3: AoS (Array of Structures) Bellek Yerleşimi**
 ```mermaid
 block-beta
   columns 3
@@ -143,6 +146,7 @@ block-beta
 #### 2.2 SoA (Structure of Arrays)
 SoA yaklaşımında her alan kendi ayrı dizisinde tutulur.
 
+**Şekil 4: SoA (Structure of Arrays) Bellek Yerleşimi**
 ```mermaid
 block-beta
   columns 3
@@ -176,9 +180,10 @@ Değerlendirmede sık kullanılan iki metrik:
 #### 3.1 Roofline Modeli
 Roofline modeli, uygulamanın donanım sınırlarına ne kadar yakın olduğunu gösteren görsel bir modeldir.
 
+**Şekil 5: Örnek Roofline Modeli**
 ```mermaid
+%%{init: {'themeVariables': { 'xyChart': {'plotColorPalette': '#e74c3c'} } } }%%
 xychart-beta
-    title "Örnek Roofline Modeli"
     x-axis "Aritmetik Yoğunluk (Flop/Byte)" 0.1 --> 100
     y-axis "Performans (GFlops/s)" 1 --> 1000
     line [1, 10, 100, 1000, 1000, 1000]
