@@ -1,8 +1,18 @@
-# Yüksek Başarımlı Hesaplama (HPC) - Hafta 1 Ders Notları
+# Giriş: Konrad Zuse ve Bilgisayar Devrimi
 
-## Bölüm 1 — Modern Donanım ve Paralel Hesaplamaya Giriş
+Konrad Zuse, 1941 yılında dünyanın ilk tam otomatik ve programlanabilir bilgisayarını inşa ederek adeta bir devrim başlattı. Zuse, bu icadın yalnızca bilim ve mühendislik problemlerini çözmekle kalmayıp, gündelik yaşamın her alanına nüfuz edecek bir potansiyele sahip olduğunu öngörmüştü.
 
-### 1.1 Paralel Hesaplamaya Neden İhtiyaç Duyarız?
+Bugün, Zuse'nin vizyonu fazlasıyla gerçeğe dönüşmüş durumda. Bankacılıktan tıpa, eğitimden sanata kadar her sektörde kritik bir rol oynayan bilgisayarlar, sundukları **inanılmaz hız** sayesinde vazgeçilmez hale gelmiştir. Karmaşık hesaplamaları, görselleştirmeleri ve büyük veri yığınlarını sürekli artan bir süratle işleyebilme kabiliyetleri, bilimsel araştırmalarda yeni ufuklar açmış ve daha önce çözülmesi imkansız görünen sorunların üstesinden gelinmesini sağlamıştır.
+
+Bilgisayarların temel etkileri şunlardır:
+
+*   **Hız ve Verimlilik:** Hesaplama ve veri işleme süreçlerini olağanüstü hızlandırarak, tekrarlayan görevleri otomatikleştirmiş ve zamandan büyük tasarruf sağlamıştır.
+*   **Karmaşık Araştırmalar:** Gelişmiş modeller ve simülasyonlar aracılığıyla bilimsel ve mühendislik araştırmalarına yeni bir boyut kazandırmıştır.
+*   **Küresel İletişim:** Dünya çapında anlık ve gecikmesiz bilgi paylaşımını mümkün hale getirmiştir.
+
+# Hafta 1: Modern Donanım ve Paralel Hesaplamaya Giriş
+
+## 1.1 Paralel Hesaplamaya Neden İhtiyaç Duyarız?
 
 Bilgisayar bilimlerinin ilk yıllarından itibaren işlemci performansındaki artış donanım mimarisindeki ilerlemelerle paralellik göstermiştir. 1986'dan 2003 yılına kadar standart mikroişlemcilerin performansı yılda ortalama %50'den fazla artmıştır; bu artış yazılımcıların yeni donanımı kullanarak uygulamaları hızlandırmasını kolaylaştırmıştır. Bu yükselişin itici gücü Moore Yasasıdır.
 
@@ -13,12 +23,11 @@ Bilgisayar bilimlerinin ilk yıllarından itibaren işlemci performansındaki ar
 
 Sonuç: Artık donanım ekleyerek eski seri yazılımları otomatik hızlandırmak mümkün değil; programcıların hesaplamaları paralel alt parçalara bölmesi gerekir.
 
-## Bölüm 2 — Paralel Mimariler ve Flynn Taksonomisi
+## 1.2 Paralel Mimariler ve Flynn Taksonomisi
 
 Paralel bilgisayar donanımları, eşzamanlı olarak yönetebildikleri komut (instruction) ve veri (data) akışlarının sayısına göre sınıflandırılır (Flynn Taksonomisi, 1966). Bu sınıflandırma, **Şekil 1'de** de özetlendiği gibi temelde donanımın veriyi ve talimatı nasıl işlediğine odaklanan dört farklı kategoriden (SISD, SIMD, MISD, MIMD) oluşur.
 
-## Şekil 1: Flynn Taksonomisi
-
+**Şekil 1: Flynn Taksonomisi**
 ```mermaid
 mindmap
   root((Flynn<br/>Taksonomisi))
@@ -38,37 +47,37 @@ mindmap
         SPMD
 ```
 
-### 2.1 SISD (Single Instruction, Single Data)
+### 1.2.1 SISD (Single Instruction, Single Data)
 
 Klasik von Neumann mimarisi: tek bir komut tek bir veri üzerinde çalışır — seri, tek çekirdekli sistemleri tanımlar.
 
 Örnek: Sadece bir garsonun, sadece tek bir masanın siparişini alıp mutfağa götürmesidir. Her şey sırayla yapılır.
 
-### 2.2 SIMD (Single Instruction, Multiple Data)
+### 1.2.2 SIMD (Single Instruction, Multiple Data)
 
 Tek bir kontrol birimi aynı komutu birden çok veri öğesine uygular. Döngü seviyesindeki veri paralelliği için idealdir.
 Örnekler: GPU'lar, CPU vektör uzantıları (SSE, AVX). GPU hesaplamalarında bunun türevi olan **SIMT (Single Instruction, Multiple Threads)** mimarisi kullanılır.
 
 Örnek: Bir garsonun kocaman bir tepsiyle 4 farklı müşteriye aynı anda kahve (aynı işlem) götürmesidir. Tek hareketle çok veri işlenmiş olur.
 
-### 2.3 MIMD (Multiple Instruction, Multiple Data)
+### 1.2.3 MIMD (Multiple Instruction, Multiple Data)
 
 Birden çok bağımsız işlem birimi farklı komutları ve verileri aynı anda işler. Günümüz büyük paralel sistemlerinin çoğu MIMD'dir.
 Alt türler: Paylaşımlı bellek (shared-memory) ve dağıtık bellek (distributed-memory) sistemleri. Pratikte çok sık olarak **SPMD (Single Program, Multiple Data)** modeliyle (ör. MPI) programlanır.
 
 Örnek: Büyük bir peyzaj işinde (bahçecilik), bir bahçıvanın çim biçme makinesiyle çimleri biçmesi, diğerinin makasla ağaçları budaması, bir başkasının ise hortumla çiçekleri sulaması gibidir. Her biri farklı bir aletle (farklı komut), bahçenin farklı bir köşesinde (farklı veri) aynı anda ve bağımsız çalışır.
 
-### 2.4 MISD (Multiple Instruction, Single Data)
+### 1.2.4 MISD (Multiple Instruction, Single Data)
 
 Nadir kullanılan bir yapı; aynı veri üzerinde farklı komutların çalıştırıldığı, genellikle yüksek güvenilirlik/yedeklilik gerektiren sistemlerde rastlanır.
 
 Örnek: Aşçının pişirdiği tek bir tabağın (tek veri), hem mutfak şefi hem de bir gurme tarafından aynı anda (farklı talimatlarla) tadılıp puanlanmasıdır. Çift kontrol mekanizmasıdır.
 
-## Bölüm 3 — Paralel Hesaplamanın Temel Metrikleri ve Yasaları
+## 1.3 Paralel Hesaplamanın Temel Metrikleri ve Yasaları
 
 Paralel program performansını değerlendirirken seri çözüme göre sağlanan kazanımı ölçeriz.
 
-### 3.1 Hızlanma (Speedup) ve Verimlilik (Efficiency)
+### 1.3.1 Hızlanma (Speedup) ve Verimlilik (Efficiency)
 
 Hızlanma $S$ şu şekilde tanımlanır:
 
