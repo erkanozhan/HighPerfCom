@@ -1,18 +1,108 @@
-# Giriş: Konrad Zuse ve Bilgisayar Devrimi
+# Yüksek Başarımlı Hesaplama (HPC) - Ders Notları
+1.	Modern İşlemciler
 
-Konrad Zuse, 1941 yılında dünyanın ilk tam otomatik ve programlanabilir bilgisayarını inşa ederek adeta bir devrim başlattı. Zuse, bu icadın yalnızca bilim ve mühendislik problemlerini çözmekle kalmayıp, gündelik yaşamın her alanına nüfuz edecek bir potansiyele sahip olduğunu öngörmüştü.
+Konrad Zuse ve Bilgisayarların Etkisi
+1941 yılında Konrad Zuse, dünyanın ilk tam otomatik, serbest programlanabilir ve ikili kayan noktalı aritmetiğe  sahip bilgisayarını inşa ettiğinde, bu devrimci cihazın sadece bilim ve mühendislikte değil, yaşamın her alanındaki potansiyelini öngörmüştü. Bugün, Zuse'nin hayali gerçeğe dönüşmüş durumda: Bilgisayarlar, onun zamanından beri hayatımızı ve araştırmalarımızı kökten değiştirmiştir. Hesaplamaları, görselleştirmeleri ve genel veri işlemeyi inanılmaz ve sürekli artan bir hızda gerçekleştirebilmeleri sayesinde artık vazgeçilmez hale gelmişlerdir.
 
-Bugün, Zuse'nin vizyonu fazlasıyla gerçeğe dönüşmüş durumda. Bankacılıktan tıpa, eğitimden sanata kadar her sektörde kritik bir rol oynayan bilgisayarlar, sundukları **inanılmaz hız** sayesinde vazgeçilmez hale gelmiştir. Karmaşık hesaplamaları, görselleştirmeleri ve büyük veri yığınlarını sürekli artan bir süratle işleyebilme kabiliyetleri, bilimsel araştırmalarda yeni ufuklar açmış ve daha önce çözülmesi imkansız görünen sorunların üstesinden gelinmesini sağlamıştır.
+Zuse'nin Vizyonu ve Gerçeklik
+Zuse, bilgisayarların sadece bilimsel ve mühendislik problemlerini çözmek için değil, günlük yaşamın her alanına nüfuz edeceğini hayal etti.
+Bugün, bilgisayarlar bankacılıktan tıpa, eğitimden eğlenceye kadar her sektörde kritik rol oynamaktadır.
 
-Bilgisayarların temel etkileri şunlardır:
+Bilgisayarların Etkileri
+Hız: Hesaplamalar ve veri işleme inanılmaz derecede hızlı hale geldi. Bu da karmaşık problemleri çözmemizi ve daha önce mümkün olmayan keşifler yapmamızı sağlıyor.
+Verimlilik: Rutin ve tekrarlayan görevler otomasyona tabi tutularak zamandan ve emekten tasarruf sağlanıyor.
+İletişim: Gecikmesiz iletişim ve bilgi paylaşımı mümkün hale geldi.
+Karmaşık Araştırma: Karmaşık modeller ve simülasyonlar kullanılarak bilimsel araştırmalar yeni bir boyut kazandı.
 
-*   **Hız ve Verimlilik:** Hesaplama ve veri işleme süreçlerini olağanüstü hızlandırarak, tekrarlayan görevleri otomatikleştirmiş ve zamandan büyük tasarruf sağlamıştır.
-*   **Karmaşık Araştırmalar:** Gelişmiş modeller ve simülasyonlar aracılığıyla bilimsel ve mühendislik araştırmalarına yeni bir boyut kazandırmıştır.
-*   **Küresel İletişim:** Dünya çapında anlık ve gecikmesiz bilgi paylaşımını mümkün hale getirmiştir.
 
-# Hafta 1: Modern Donanım ve Paralel Hesaplamaya Giriş
 
-## 1.1 Paralel Hesaplamaya Neden İhtiyaç Duyarız?
+*Kayan Noktalı Aritmetik ve Sayı Temsili*
+Bilgisayar bilimlerinde, kayan noktalı aritmetik (Floating Point-FP), gerçek sayıların alt kümelerini, sabit bir hassasiyete sahip bir tamsayı (signifikand) olarak, sabit bir tabanın tamsayı üssü ile çarpılarak gösteren bir aritmetiktir. Bu formdaki sayılara kayan noktalı sayılar denir.
+
+### Kayan Noktalı Sayıların Görsel Anatomisi (IEEE 754 32-bit Standartı)
+
+İlk olarak, sabit noktalı (fixed-point) sayılarla kayan noktalı sayıların farkını göstermek için basit bir blok çizimi yapabilirsiniz:
+
+**1. Sabit Noktalı Sistem (Sorunlu Yapı):**
+Noktanın yeri sabittir. Çok büyük sayılarda tam sayı kısmı taşar, çok küçük sayılarda kesir kısmı yetersiz kalır.
+
+```text
+[ Tam Sayı Kısmı (16 bit) ] . [ Kesir Kısmı (16 bit) ]
+                            ^
+                     Nokta hep buradadır
+
+```
+
+**2. Kayan Noktalı Sistem (Çözüm):**
+Sayıyı bilimsel gösterime çevirip parçalara ayırırız. Noktanın nerede "duracağı" bilgisini ayrı bir kutuda (Üs) tutarız.
+
+```text
+  1 Bit       8 Bit                  23 Bit
+  +---+ +----------------+ +-----------------------------------------+
+  | S | |       Üs       | |                 Mantis                  |
+  |   | |   (Exponent)   | |      (Significand / Anlamlı Kısım)      |
+  +---+ +----------------+ +-----------------------------------------+
+   31    30            23   22                                      0
+
+```
+
+* **S (Sign - 1 bit):** İşaret biti. $0$ ise pozitif, $1$ ise negatif.
+* **Üs (Exponent - 8 bit):** Noktanın ne kadar sağa veya sola kaydığını tutar. (Bias/Sapma değeri eklenerek saklanır).
+* **Mantis (Mantissa - 23 bit):** Sayının asıl anlamlı basamaklarını tutar.
+
+---
+
+### $5.75$ Sayısını Bilgisayar Nasıl Görür?
+
+Bu işlemi tahtada adım adım şu şekilde görselleştirebilirsiniz:
+
+**Adım 1: Sayıyı İkili (Binary) Sisteme Çevirme**
+Tam sayı ve kesir kısmını ayrı ayrı çeviriyoruz:
+
+* Tam sayı kısmı: $5_{10} = 101_2$
+* Kesir kısmı: $0.75_{10} = 0.5 + 0.25 = 11_2$
+* **Birleşim:** $101.11_2$
+
+**Adım 2: Sayıyı Normalize Etme (Noktayı Kaydırma)**
+Bilimsel gösterimde olduğu gibi, noktayı en baştaki $1$'in yanına kadar kaydırıyoruz. Nokta $2$ basamak sola kayıyor.
+
+* **Orijinal:** $101.11$
+* **Kayan Noktalı Hali:** $1.0111 \times 2^2$
+
+**Adım 3: Blokları Doldurma (Şema Üzerinde)**
+
+**A) İşaret (S):**
+Sayı pozitif olduğu için kutuya **0** yazılır.
+
+**B) Üs (Exponent):**
+Noktayı $2$ basamak kaydırdık. Ancak IEEE 754 standardında negatif üslerle uğraşmamak için sabit bir sapma (bias) değeri olan $127$ eklenir.
+
+* Hesap: $2 + 127 = 129$
+* $129$'un ikili karşılığı: **10000001**
+
+**C) Mantis (Mantissa):**
+Virgülden sonraki kısmı (`0111`) alırız. Standarda göre baştaki "1." kısmı her zaman var kabul edildiği için (Gizli bit / Hidden bit kuralı) hafızaya yazılmaz, bu sayede 1 bit yer kazanılır.
+
+* Geriye kalan 23 biti doldurmak için sonuna sıfırlar eklenir: **01110000000000000000000**
+
+**Sonuç: Bilgisayarın Hafızasındaki Görünüm**
+Öğrencilere nihai yapıyı şu şema ile birleştirerek gösterebilirsiniz:
+
+```text
+   S       ÜS (Exponent)             MANTİS (Mantissa)
+ +---+ +------------------+ +---------------------------------------+
+ | 0 | | 1 0 0 0 0 0 0 1  | | 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+ +---+ +------------------+ +---------------------------------------+
+
+```
+
+
+
+
+
+## Bölüm 1 — Modern Donanım ve Paralel Hesaplamaya Giriş
+
+### 1.1 Paralel Hesaplamaya Neden İhtiyaç Duyarız?
 
 Bilgisayar bilimlerinin ilk yıllarından itibaren işlemci performansındaki artış donanım mimarisindeki ilerlemelerle paralellik göstermiştir. 1986'dan 2003 yılına kadar standart mikroişlemcilerin performansı yılda ortalama %50'den fazla artmıştır; bu artış yazılımcıların yeni donanımı kullanarak uygulamaları hızlandırmasını kolaylaştırmıştır. Bu yükselişin itici gücü Moore Yasasıdır.
 
@@ -23,11 +113,12 @@ Bilgisayar bilimlerinin ilk yıllarından itibaren işlemci performansındaki ar
 
 Sonuç: Artık donanım ekleyerek eski seri yazılımları otomatik hızlandırmak mümkün değil; programcıların hesaplamaları paralel alt parçalara bölmesi gerekir.
 
-## 1.2 Paralel Mimariler ve Flynn Taksonomisi
+## Bölüm 2 — Paralel Mimariler ve Flynn Taksonomisi
 
 Paralel bilgisayar donanımları, eşzamanlı olarak yönetebildikleri komut (instruction) ve veri (data) akışlarının sayısına göre sınıflandırılır (Flynn Taksonomisi, 1966). Bu sınıflandırma, **Şekil 1'de** de özetlendiği gibi temelde donanımın veriyi ve talimatı nasıl işlediğine odaklanan dört farklı kategoriden (SISD, SIMD, MISD, MIMD) oluşur.
 
-**Şekil 1: Flynn Taksonomisi**
+## Şekil 1: Flynn Taksonomisi
+
 ```mermaid
 mindmap
   root((Flynn<br/>Taksonomisi))
@@ -47,37 +138,37 @@ mindmap
         SPMD
 ```
 
-### 1.2.1 SISD (Single Instruction, Single Data)
+### 2.1 SISD (Single Instruction, Single Data)
 
 Klasik von Neumann mimarisi: tek bir komut tek bir veri üzerinde çalışır — seri, tek çekirdekli sistemleri tanımlar.
 
 Örnek: Sadece bir garsonun, sadece tek bir masanın siparişini alıp mutfağa götürmesidir. Her şey sırayla yapılır.
 
-### 1.2.2 SIMD (Single Instruction, Multiple Data)
+### 2.2 SIMD (Single Instruction, Multiple Data)
 
 Tek bir kontrol birimi aynı komutu birden çok veri öğesine uygular. Döngü seviyesindeki veri paralelliği için idealdir.
 Örnekler: GPU'lar, CPU vektör uzantıları (SSE, AVX). GPU hesaplamalarında bunun türevi olan **SIMT (Single Instruction, Multiple Threads)** mimarisi kullanılır.
 
 Örnek: Bir garsonun kocaman bir tepsiyle 4 farklı müşteriye aynı anda kahve (aynı işlem) götürmesidir. Tek hareketle çok veri işlenmiş olur.
 
-### 1.2.3 MIMD (Multiple Instruction, Multiple Data)
+### 2.3 MIMD (Multiple Instruction, Multiple Data)
 
 Birden çok bağımsız işlem birimi farklı komutları ve verileri aynı anda işler. Günümüz büyük paralel sistemlerinin çoğu MIMD'dir.
 Alt türler: Paylaşımlı bellek (shared-memory) ve dağıtık bellek (distributed-memory) sistemleri. Pratikte çok sık olarak **SPMD (Single Program, Multiple Data)** modeliyle (ör. MPI) programlanır.
 
 Örnek: Büyük bir peyzaj işinde (bahçecilik), bir bahçıvanın çim biçme makinesiyle çimleri biçmesi, diğerinin makasla ağaçları budaması, bir başkasının ise hortumla çiçekleri sulaması gibidir. Her biri farklı bir aletle (farklı komut), bahçenin farklı bir köşesinde (farklı veri) aynı anda ve bağımsız çalışır.
 
-### 1.2.4 MISD (Multiple Instruction, Single Data)
+### 2.4 MISD (Multiple Instruction, Single Data)
 
 Nadir kullanılan bir yapı; aynı veri üzerinde farklı komutların çalıştırıldığı, genellikle yüksek güvenilirlik/yedeklilik gerektiren sistemlerde rastlanır.
 
 Örnek: Aşçının pişirdiği tek bir tabağın (tek veri), hem mutfak şefi hem de bir gurme tarafından aynı anda (farklı talimatlarla) tadılıp puanlanmasıdır. Çift kontrol mekanizmasıdır.
 
-## 1.3 Paralel Hesaplamanın Temel Metrikleri ve Yasaları
+## Bölüm 3 — Paralel Hesaplamanın Temel Metrikleri ve Yasaları
 
 Paralel program performansını değerlendirirken seri çözüme göre sağlanan kazanımı ölçeriz.
 
-### 1.3.1 Hızlanma (Speedup) ve Verimlilik (Efficiency)
+### 3.1 Hızlanma (Speedup) ve Verimlilik (Efficiency)
 
 Hızlanma $S$ şu şekilde tanımlanır:
 
@@ -91,7 +182,6 @@ $$
 
 **Overhead**, paralel hesaplama sırasında asıl işten ziyade koordinasyon ve yönetim görevleri için harcanan gereksiz zamandır. Bu, paralelleştirmenin maliyetidir ve asıl problemi çözmek için doğrudan katkısı olmayan işlemlerdir.
 
-Örnekler günlük hayattan:
 - Yönetim yapması gereken bir aşçıbaşı, 10 aşçıyı koordine etmek (kimse ne yapacağını bilmediğinden), aralarında malzeme akışını sağlamak ve herkesin çalışmasını denetlemek için   harcadığı 2 saat, hiçbir yemeği hazırlamaz. O 2 saat tamamen **overhead**'dir.
 - Beş bahçıvan çalışırken, bahçeyi bölümlere ayırma, araçları paylaştırma ve sonunda çalışmaları birleştirme planlaması yapılsa da, bu planlama zamanı bahçeyi biçmemektedir.
 - Bir paketi 5 kargo görevlisine dağıtmak isteyebilirsiniz; ancak kimin nereye gideceğini söylemek için 30 dakika harcarsanız, bu 30 dakika paket taşınmamıştır.
