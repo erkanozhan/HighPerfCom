@@ -368,19 +368,248 @@ Bu dört işlem, bellek bant genişliğinin ne kadar verimli kullanıldığını
 
 Bu ölçümler, streaming erişimlerde belleğin ulaşabildiği GB/s seviyesini verir. Eğer uygulama bant genişliği verimi STREAM sonucunun belirgin şekilde altında kalıyorsa, olası nedenler önbellek çakışmaları ve yüksek ıskalama oranlarıdır.
 
-## Bölüm 4 — Paylaşımlı Bellek Programlama ve OpenMP Temelleri
+## Bölüm 4 — İşlemci Mimarisi, Bellek Hiyerarşisi ve Veri Odaklı Tasarım Notları
+
+Bu ders notları, modern bilgisayar mimarilerindeki paralel işlem kapasitesini, bellek sistemlerinin performans üzerindeki belirleyici rolünü ve paralel algoritmaların tasarım prensiplerini akademik bir titizlikle ele almaktadır. Notlar, Grama ve ark. (2003) tarafından sunulan kuramsal ve pratik temeller üzerine inşa edilmiştir.
+
+### 4.1 Giriş: Modern İşlemci Gelişimi ve Paralelliğin Gerekliliği
+
+Mikroişlemci teknolojisi, Moore Yasası olarak bilinen ve devre karmaşıklığının yaklaşık her 18 ayda bir ikiye katlanacağını öngören ampirik gözlem doğrultusunda devasa bir gelişim göstermiştir. Tarihsel süreçte, 1988'de 40 MHz (MIPS R3000) olan saat hızları, 2002'de 2.0 GHz (Pentium 4) seviyelerine ulaşarak yaklaşık 50 kat artmıştır. Ancak bu gelişim süreci, sistem performansını etkileyen kritik darboğazları da beraberinde getirmiştir.
+
+- **Hesaplama Gücü (FLOPS):** Transistör sayısındaki artış, işlemcilerin saniyede yapabildiği kayan nokta operasyonu sayısını (FLOPS) dramatik şekilde artırmıştır.
+- **İşlemci-Bellek Uçurumu:** İşlemci saat hızları yıllık %40 oranında iyileşirken, DRAM erişim süreleri (latency) yalnızca %10 oranında iyileşebilmiştir. Bu asimetri, işlemcinin veri beklerken atıl kalmasına neden olan "bellek duvarı" (memory wall) sorununu doğurmuştur.
+- **Veri İletişimi:** Modern sistemlerde performans, sadece verinin ne kadar hızlı işlendiğiyle değil, bellek hiyerarşisi içindeki iletişim maliyetleriyle sınırlıdır.
+
+### 4.2 Mikroişlemci Mimarilerinde Örtük Paralellik (Implicit Parallelism)
+
+Gençler, kodumuzu özel olarak paralelleştirmek için uğraşmasak bile modern donanım ve derleyiciler arka planda işleri hızlandırmak için çeşitli taktikler kullanır. Yazılımcının müdahalesi olmadan donanım ve derleyici (compiler) seviyesinde sağlanan bu yapıya **Örtük Paralellik (Implicit Parallelism)** diyoruz.
+
+#### 4.2.1 Boru Hattı (Pipelining) ve Süper-skaler Yürütme
+
+Bir mikroişlemcinin komutları nasıl işlediğini anlamak için bir otomobil fabrikasındaki montaj hattını düşünelim. Tek bir işçinin bir arabayı baştan sona tek başına üretmesi yerine, işi aşamalara böleriz. Buna donanım mimarisinde **Boru Hattı (Pipelining)** diyoruz. İngilizce *pipe* (boru) kelimesinden türeyen bu terim, verinin bir borudan sürekli akması gibi komutların da işlemciden kesintisiz akmasını ifade eder.
+
+Bir komutun işlenmesi temelde dört aşamadan oluşur:
+1. **Fetch (Getirme):** Komutun bellekten alınması.
+2. **Decode (Çözme):** Komutun ne anlama geldiğinin çözümlenmesi (Latince *de-* ayrılma ve *codex* şifre kelimelerinden türemiştir, şifreyi/kodu çözmek anlamına gelir).
+3. **Execute (Yürütme):** Matematiksel veya mantıksal işlemin yapılması.
+4. **Write-back (Geri Yazma):** Sonucun bellek veya yazmaçlara (registers) kaydedilmesi.
+
+Bu aşamaların üst üste bindirildiği yapı aşağıda gösterilmektedir:
+
+```dot
+digraph PipelineTable {
+    node [shape=none, fontname="Helvetica"];
+    Pipeline [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="8">
+        <tr>
+            <td bgcolor="#e5e7e9"><b>Zaman &rarr;</b></td>
+            <td bgcolor="#d5f5e3"><b>t1</b></td>
+            <td bgcolor="#d5f5e3"><b>t2</b></td>
+            <td bgcolor="#d5f5e3"><b>t3</b></td>
+            <td bgcolor="#d5f5e3"><b>t4</b></td>
+            <td bgcolor="#d5f5e3"><b>t5</b></td>
+        </tr>
+        <tr>
+            <td bgcolor="#ebdef0"><b>Komut 1</b></td>
+            <td bgcolor="#aed6f1">Fetch</td>
+            <td bgcolor="#aed6f1">Decode</td>
+            <td bgcolor="#aed6f1">Execute</td>
+            <td bgcolor="#aed6f1">Write</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td bgcolor="#ebdef0"><b>Komut 2</b></td>
+            <td></td>
+            <td bgcolor="#f9e79f">Fetch</td>
+            <td bgcolor="#f9e79f">Decode</td>
+            <td bgcolor="#f9e79f">Execute</td>
+            <td bgcolor="#f9e79f">Write</td>
+        </tr>
+    </table>
+    >];
+}
+```
+
+Dikkat ederseniz, komutların tamamlanma süresi kısalmaz; ancak aşamalar üst üste bindiği için birim zamanda tamamlanan komut sayısı (throughput) artırılır. Süper-skaler işlemciler ise, aynı anda birden fazla komutu işleme alabilen birden fazla boru hattına sahiptir. Ancak bu mimaride üç temel bağımlılık (dependency) türü performansı sınırlar:
+
+1. **Gerçek Veri Bağımlılığı (True Data Dependency):** Bir komutun sonucu, bir sonraki komutun girdisi olduğunda ortaya çıkar.
+2. **Kaynak Bağımlılığı (Resource Dependency):** İki komutun aynı anda aynı donanım birimine (örn. tek bir kayan nokta ünitesi) erişmek istemesidir.
+3. **Yordamsal Bağımlılık (Procedural Dependency):** Dallanma (branch) komutları nedeniyle bir sonraki komutun adresinin belirsiz olmasıdır. Bu durum, yanlış dallanma tahmini yapıldığında boru hattının boşaltılmasına (pipeline flush) ve ciddi performans kaybına yol açar.
+
+#### 4.2.2 VLIW (Çok Uzun Komut Kelimesi) İşlemciler
+
+VLIW mimarisi, süper-skaler mimarinin karmaşık bağımlılık analiz donanımını ortadan kaldırarak bu yükü derleyiciye aktarır. Bağımsız komutlar derleme zamanında tek bir uzun kelime içinde paketlenir.
+
+| Özellik | Süper-skaler Mimari | VLIW Mimari (IA64 vb.) |
+| :--- | :--- | :--- |
+| **Zamanlama Kararı** | Çalışma zamanı (Donanım) | Derleme zamanı (Yazılım) |
+| **Bağımlılık Analizi** | Karmaşık donanım mantığı | Derleyici optimizasyonu |
+| **Donanım Karmaşıklığı** | Yüksek | Düşük |
+| **Verimlilik Kaybı** | Dinamik stall'lar | Yatay ve Dikey Atık (Waste) |
+
+VLIW sistemlerde, bir çevrimde bazı işlem birimlerinin boş kalması yatay atık (horizontal waste), hiçbir komut paketinin gönderilememesi ise dikey atık (vertical waste) olarak tanımlanır (Şekil 2.1c).
+
+### 4.3 Bellek Sistemi Performansı ve Sınırlamalar
+
+Geleneksel von Neumann mimarisindeki darboğazı aşmak için modern sistemler bellek hiyerarşisini kullanır.
+
+#### 4.3.1 Gecikme (Latency) vs. Bant Genişliği (Bandwidth)
+
+Grama ve ark. (2003), bu ayrımı bir itfaiye hortumu analojisiyle açıklar:
+
+- **Gecikme:** Musluk açıldıktan sonra suyun hortumun ucundan çıkması için geçen süredir (nanosaniye).
+- **Bant Genişliği:** Hortumun birim zamanda aktarabildiği su miktarıdır (GB/s).
+
+#### 4.3.2 Önbellek (Cache) Dinamikleri ve Yerellik İlkesi
+
+Gençler, işlemci bir veriye ihtiyaç duyduğunda doğrudan çok daha yavaş olan ana belleğe (RAM) gitmez. Önce hemen yanı başındaki önbelleğe bakar. Önbellek, İngilizce *Cache* (Fransızca *cacher*, 'saklamak, gizlemek' fiilinden gelir, işlemciye yakın gizlenmiş depo anlamındadır) olarak adlandırılır. Aradığı veri oradaysa buna **Önbellek İsabeti (Cache Hit)** deriz ve veri anında işlemciye iletilir. Veri yoksa, bu duruma **Önbellek Iskalaması (Cache Miss)** denir. Bu durumda işlemci ana belleğe gitmek zorundadır, ki bu da çok ciddi bir zaman kaybı yaratır.
+
+Bu karar mekanizmasını ve veri akışını aşağıdaki diyagramda inceleyelim:
+
+```dot
+digraph CacheFlow {
+    node [fontname="Helvetica", shape=box, style=rounded];
+    edge [fontname="Helvetica", fontsize=10];
+
+    Req [label="İşlemci (CPU) Veri Talep Eder", shape=oval, fillcolor="#f5b041", style=filled];
+    Check [label="Veri Önbellekte (Cache) var mı?", shape=diamond, fillcolor="#aed6f1", style=filled];
+    Hit [label="Evet (Cache Hit)\nVeri doğrudan CPU'ya iletilir", fillcolor="#abebc6", style=filled];
+    Miss [label="Hayır (Cache Miss)\nAna Belleğe (RAM) gidilir", fillcolor="#f5cba7", style=filled];
+    FetchRAM [label="Veri RAM'den alınır ve\nÖnbelleğe yazılır (kopyalanır)"];
+    ReturnCPU [label="Veri CPU'ya iletilir"];
+
+    Req -> Check;
+    Check -> Hit [label=" Evet "];
+    Check -> Miss [label=" Hayır "];
+    Miss -> FetchRAM;
+    FetchRAM -> ReturnCPU;
+    Hit -> ReturnCPU;
+}
+```
+
+Önbellek performansının yüksek olması, donanımsal bir rastlantı değil, yazılımların genel bir karakteristiği olan **Yerellik İlkesi (Locality of Reference)** üzerine kuruludur:
+
+- **Zamansal Yerellik (Temporal Locality):** Bir veri öğesine (örneğin döngü değişkeni olan `i`) erişildiğinde, yakın gelecekte tekrar erişilme olasılığının yüksek olmasıdır.
+- **Uzamsal Yerellik (Spatial Locality):** Erişilen bir verinin bellekte bitişiğindeki verilere (örneğin dizinin bir sonraki elemanı `dizi[i+1]`) erişilme olasılığının yüksek olmasıdır.
+
+> **Örnek 2.3 (Matris Çarpımı Analizi):** 1 GHz hızında bir işlemcide, 100 ns DRAM gecikmesi olan bir sistemde $32 \times 32$ matris çarpımı yapıldığında:
+> 
+> - 2K kelimenin (matrisler A ve B) önbelleğe getirilmesi yaklaşık $200~\mu s$ sürer.
+> - 64K operasyonun (4 komut/çevrim kapasitesiyle) icrası $16~\mu s$ sürer.
+> - Toplam süre: $216~\mu s$. Performans: 303 MFLOPS.
+> - Önbellek olmasaydı (No-cache scenario), her erişimde 100 çevrim bekleneceği için performans yaklaşık 10 MFLOPS seviyesine düşecekti.
+
+### 4.4 Veri Odaklı Tasarım: Veri Erişim Desenleri ve Optimizasyon
+
+Yazılımın bellek dizilimi, donanım verimliliğini doğrudan belirler.
+
+#### 4.4.1 Adımlı Erişim (Strided Access) Problemi
+
+Örnek 2.5'te görüldüğü gibi, matris verisinin bellek dizilimine ters yönde erişilmesi mekansal yerelliği yok eder.
+
+```c
+// Örnek 2.5: Kötü Mekansal Yerellik (Sütun Öncelikli Erişim / Column-Major Access)
+for (int i = 0; i < 1000; i++) {
+    for (int j = 0; j < 1000; j++) {
+        column_sum[i] += b[j][i]; // Her erişimde yeni cache line yüklenir
+    }
+}
+```
+
+#### 4.4.2 Döngü Döşeme (Tiling)
+
+Tiling tekniği, büyük veri setlerini önbelleğe sığacak küçük bloklara bölerek bellek bant genişliği gereksinimini azaltır (Örnek 2.6).
+
+```c
+// Örnek 2.6: Tiling (Bloklama) Mantığı
+for (int ii = 0; ii < n; ii += B) {
+    for (int jj = 0; jj < n; jj += B) {
+        for (int i = ii; i < min(ii + B, n); i++) {
+            for (int j = jj; j < min(jj + B, n); j++) {
+                // Blok bazlı işlem yaparak veriyi cache'de tutuyoruz
+            }
+        }
+    }
+}
+```
+
+#### 4.4.3 AoS vs. SoA
+
+- **AoS (Array of Structures):** Verinin nesne tabanlı (örn. `[x,y,z, x,y,z]`) dizilimi.
+- **SoA (Structure of Arrays):** Verinin öznitelik tabanlı (örn. `[x,x,x], [y,y,y]`) dizilimi.
+- **Teknik Not:** SoA, SIMD (Vektörel) birimlerin aynı özniteliği birden fazla kayıt için bitişik bellekten tek seferde yüklemesine (contiguous loading) olanak tanıdığı için tercih edilir.
+
+### 4.5 Bellek Gecikmesini Gizleme Teknikleri
+
+#### 4.5.1 Çoklu İş Parçacığı (Multithreading)
+
+İşlemci, bir iş parçacığı bellekten veri beklerken (stall), diğer bir iş parçacığına geçiş yaparak yürütme birimlerini dolu tutar (Örnek 2.7).
+
+#### 4.5.2 Önceden Getirme (Prefetching)
+
+Verinin ihtiyaç duyulmadan önce donanım veya yazılım tarafından önbelleğe yüklenmesidir (Örnek 2.8). Ancak prefetching, yanlış tahmin edilirse veya aşırı yapılırsa bellek bant genişliğini gereksiz yere işgal edebilir.
+
+> **Vurgu Kutusu: Bant Genişliği ve Trade-off (Örnek 2.9)**
+> Multithreading, gecikmeyi gizlese de toplam bant genişliği ihtiyacını artırır. Tek bir thread %90 hit oranıyla 400 MB/s bant genişliği talep ederken; 32 thread kullanıldığında her birinin cache payı azalacağından (örn. %25 hit oranı), toplam ihtiyaç 3 GB/s seviyesine çıkabilir.
+
+### 4.6 Performans Limitleri ve Analiz Modelleri
+
+**STREAM Benchmark Analizi (Örnek 2.4):** Bir vektör nokta çarpımı (dot-product) işleminde, 100ns gecikmeli bir sistemde:
+
+- Blok boyutu 1 kelime ise: $100 \text{ ns}$'de 1 kelime çekilir $\rightarrow$ 10 MFLOPS.
+- Blok boyutu 4 kelime (cache line) ise: $100 \text{ ns}$'de çekilen 4 kelime sonraki 4 operasyonun verisini sağlar. Bu durum, mekansal yerellik sayesinde gecikmenin 4 operasyona amortize edilmesini sağlar ve performansı 40 MFLOPS seviyesine çıkarır.
+
+### 4.7 Paralel Platformlar ve Kontrol Yapıları
+
+- **SIMD (Single Instruction, Multiple Data):** Tek bir komutun birden fazla veri üzerinde (örn. vektör işlemcileri) icrasıdır.
+  > **Örnek 2.11:** SIMD mimarisinde `if-else` blokları performansı düşürür; çünkü `if` bloğunu çalıştıran işlemciler varken `else` kısmındakiler atıl beklemek zorundadır (masking).
+- **MIMD (Multiple Instruction, Multiple Data):** Her işlemcinin bağımsız program ve veri akışına sahip olmasıdır.
+- **Paylaşılan Adres Uzayı:**
+  - **UMA:** Tüm işlemciler tüm belleğe aynı sürede erişir.
+  - **NUMA (Şekil 2.5):** İşlemcinin yerel belleğine erişimi, diğer işlemcilerin yerel (uzak) belleklerine erişiminden daha hızlıdır.
+
+### 4.8 Algoritma Tasarım Prensipleri ve Görev Bağımlılıkları
+
+Paralel algoritma tasarımında problem görevlere (tasks) ayrıştırılır ve bu görevler arasındaki bağımlılıklar bir Görev Bağımlılık Grafiği (DAG) ile gösterilir.
+
+#### 4.8.1 Temel Formülasyonlar
+
+Grama ve ark. (2003) uyarınca, paralellik derecesini belirleyen metrikler:
+
+- **Toplam İş (W):** Tüm görevlerin toplam süresi.
+- **Kritik Yol Uzunluğu (L):** Grafikteki en uzun bağımlılık yolu.
+- **Ortalama Paralellik Derecesi (Avg Concurrency):**
+  $$ \text{Avg Concurrency} = \frac{W}{L} $$
+
+#### 4.8.2 Veritabanı Sorgu İşleme Analizi (Şekil 3.2 ve 3.3)
+
+İki farklı ayrıştırma stratejisinin karşılaştırmalı analizi:
+
+**1. Strateji (a):**
+- Toplam İş (W): 63 birim.
+- Kritik Yol (L): 27 birim.
+- Ortalama Paralellik: $63 / 27 \approx \mathbf{2.33}$
+
+**2. Strateji (b):**
+- Toplam İş (W): 64 birim.
+- Kritik Yol (L): 34 birim.
+- Ortalama Paralellik: $64 / 34 \approx \mathbf{1.88}$
+
+> **Akademik Sonuç:** Strateji (a), daha kısa bir kritik yola ve daha yüksek bir ortalama paralellik derecesine sahip olduğu için daha verimli bir paralel yapı sunar. Algoritma tasarımında temel hedef, kritik yolu minimize ederek işlemci kaynaklarını maksimize etmektir.
+
+## Bölüm 5 — Paylaşımlı Bellek Programlama ve OpenMP Temelleri
 
 Gençler, bilgisayar bilimlerinde hesaplama gerektiren büyük bir işi kısa sürede bitirmenin temel kuralı, o işi parçalara bölüp eldeki işlemcilere dağıtmaktır. Bu kavramı zihnimizde somutlaştırmak için büyük bir restoran mutfağını düşünelim. Her bir mutfak, kendine ait dolapları, ocağı ve tezgahı olan kapalı bir kutudur. Bilgisayar sistemlerinde bu mutfakların her birine süreç (Process) diyoruz. Farklı mutfaklardaki (süreçlerdeki) aşçılar birbirlerinin malzemelerini doğrudan kullanamazlar. 
 
 Ancak aynı mutfağın içindeki aşçıları düşünürsek, durum değişir. Bu aşçılar aynı tezgahı, aynı buzdolabını ve aynı malzemeleri ortaklaşa kullanırlar; sadece her birinin elinde o an üzerinde çalıştığı işin kendi tarifi veya kendi bıçağı vardır. İşte aynı süreç (Process) içinde, ortak bellek alanını (heap memory) paylaşan ancak kendi yürütme sırasına ve kendi özel çağrı yığınına (stack) sahip olan bu hafif sıklet alt birimlere **İş Parçacığı (Thread)** diyoruz. İngilizcede "iplik" veya "sicim" anlamına gelen bu kelime, program içindeki bağımsız yürütme ipliklerini ifade eder. Paylaşımlı bellek (Shared-Memory) programlamanın temeli, bu iş parçacıklarının ortak bir hafıza üzerinde uyum içinde çalışmasını sağlamaktır.
 
-### 4.1 Açık Çoklu İşleme: OpenMP ve Pragma Mantığı
+### 5.1 Açık Çoklu İşleme: OpenMP ve Pragma Mantığı
 
 Paylaşımlı bellek mimarilerinde iş parçacıklarını yönetmek için kullanılan en yaygın standartlardan biri **OpenMP (Open Multi-Processing - Açık Çoklu İşleme)**'dir. OpenMP, C, C++ ve Fortran gibi dillerde yazılmış programlara sonradan eklenerek, derleyiciye (compiler) kodun hangi kısımlarının paralel çalıştırılacağını söyleyen bir Uygulama Programlama Arayüzü (API - Application Programming Interface) sunar.
 
 OpenMP kullanırken doğrudan karmaşık iş parçacığı oluşturma (thread creation) fonksiyonları yazmak yerine, **Pragma** adı verilen yapıları kullanırız. Pragma, Yunanca "eylem, iş, kural" anlamına gelen *pragma* kelimesinden gelir (günlük dildeki *pragmatik* kelimesi de buradan türemiştir). Programlamada pragma, derleyiciye verilen özel bir talimat veya kuraldır. C ve C++ dillerinde bu komutlar her zaman `#pragma omp` ifadesiyle başlar. Derleyici OpenMP'yi desteklemiyorsa bu satırları sadece bir yorum satırı olarak görüp görmezden gelir, böylece kodunuz tek işlemcili (seri) sistemlerde de hatasız çalışmaya devam eder.
 
-### 4.2 Fork-Join (Dallanma-Birleşme) Modeli
+### 5.2 Fork-Join (Dallanma-Birleşme) Modeli
 
 OpenMP, iş parçacıklarını yönetirken **Fork-Join** adı verilen bir model kullanır. Program çalışmaya başladığında, sadece tek bir ana iş parçacığı (Master Thread) aktiftir. Bu ana iş parçacığı, paralelleştirilmesi gereken bir kod bloğuna (`#pragma omp parallel`) ulaştığında kendini çoğaltır, yani dallanır (Fork). 
 
@@ -416,7 +645,7 @@ digraph ForkJoin {
 
 Ana iş parçacığı tarafından oluşturulan bu yeni iş parçacığı kümesine "takım" (team) adı verilir. Takımdaki her bir çocuk (child) iş parçacığı, belirtilen kod bloğunu aynı anda çalıştırır. Blok bittiğinde ise tüm iş parçacıkları görünmez bir bariyerde (implicit barrier) birbirini bekler, birleşir (Join) ve sadece ana iş parçacığı kodu sırayla yürütmeye devam eder.
 
-### 4.3 Döngü Seviyesinde (Loop-level) Paralelleştirme
+### 5.3 Döngü Seviyesinde (Loop-level) Paralelleştirme
 
 Bilimsel hesaplamalarda zamanın çok büyük bir kısmı `for` döngülerinde harcanır. Döngü içindeki adımlar (iterasyonlar) birbirine bağımlı değilse, bu döngüleri paralelleştirmek işlem süresini ciddi oranda kısaltır. OpenMP'de bir `for` döngüsünü iş parçacıklarına paylaştırmak için döngünün hemen öncesine şu yönergeyi yazarız:
 
@@ -429,7 +658,7 @@ for (int i = 0; i < N; i++) {
 
 Bu komut sayesinde sistem, döngü sayısını (N) aktif iş parçacığı sayısına böler. Örneğin 1000 adet patatesin soyulması (`for` döngüsü) gerektiğini ve mutfakta 4 aşçının (thread) bulunduğunu varsayalım. Döngü seviyesinde paylaştırma (Worksharing) mantığı, ilk 250 patatesi birinci aşçıya, ikinci 250'yi ikinci aşçıya verecek şekilde işi bloklar halinde dağıtır. Böylece her aşçı kendi patates kümesine odaklanır ve iş dört katına yakın bir hızla tamamlanır.
 
-### 4.4 Veri Paylaşım Kuralları (Data Scoping)
+### 5.4 Veri Paylaşım Kuralları (Data Scoping)
 
 Paylaşımlı bellek programlamanın en hassas noktası, hangi verinin ortak kullanılacağı, hangisinin iş parçacıklarına özel kalacağıdır. Bu veri kapsamı (Data Scoping) kurallarını dikkatli belirlemezsek, aynı hafıza bölgesine aynı anda yazmaya çalışan iş parçacıkları yarış durumu (Race Condition) dediğimiz ölümcül hatalara sebep olur.
 
