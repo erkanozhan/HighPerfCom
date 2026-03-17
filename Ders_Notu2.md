@@ -1,5 +1,5 @@
 # Yüksek Başarımlı Hesaplama (HPC) - Ders Notları
-1.	Modern İşlemciler
+## Modern İşlemciler
 
 Konrad Zuse ve Bilgisayarların Etkisi
 1941 yılında Konrad Zuse, dünyanın ilk tam otomatik, serbest programlanabilir ve ikili kayan noktalı aritmetiğe  sahip bilgisayarını inşa ettiğinde, bu devrimci cihazın sadece bilim ve mühendislikte değil, yaşamın her alanındaki potansiyelini öngörmüştü. Bugün, Zuse'nin hayali gerçeğe dönüşmüş durumda: Bilgisayarlar, onun zamanından beri hayatımızı ve araştırmalarımızı kökten değiştirmiştir. Hesaplamaları, görselleştirmeleri ve genel veri işlemeyi inanılmaz ve sürekli artan bir hızda gerçekleştirebilmeleri sayesinde artık vazgeçilmez hale gelmişlerdir.
@@ -16,7 +16,7 @@ Karmaşık Araştırma: Karmaşık modeller ve simülasyonlar kullanılarak bili
 
 
 
-*Kayan Noktalı Aritmetik ve Sayı Temsili*
+### Kayan Noktalı Aritmetik ve Sayı Temsili
 Bilgisayar bilimlerinde, kayan noktalı aritmetik (Floating Point-FP), gerçek sayıların alt kümelerini, sabit bir hassasiyete sahip bir tamsayı (signifikand) olarak, sabit bir tabanın tamsayı üssü ile çarpılarak gösteren bir aritmetiktir. Bu formdaki sayılara kayan noktalı sayılar denir.
 
 ### Kayan Noktalı Sayıların Görsel Anatomisi (IEEE 754 32-bit Standartı)
@@ -46,9 +46,9 @@ Sayıyı bilimsel gösterime çevirip parçalara ayırırız. Noktanın nerede "
 
 ```
 
-* **S (Sign - 1 bit):** İşaret biti. $0$ ise pozitif, $1$ ise negatif.
-* **Üs (Exponent - 8 bit):** Noktanın ne kadar sağa veya sola kaydığını tutar. (Bias/Sapma değeri eklenerek saklanır).
-* **Mantis (Mantissa - 23 bit):** Sayının asıl anlamlı basamaklarını tutar.
+- **S (Sign - 1 bit):** İşaret biti. $0$ ise pozitif, $1$ ise negatif.
+- **Üs (Exponent - 8 bit):** Noktanın ne kadar sağa veya sola kaydığını tutar. (Bias/Sapma değeri eklenerek saklanır).
+- **Mantis (Mantissa - 23 bit):** Sayının asıl anlamlı basamaklarını tutar.
 
 ---
 
@@ -59,15 +59,15 @@ Bu işlemi tahtada adım adım şu şekilde görselleştirebilirsiniz:
 **Adım 1: Sayıyı İkili (Binary) Sisteme Çevirme**
 Tam sayı ve kesir kısmını ayrı ayrı çeviriyoruz:
 
-* Tam sayı kısmı: $5_{10} = 101_2$
-* Kesir kısmı: $0.75_{10} = 0.5 + 0.25 = 11_2$
-* **Birleşim:** $101.11_2$
+- Tam sayı kısmı: $5_{10} = 101_2$
+- Kesir kısmı: $0.75_{10} = 0.5 + 0.25 = 0.11_2$
+- **Birleşim:** $101.11_2$
 
 **Adım 2: Sayıyı Normalize Etme (Noktayı Kaydırma)**
 Bilimsel gösterimde olduğu gibi, noktayı en baştaki $1$'in yanına kadar kaydırıyoruz. Nokta $2$ basamak sola kayıyor.
 
-* **Orijinal:** $101.11$
-* **Kayan Noktalı Hali:** $1.0111 \times 2^2$
+- **Orijinal:** $101.11$
+- **Kayan Noktalı Hali:** $1.0111 \times 2^2$
 
 **Adım 3: Blokları Doldurma (Şema Üzerinde)**
 
@@ -294,7 +294,7 @@ block-beta
 
 ### 2.2 SoA (Structure of Arrays)
 
-SoA pendekatanında, Vektörel işlemciler (SIMD vb.) için uygun veri dizilimidir. Her bir alan kendi ayrı dizisinde tutulur. **Şekil 4'te**, bir varlığın tüm uzaysal alanlarını (Örneğin tüm X değerleri: X1, X2, X3) aynı bellek satırında ardışık saklayan SoA mimarisi sunulmaktadır. Bu yerleşim sayesinde önbellekten alınan bir "Satır" tamamıyla aynı tür ve işlem görecek verilere sahip olur.
+SoA yaklaşımında, Vektörel işlemciler (SIMD vb.) için uygun veri dizilimidir. Her bir alan kendi ayrı dizisinde tutulur. **Şekil 4'te**, bir varlığın tüm uzaysal alanlarını (Örneğin tüm X değerleri: X1, X2, X3) aynı bellek satırında ardışık saklayan SoA mimarisi sunulmaktadır. Bu yerleşim sayesinde önbellekten alınan bir "Satır" tamamıyla aynı tür ve işlem görecek verilere sahip olur.
 
 ## Şekil 4: SoA (Structure of Arrays) Bellek Yerleşimi
 
@@ -341,9 +341,15 @@ Roofline modeli, uygulamanın donanım sınırlarına ne kadar yakın olduğunu 
 ```mermaid
 %%{init: {'themeVariables': { 'xyChart': {'plotColorPalette': '#e74c3c'} } } }%%
 xychart-beta
-    x-axis "Aritmetik Yoğunluk (Flop/Byte)" 0.1 --> 100
-    y-axis "Performans (GFlops/s)" 1 --> 1000
-    line [1, 10, 100, 1000, 1000, 1000]
+    x-axis "Aritmetik Yoğunluk (Flop/Byte)" log
+    y-axis "Performans (GFlops/s)" log
+    line([
+        {"x": 0.1, "y": 1},
+        {"x": 1, "y": 10},
+        {"x": 10, "y": 100},
+        {"x": 100, "y": 1000},
+        {"x": 1000, "y": 1000}
+    ])
 ```
 
 - Dikey eksen: Performans (flop/s).
