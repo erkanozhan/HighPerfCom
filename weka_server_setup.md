@@ -40,7 +40,10 @@ Oracle veya AdoptOpenJDK (Temurin) gibi resmi kaynaklardan Java 8 JRE veya JDK'y
 - Daha yüksek Java sürümlerine ihtiyaç duyan yazılımlarınız varsa, bu sürümleri kaldırmayın.
 - Java 1.8'i öncelikli yapmak için:
   1. Windows ortam değişkenlerini açın.
-  JAVA_HOME değişkeni açarak değerini "C:\Program Files\Java\jre-1.8" yapın. Ortamda örneğin Java 21 de yüklüyse bu durumda System Variables başlığı altında (Ortam değişkenleri penceresinin altındaki bölümde) bulunan Path değişkeninin içeriğini açarak Java 1.8'in yolunu diğer sürümlerin üstüne taşıyın. Alternatif olarak, birden fazla Java sürümünü yönetmek için `jenv` gibi bir Java sürüm yöneticisi kullanabilirsiniz. Bu araç, farklı projeler için kolayca Java sürümleri arasında geçiş yapmanıza olanak tanır.
+  2. `JAVA_HOME` değişkenini "C:\Program Files\Java\jre-1.8" olarak ayarlayın.
+  3. Ortamda örneğin Java 21 de yüklüyse System Variables başlığı altında bulunan Path değişkeninin içeriğini açarak Java 1.8'in yolunu diğer sürümlerin üstüne taşıyın.
+  
+  Alternatif olarak, birden fazla Java sürümünü yönetmek için `jenv` gibi bir Java sürüm yöneticisi kullanabilirsiniz. Bu araç, farklı projeler için kolayca Java sürümleri arasında geçiş yapmanıza olanak tanır.
 
   Değişikliklerden sonra aktif Java sürümünü doğrulamak için aşağıdaki komutu çalıştırın:
   ```bash
