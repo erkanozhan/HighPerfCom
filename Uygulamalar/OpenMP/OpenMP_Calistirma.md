@@ -109,9 +109,9 @@ Bu örnek, OpenMP ile temel paralel programlamanın nasıl gerçekleştirileceğ
 
 ### 2. Paralel Toplama Örneği
 ```c
-# include <stdio.h>
-# include <omp.h>
-# include <time.h>
+#include <stdio.h>
+#include <omp.h>
+#include <time.h>
 # define N 4000000000LL
 
                       /* İşlemcinizin gücüne göre buradaki değeri düşürebilirsiniz genelde en baştaki 4 rakamını daha düşük seçerek 
