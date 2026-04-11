@@ -609,19 +609,12 @@ Paylaşımlı bellek mimarilerinde iş parçacıklarını yönetmek için kullan
 
 OpenMP kullanırken doğrudan karmaşık iş parçacığı oluşturma (thread creation) fonksiyonları yazmak yerine, **Pragma** adı verilen yapıları kullanırız. Pragma, Yunanca "eylem, iş, kural" anlamına gelen *pragma* kelimesinden gelir (günlük dildeki *pragmatik* kelimesi de buradan türemiştir). Programlamada pragma, derleyiciye verilen özel bir talimat veya kuraldır. C ve C++ dillerinde bu komutlar her zaman `#pragma omp` ifadesiyle başlar. Derleyici OpenMP'yi desteklemiyorsa bu satırları sadece bir yorum satırı olarak görüp görmezden gelir, böylece kodunuz tek işlemcili (seri) sistemlerde de hatasız çalışmaya devam eder.
 
-### 5.2 Fork-Join (Dallanma-Birleşme) Modeli
 
 ### 5.2 Fork-Join (Dallanma-Birleşme) Modeli
 
 OpenMP, iş parçacıklarını yönetmek için **Fork-Join** (Dallanma-Birleşme) adı verilen güçlü ve sezgisel bir model kullanır. Bu model, programın seri ve paralel bölümleri arasındaki geçişi açıkça tanımlar.
 
 Aşağıdaki interaktif şema, tek bir ana iş parçacığının nasıl çoğaldığını, paralel bir görevi nasıl yerine getirdiğini ve ardından tekrar tek bir izlek halinde nasıl birleştiğini görselleştirmektedir.
-
-### 5.2 Fork-Join (Dallanma-Birleşme) Modeli
-
-OpenMP, iş parçacıklarını yönetirken Fork-Join adı verilen bir model kullanır. Program çalışmaya başladığında, sadece tek bir ana iş parçacığı (Master Thread) aktiftir. Bu ana iş parçacığı, paralelleştirilmesi gereken bir kod bloğuna (#pragma omp parallel) ulaştığında kendini çoğaltır, yani dallanır (Fork).
-
-Aşağıdaki şemada bu mantığı görebilirsiniz:
 
 ![OpenMP Fork-Join Modeli](images/fork_join.svg)
 
