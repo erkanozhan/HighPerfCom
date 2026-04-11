@@ -625,6 +625,8 @@ Aşağıdaki şemada bu mantığı görebilirsiniz:
 
 ![OpenMP Fork-Join Modeli](images/fork_join.svg)
 
+![Hareketli Model](images/hareketli_fork_join.svg)
+
 Ana iş parçacığı tarafından oluşturulan bu yeni iş parçacığı kümesine "takım" (team) adı verilir. Takımdaki her bir çocuk (child) iş parçacığı, belirtilen kod bloğunu aynı anda çalıştırır. Blok bittiğinde ise tüm iş parçacıkları görünmez bir bariyerde (implicit barrier) birbirini bekler, birleşir (Join) ve sadece ana iş parçacığı kodu sırayla yürütmeye devam eder.
 
 #### Modelin Çalışma Mantığı

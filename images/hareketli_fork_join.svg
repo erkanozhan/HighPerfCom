@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 400" font-family="Arial, sans-serif">
+    <style>
+        /* Animasyon Tanımlamaları */
+        .master-in { animation: flowIn 5s infinite linear; }
+        .thread-top { animation: flowTop 5s infinite linear; }
+        .thread-mid { animation: flowMid 5s infinite linear; }
+        .thread-bot { animation: flowBot 5s infinite linear; }
+        .master-out { animation: flowOut 5s infinite linear; }
+
+        @keyframes flowIn {
+            0% { transform: translateX(100px); opacity: 1; }
+            20% { transform: translateX(270px); opacity: 1; }
+            21%, 100% { opacity: 0; }
+        }
+        @keyframes flowTop {
+            0%, 20% { transform: translate(270px, 195px); opacity: 0; }
+            21% { opacity: 1; }
+            30% { transform: translate(340px, 100px); opacity: 1; }
+            70% { transform: translate(580px, 100px); opacity: 1; }
+            80% { transform: translate(650px, 195px); opacity: 1; }
+            81%, 100% { opacity: 0; }
+        }
+        @keyframes flowMid {
+            0%, 20% { transform: translate(270px, 195px); opacity: 0; }
+            21% { opacity: 1; }
+            30% { transform: translate(340px, 195px); opacity: 1; }
+            70% { transform: translate(580px, 195px); opacity: 1; }
+            80% { transform: translate(650px, 195px); opacity: 1; }
+            81%, 100% { opacity: 0; }
+        }
+        @keyframes flowBot {
+            0%, 20% { transform: translate(270px, 195px); opacity: 0; }
+            21% { opacity: 1; }
+            30% { transform: translate(340px, 290px); opacity: 1; }
+            70% { transform: translate(580px, 290px); opacity: 1; }
+            80% { transform: translate(650px, 195px); opacity: 1; }
+            81%, 100% { opacity: 0; }
+        }
+        @keyframes flowOut {
+            0%, 80% { opacity: 0; transform: translateX(650px); }
+            81% { opacity: 1; }
+            100% { transform: translateX(820px); opacity: 1; }
+        }
+    </style>
+
+    <rect width="850" height="400" fill="#f4f6f9"/>
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7f8c8d" /></marker>
+    </defs>
+
+    <rect x="350" y="60" width="220" height="270" rx="10" fill="#e8eaed" stroke="#bdc3c7" stroke-width="1" stroke-dasharray="5,5"/>
+    <text x="460" y="50" text-anchor="middle" font-size="14" font-style="italic" fill="#7f8c8d">Paralel Bölge (Takım)</text>
+
+    <line x1="100" y1="195" x2="230" y2="195" stroke="#bdc3c7" stroke-width="2" stroke-dasharray="4,4"/>
+    <path d="M 305 180 Q 340 100 380 100 L 540 100 Q 580 100 615 180" fill="none" stroke="#bdc3c7" stroke-width="2" stroke-dasharray="4,4"/>
+    <path d="M 305 195 L 615 195" fill="none" stroke="#bdc3c7" stroke-width="2" stroke-dasharray="4,4"/>
+    <path d="M 305 210 Q 340 290 380 290 L 540 290 Q 580 290 615 210" fill="none" stroke="#bdc3c7" stroke-width="2" stroke-dasharray="4,4"/>
+    <line x1="685" y1="195" x2="820" y2="195" stroke="#bdc3c7" stroke-width="2" stroke-dasharray="4,4"/>
+
+    <circle cx="270" cy="195" r="35" fill="#ecf0f1" stroke="#34495e" stroke-width="2"/>
+    <text x="270" y="190" text-anchor="middle" font-size="16" font-weight="bold" fill="#2c3e50">Fork</text>
+    
+    <circle cx="650" cy="195" r="35" fill="#ecf0f1" stroke="#34495e" stroke-width="2"/>
+    <text x="650" y="190" text-anchor="middle" font-size="16" font-weight="bold" fill="#2c3e50">Join</text>
+
+    <circle class="master-in" cx="0" cy="0" r="10" fill="#e74c3c" />
+    <circle class="thread-top" cx="0" cy="0" r="10" fill="#27ae60" />
+    <text class="thread-top" x="0" y="-15" text-anchor="middle" font-size="12" font-weight="bold" fill="#27ae60">T0</text>
+    
+    <circle class="thread-mid" cx="0" cy="0" r="10" fill="#f1c40f" />
+    <text class="thread-mid" x="0" y="-15" text-anchor="middle" font-size="12" font-weight="bold" fill="#d4ac0d">T1</text>
+    
+    <circle class="thread-bot" cx="0" cy="0" r="10" fill="#2980b9" />
+    <text class="thread-bot" x="0" y="-15" text-anchor="middle" font-size="12" font-weight="bold" fill="#2980b9">T2</text>
+    
+    <circle class="master-out" cx="0" cy="0" r="10" fill="#e74c3c" />
+</svg>
