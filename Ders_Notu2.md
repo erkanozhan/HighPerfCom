@@ -449,60 +449,42 @@ VLIW mimarisi, süper-skaler mimarinin karmaşık bağımlılık analiz donanım
 
 VLIW sistemlerde, bir çevrimde bazı işlem birimlerinin boş kalması yatay atık (horizontal waste), hiçbir komut paketinin gönderilememesi ise dikey atık (vertical waste) olarak tanımlanır (Şekil 2.1c).
 
+Gençler, işlemciler yıllar içinde muazzam hızlandı; ancak ana belleğin (RAM) veriyi aynı hızda ulaştıramaması, bilgisayar mimarisinde meşhur "von Neumann darboğazı" (von Neumann bottleneck) dediğimiz sorunu yarattı. Modern sistemler bu darboğazı aşmak için katmanlı bir bellek hiyerarşisi inşa ederler.
+
 ### 4.3 Bellek Sistemi Performansı ve Sınırlamalar
 
-Geleneksel von Neumann mimarisindeki darboğazı aşmak için modern sistemler bellek hiyerarşisini kullanır.
+Donanım verimliliğini konuşurken, performansın sınırlarını çizen iki temel kavramı çok iyi ayırt etmemiz gerekir.
 
 #### 4.3.1 Gecikme (Latency) vs. Bant Genişliği (Bandwidth)
 
-Grama ve ark. (2003), bu ayrımı bir itfaiye hortumu analojisiyle açıklar:
+Grama ve ark. (2003), bu ayrımı zihnimizde canlandırmak için oldukça etkili bir "itfaiye hortumu" analojisi kullanır:
 
-- **Gecikme:** Musluk açıldıktan sonra suyun hortumun ucundan çıkması için geçen süredir (nanosaniye).
-- **Bant Genişliği:** Hortumun birim zamanda aktarabildiği su miktarıdır (GB/s).
+- **Gecikme (Latency):** Vanayı açtığınız an ile suyun hortumun diğer ucundan dışarı çıkması arasında geçen süredir. Bilgisayarda bu, işlemcinin bellekten veri istediği an ile verinin işlemciye ulaştığı an arasındaki süredir (genellikle nanosaniye cinsinden ölçülür).
+- **Bant Genişliği (Bandwidth):** Su akmaya başladıktan sonra, saniyede kaç litre su aktığıdır. Sistemlerimizde ise birim zamanda aktarılabilen veri miktarıdır (örneğin Gigabayt/saniye - GB/s). 
 
 #### 4.3.2 Önbellek (Cache) Dinamikleri ve Yerellik İlkesi
 
-Gençler, işlemci bir veriye ihtiyaç duyduğunda doğrudan çok daha yavaş olan ana belleğe (RAM) gitmez. Önce hemen yanı başındaki önbelleğe bakar. Önbellek, İngilizce *Cache* (Fransızca *cacher*, 'saklamak, gizlemek' fiilinden gelir, işlemciye yakın gizlenmiş depo anlamındadır) olarak adlandırılır. Aradığı veri oradaysa buna **Önbellek İsabeti (Cache Hit)** deriz ve veri anında işlemciye iletilir. Veri yoksa, bu duruma **Önbellek Iskalaması (Cache Miss)** denir. Bu durumda işlemci ana belleğe gitmek zorundadır, ki bu da çok ciddi bir zaman kaybı yaratır.
+İşlemci bir veriye ihtiyaç duyduğunda doğrudan çok daha yavaş olan ana belleğe gitmez. Önce hemen yanı başındaki çok hızlı hafızaya bakar. Bu hafızaya **Önbellek** diyoruz. İngilizce terim olan *Cache*, Fransızca "saklamak, gizlemek" anlamına gelen *cacher* fiilinden türemiştir; işlemcinin hemen yanına gizlenmiş küçük ama çok hızlı bir depo anlamı taşır.
 
-Bu karar mekanizmasını ve veri akışını aşağıdaki diyagramda inceleyelim:
+Aradığı veri bu depoda mevcutsa buna **Önbellek İsabeti (Cache Hit)** deriz ve veri anında yürütme birimine iletilir. Eğer veri orada yoksa, bu duruma **Önbellek Iskalaması (Cache Miss)** denir. İşlemci bu durumda mecburen uzun yolu seçip ana belleğe (RAM) gitmek zorundadır, ki bu da işlemci için çok ciddi bir boşta bekleme (zaman kaybı) yaratır.
 
-```dot
-digraph CacheFlow {
-    node [fontname="Helvetica", shape=box, style=rounded];
-    edge [fontname="Helvetica", fontsize=10];
+Bu karar mekanizmasını ve veri akışını aşağıdaki şemada görebilirsiniz:
 
-    Req [label="İşlemci (CPU) Veri Talep Eder", shape=oval, fillcolor="#f5b041", style=filled];
-    Check [label="Veri Önbellekte (Cache) var mı?", shape=diamond, fillcolor="#aed6f1", style=filled];
-    Hit [label="Evet (Cache Hit)\nVeri doğrudan CPU'ya iletilir", fillcolor="#abebc6", style=filled];
-    Miss [label="Hayır (Cache Miss)\nAna Belleğe (RAM) gidilir", fillcolor="#f5cba7", style=filled];
-    FetchRAM [label="Veri RAM'den alınır ve\nÖnbelleğe yazılır (kopyalanır)"];
-    ReturnCPU [label="Veri CPU'ya iletilir"];
+![Önbellek Veri Akışı](images/cache_flow.svg)
 
-    Req -> Check;
-    Check -> Hit [label=" Evet "];
-    Check -> Miss [label=" Hayır "];
-    Miss -> FetchRAM;
-    FetchRAM -> ReturnCPU;
-    Hit -> ReturnCPU;
-}
-```
+Önbellek performansının yüksek olması donanımsal bir sihir veya rastlantı değildir; yazılımlarımızın genel bir karakteristiği olan **Yerellik İlkesi (Locality of Reference)** üzerine kuruludur. İki tür yerellikten söz ederiz:
 
-Önbellek performansının yüksek olması, donanımsal bir rastlantı değil, yazılımların genel bir karakteristiği olan **Yerellik İlkesi (Locality of Reference)** üzerine kuruludur:
+- **Zamansal Yerellik (Temporal Locality):** Bir veri öğesine az önce erişildiyse, yakın gelecekte tekrar erişilme olasılığı çok yüksektir. Döngü sayaçları (örneğin `for` döngüsündeki `i` değişkeni) bunun en klasik örneğidir.
+- **Mekansal Yerellik (Spatial Locality):** Erişilen bir verinin bellekte bitişiğindeki verilere erişilme olasılığının yüksek olmasıdır. Dizinin (array) bir elemanını `dizi[i]` okuduğumuzda, birazdan muhtemelen `dizi[i+1]`'i de okuyacağımız donanım tarafından varsayılır. Bu yüzden bellekten veriler tek tek değil, her zaman bir blok (cache line) halinde getirilir.
 
-- **Zamansal Yerellik (Temporal Locality):** Bir veri öğesine (örneğin döngü değişkeni olan `i`) erişildiğinde, yakın gelecekte tekrar erişilme olasılığının yüksek olmasıdır.
-- **Uzamsal Yerellik (Spatial Locality):** Erişilen bir verinin bellekte bitişiğindeki verilere (örneğin dizinin bir sonraki elemanı `dizi[i+1]`) erişilme olasılığının yüksek olmasıdır.
-
-> **Örnek 2.3 (Matris Çarpımı Analizi):** 1 GHz hızında bir işlemcide, 100 ns DRAM gecikmesi olan bir sistemde $32 \times 32$ matris çarpımı yapıldığında:
+> **Örnek 2.3 (Matris Çarpımı Analizi):** > 1 GHz (saniyede 1 milyar çevrim) hızında çalışan bir işlemcide ve 100 ns (nanosaniye) DRAM gecikmesi olan bir sistemde $32 \times 32$ boyutlarında iki matrisin çarpımını inceleyelim:
 > 
-> - 2K kelimenin (matrisler A ve B) önbelleğe getirilmesi yaklaşık $200~\mu s$ sürer.
-> - 64K operasyonun (4 komut/çevrim kapasitesiyle) icrası $16~\mu s$ sürer.
-> - Toplam süre: $216~\mu s$. Performans: 303 MFLOPS.
-> - Önbellek olmasaydı (No-cache scenario), her erişimde 100 çevrim bekleneceği için performans yaklaşık 10 MFLOPS seviyesine düşecekti.
-Tabii ki, sadece ders notu metnini (Markdown formatında) aşağıda paylaşıyorum. Çizim kodlarını zaten `images/` klasörüne kaydettiğiniz için, bu metni doğrudan dokümanınıza yapıştırıp kullanabilirsiniz:
+> - A ve B matrislerindeki toplam 2K (yaklaşık 2000) kelimenin bellekten önbelleğe getirilmesi yaklaşık $200~\mu s$ (mikrosaniye) sürer.
+> - Bu verilerle yapılacak 64K operasyonun (işlemcinin çevrim başına 4 komut işleyebildiği varsayımıyla) icrası sadece $16~\mu s$ sürer.
+> - **Toplanan Süre:** $216~\mu s$. Ortaya çıkan performans yaklaşık 303 MFLOPS seviyesindedir.
+> - **Önbellek Olmasaydı (No-Cache):** Her bir veri erişiminde işlemci 100 çevrim boyunca ana belleği bekleyeceği için, aynı işlemcinin performansı 10 MFLOPS seviyesine kadar çakılacaktı. Bu analiz, önbelleğin varlığının performansı nasıl 30 kat artırdığını açıkça kanıtlar.
 
-Gençler, yazılımlarımızın hesaplama gücü ne kadar yüksek olursa olsun, bellekteki verilere erişim şeklimiz donanımın gerçek kapasitesini belirler. Verinin bellekte nasıl dizildiği ve bizim bu veriye hangi sırayla eriştiğimiz, performansın temel taşıdır.
 
-Gençler, yazılımlarımızın hesaplama gücü ne kadar yüksek olursa olsun, bellekteki verilere erişim şeklimiz donanımın gerçek kapasitesini belirler. Verinin bellekte nasıl dizildiği ve bizim bu veriye hangi sırayla eriştiğimiz, performansın temel taşıdır.
 
 ### 4.4 Veri Odaklı Tasarım: Veri Erişim Desenleri ve Optimizasyon
 
