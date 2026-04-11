@@ -498,61 +498,87 @@ digraph CacheFlow {
 > - 64K operasyonun (4 komut/çevrim kapasitesiyle) icrası $16~\mu s$ sürer.
 > - Toplam süre: $216~\mu s$. Performans: 303 MFLOPS.
 > - Önbellek olmasaydı (No-cache scenario), her erişimde 100 çevrim bekleneceği için performans yaklaşık 10 MFLOPS seviyesine düşecekti.
+Tabii ki, sadece ders notu metnini (Markdown formatında) aşağıda paylaşıyorum. Çizim kodlarını zaten `images/` klasörüne kaydettiğiniz için, bu metni doğrudan dokümanınıza yapıştırıp kullanabilirsiniz:
+
+Gençler, yazılımlarımızın hesaplama gücü ne kadar yüksek olursa olsun, bellekteki verilere erişim şeklimiz donanımın gerçek kapasitesini belirler. Verinin bellekte nasıl dizildiği ve bizim bu veriye hangi sırayla eriştiğimiz, performansın temel taşıdır.
+
+Gençler, yazılımlarımızın hesaplama gücü ne kadar yüksek olursa olsun, bellekteki verilere erişim şeklimiz donanımın gerçek kapasitesini belirler. Verinin bellekte nasıl dizildiği ve bizim bu veriye hangi sırayla eriştiğimiz, performansın temel taşıdır.
 
 ### 4.4 Veri Odaklı Tasarım: Veri Erişim Desenleri ve Optimizasyon
 
-Yazılımın bellek dizilimi, donanım verimliliğini doğrudan belirler.
+İşlemciler bellekten veriyi tek tek baytlar halinde değil, önbellek satırları (cache line) dediğimiz bloklar halinde çeker. Bu nedenle veriye ardışık olarak erişmek daima en verimli yöntemdir.
 
 #### 4.4.1 Adımlı Erişim (Strided Access) Problemi
 
-Örnek 2.5'te görüldüğü gibi, matris verisinin bellek dizilimine ters yönde erişilmesi mekansal yerelliği yok eder.
+C ve C++ gibi dillerde iki boyutlu matrisler bellekte satır satır (Row-Major Order) dizilir. Eğer siz yazılımınızda bir matrisi okurken iç içe döngülerde satır yerine sütun bazlı (Column-Major) ilerlemeye çalışırsanız, bellekte ardışık olmayan, atlamalı (strided) adreslere gitmiş olursunuz. 
+
+Bu durumu, devasa bir ansiklopediden bir bilgi ararken her seferinde kütüphaneye gidip raftan koca bir cilt alıp masanıza getirdiğinizi, içinden sadece tek bir kelime okuyup cildi geri götürdüğünüzü düşünerek somutlaştırabilirsiniz. Getirdiğiniz sayfadaki diğer kelimeleri (yanındaki verileri) okumadığınız için mekansal yerelliği (spatial locality) yok edersiniz.
+
+![Adımlı Erişim ve Bellek Dizilimi](images/strided_access.svg)
 
 ```c
-// Örnek 2.5: Kötü Mekansal Yerellik (Sütun Öncelikli Erişim / Column-Major Access)
+// Kötü Mekansal Yerellik (Sütun Öncelikli Erişim / Column-Major Access)
 for (int i = 0; i < 1000; i++) {
     for (int j = 0; j < 1000; j++) {
-        column_sum[i] += b[j][i]; // Her erişimde yeni cache line yüklenir
+        // 'j' iç döngüde hızla artarken, bellekte matrisin sütunları boyunca zıplıyoruz.
+        // Her erişimde mecburen yeni bir cache line bellekten yüklenir.
+        column_sum[i] += b[j][i]; 
     }
 }
 ```
 
-#### 4.4.2 Döngü Döşeme (Tiling)
+#### 4.4.2 Döngü Döşeme (Loop Tiling / Blocking)
 
-Tiling tekniği, büyük veri setlerini önbelleğe sığacak küçük bloklara bölerek bellek bant genişliği gereksinimini azaltır (Örnek 2.6).
+İşlediğimiz matrisler veya veri setleri çok büyük olduğunda, verinin tamamını işlemcinin önbelleğinde (cache) tutmamız imkansızlaşır. Bu sorunu çözmek için veriyi küçük bloklara (fayans veya karo anlamına gelen "tile"lara) böleriz. Tiling tekniği, büyük veri setlerini önbelleğe tam olarak sığacak alt matrislere ayırarak bellek bant genişliği (bandwidth) gereksinimini minimize eder. Kütüphaneden alabildiğimiz kadar kitabı masamıza yığıp, o kitaplarla yapılabilecek tüm işi bitirmeden yenilerini almamak gibidir.
+
+![Döngü Döşeme (Tiling) Mantığı](images/loop_tiling.svg)
 
 ```c
-// Örnek 2.6: Tiling (Bloklama) Mantığı
+// Tiling (Bloklama) Mantığı
+// N boyutlu matrisi, önbelleğe sığacak B boyutlu bloklara (tile) bölüyoruz
 for (int ii = 0; ii < n; ii += B) {
     for (int jj = 0; jj < n; jj += B) {
+        // Alt blok (tile) içindeki işlemler
         for (int i = ii; i < min(ii + B, n); i++) {
             for (int j = jj; j < min(jj + B, n); j++) {
-                // Blok bazlı işlem yaparak veriyi cache'de tutuyoruz
+                // Veri bir kez cache'e alındıktan sonra blok bitene kadar orada kalır
+                c[i][j] += a[i][k] * b[k][j]; 
             }
         }
     }
 }
 ```
 
-#### 4.4.3 AoS vs. SoA
+#### 4.4.3 AoS vs. SoA (Bellek Dizilim Stratejileri)
 
-- **AoS (Array of Structures):** Verinin nesne tabanlı (örn. `[x,y,z, x,y,z]`) dizilimi.
-- **SoA (Structure of Arrays):** Verinin öznitelik tabanlı (örn. `[x,x,x], [y,y,y]`) dizilimi.
-- **Teknik Not:** SoA, SIMD (Vektörel) birimlerin aynı özniteliği birden fazla kayıt için bitişik bellekten tek seferde yüklemesine (contiguous loading) olanak tanıdığı için tercih edilir.
+Programlama yaparken nesnelerimizi bellekte iki farklı yaklaşımla tutabiliriz:
+
+- **AoS (Array of Structures - Yapı Dizileri):** Verinin nesne tabanlı dizilimidir. Örneğin parçacık fiziği simülasyonunda her parçacığın x, y, z koordinatları paket halinde tutulur: `[x1, y1, z1, x2, y2, z2]`. Nesne yönelimli programlama doğasına çok uygundur.
+- **SoA (Structure of Arrays - Dizi Yapıları):** Verinin öznitelik tabanlı dizilimidir. Tüm parçacıkların x'leri bir arada, y'leri bir arada tutulur: `[x1, x2, x3], [y1, y2, y3]`.
+
+**Teknik Not:** Bilimsel hesaplamalarda ve yüksek performanslı yazılımlarda çoğunlukla SoA tercih edilir. Çünkü SIMD (Single Instruction, Multiple Data - Tek Komut, Çoklu Veri) işlemci birimleri, hesaplama yaparken aynı özniteliği (örneğin sadece x koordinatlarını) birden fazla parçacık için bitişik bellekten tek bir saat vuruşunda, blok halinde (contiguous loading) çekmek ister. AoS düzeninde x'lerin arasında y ve z'ler olduğu için SIMD birimleri tam kapasiteyle çalışamaz.
+
+![AoS ve SoA Dizilimleri](images/aos_soa.svg)
 
 ### 4.5 Bellek Gecikmesini Gizleme Teknikleri
 
+Veriyi ne kadar iyi dizerseniz dizin, işlemciniz bazen mecburen ana bellekten veri gelmesini bekleyecektir. İşlemcinin bu bekleme süresinde boş durmasını (stall) önlemek için gecikmeyi gizleme (latency hiding) mekanizmaları kullanırız.
+
 #### 4.5.1 Çoklu İş Parçacığı (Multithreading)
 
-İşlemci, bir iş parçacığı bellekten veri beklerken (stall), diğer bir iş parçacığına geçiş yaparak yürütme birimlerini dolu tutar (Örnek 2.7).
+Bir iş parçacığı (thread) bellekten veri talep edip beklemeye geçtiğinde, donanım derhal beklemeyen diğer bir iş parçacığını işlemci çekirdeğine alır ve çalıştırmaya başlar. Buna bağlam değişimi (context switch) deriz. Yürütme birimleri sürekli dolu tutularak fiziksel gecikme zamanı maskelenmiş olur.
 
 #### 4.5.2 Önceden Getirme (Prefetching)
 
-Verinin ihtiyaç duyulmadan önce donanım veya yazılım tarafından önbelleğe yüklenmesidir (Örnek 2.8). Ancak prefetching, yanlış tahmin edilirse veya aşırı yapılırsa bellek bant genişliğini gereksiz yere işgal edebilir.
+Latince *prae* (öncesi) kökünden gelir. Verinin, işlemci tam olarak ona ihtiyaç duymadan biraz önce donanım veya derleyici tarafından sezilerek önbelleğe arka planda getirilmesidir. Tıpkı siz bir makaleyi okurken, asistanınızın birazdan geçeceğiniz diğer sayfayı önünüze hazır etmesi gibidir. 
 
-> **Vurgu Kutusu: Bant Genişliği ve Trade-off (Örnek 2.9)**
-> Multithreading, gecikmeyi gizlese de toplam bant genişliği ihtiyacını artırır. Tek bir thread %90 hit oranıyla 400 MB/s bant genişliği talep ederken; 32 thread kullanıldığında her birinin cache payı azalacağından (örn. %25 hit oranı), toplam ihtiyaç 3 GB/s seviyesine çıkabilir.
+Ancak prefetching çift ağızlı bir kılıçtır. Eğer yazılım veya donanım hangi veriye ihtiyaç duyacağınızı yanlış tahmin ederse veya bunu aşırı yaparsa, bellek bant genişliğini hiç kullanılmayacak verilerle doldurarak sistemi daha da yavaşlatabilir.
 
-Gençler, bir bilgisayarın performans sınırlarını ve hesaplama yapısını anlamak için, işlemcilerin bellekle nasıl konuştuğuna ve görevleri nasıl paylaştığına yakından bakmamız gerekir. Sıradaki bölümde buna odaklanalım bakalım.
+> **Vurgu Kutusu: Bant Genişliği ve Trade-off (Dengeleme)**
+> 
+> Multithreading mekanizması işlemcinin boş durmasını engelleyip gecikmeyi gizlese de, sistemden talep edilen toplam bant genişliğini dramatik şekilde artırır. 
+> 
+> Tek bir iş parçacığı çalışırken, önbelleği rahatça kullanır (örneğin %90 önbellek isabet - hit rate - oranıyla) ve ana bellekten saniyede 400 MB veri çekmesi yetebilir. Ancak aynı çekirdekte 32 iş parçacığını birden çalıştırdığınızda, hepsi kısıtlı önbellek alanını paylaşmak zorunda kalır. Her birinin önbellek payı daralacağından isabet oranı örneğin %25'lere düşer. Bu durum, sürekli ana belleğe başvuru yapılmasına sebep olur (cache thrashing) ve sistemin toplam bant genişliği ihtiyacı aniden 3 GB/s seviyelerine fırlayabilir. Gecikmeyi gizlerken darboğazı bant genişliğine kaydırmamaya dikkat edilmelidir.
 
 ### 4.6 Performans Limitleri ve Analiz Modelleri
 

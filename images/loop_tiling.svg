@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350" font-family="sans-serif">
+    <rect width="700" height="350" fill="#ffffff"/>
+    
+    <text x="350" y="40" font-size="20" font-weight="bold" fill="#2c3e50" text-anchor="middle">Döngü Döşeme (Loop Tiling) Kavramı</text>
+
+    <g transform="translate(100, 80)">
+        <rect x="0" y="0" width="200" height="200" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="2"/>
+        <path d="M0,40 L200,40 M0,80 L200,80 M0,120 L200,120 M0,160 L200,160" stroke="#bdc3c7" stroke-width="1"/>
+        <path d="M40,0 L40,200 M80,0 L80,200 M120,0 L120,200 M160,0 L160,200" stroke="#bdc3c7" stroke-width="1"/>
+        <text x="100" y="230" font-size="14" font-weight="bold" fill="#7f8c8d" text-anchor="middle">Orijinal N x N Matris (Önbelleğe Sığmaz)</text>
+        
+        <rect x="40" y="40" width="80" height="80" fill="rgba(52, 152, 219, 0.4)" stroke="#2980b9" stroke-width="3"/>
+    </g>
+
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7f8c8d" /></marker>
+    </defs>
+    <path d="M 330 180 L 410 180" fill="none" stroke="#7f8c8d" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="370" y="170" font-size="14" font-style="italic" fill="#7f8c8d" text-anchor="middle">Bloklama</text>
+
+    <g transform="translate(450, 80)">
+        <rect x="0" y="0" width="160" height="160" fill="#d6eaf8" stroke="#2980b9" stroke-width="4"/>
+        <path d="M0,80 L160,80 M80,0 L80,160" stroke="#85c1e9" stroke-width="2" stroke-dasharray="5,5"/>
+        <text x="80" y="200" font-size="14" font-weight="bold" fill="#2980b9" text-anchor="middle">B x B Blok (Tile)</text>
+        <text x="80" y="220" font-size="12" fill="#7f8c8d" text-anchor="middle">(Önbelleğe rahatça sığar)</text>
+        
+        <circle cx="40" cy="40" r="10" fill="#e74c3c" />
+        <text x="80" y="85" font-size="12" font-weight="bold" fill="#34495e" text-anchor="middle">Yerel İşlemler</text>
+    </g>
+</svg>
