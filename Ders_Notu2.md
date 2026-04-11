@@ -657,7 +657,7 @@ for (int i = 0; i < N; i++) {
 ```
 Bu OpenMP kodunun çalışma mantığını, iterasyonların bölünmesini (**work-sharing**) ve eşzamanlı çalışmayı (fork-join modelini) gösterir. Bu kodda `reduction` olmadığı için veri birleştirme adımı yoktur; sadece işin bölüşülmesi ve paralel yürütülmesi vurgulanmıştır.
 
-<img src="/images/work_sharing.svg>
+<img src="images/work_sharing.svg">
 
 
 ### Adımlar:
