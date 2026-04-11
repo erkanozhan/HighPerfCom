@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 350" font-family="Arial, sans-serif">
+    <rect width="600" height="350" fill="#ffffff"/>
+    
+    <text x="300" y="30" font-size="18" font-weight="bold" fill="#2c3e50" text-anchor="middle">VLIW Mimarisinde Verimsizlik (Waste) Türleri</text>
+
+    <g transform="translate(100, 60)">
+        <rect x="80" y="0" width="100" height="30" fill="#ecf0f1" stroke="#bdc3c7"/>
+        <text x="130" y="20" font-size="14" font-weight="bold" fill="#2c3e50" text-anchor="middle">ALU 1</text>
+        <rect x="180" y="0" width="100" height="30" fill="#ecf0f1" stroke="#bdc3c7"/>
+        <text x="230" y="20" font-size="14" font-weight="bold" fill="#2c3e50" text-anchor="middle">ALU 2</text>
+        <rect x="280" y="0" width="100" height="30" fill="#ecf0f1" stroke="#bdc3c7"/>
+        <text x="330" y="20" font-size="14" font-weight="bold" fill="#2c3e50" text-anchor="middle">Bellek Ünitesi</text>
+
+        <text x="30" y="65" font-size="14" font-weight="bold" fill="#2c3e50" text-anchor="middle">Çevrim 1</text>
+        <rect x="80" y="40" width="100" height="40" fill="#3498db" stroke="#fff" stroke-width="2"/>
+        <text x="130" y="65" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">Toplama İşlemi</text>
+        
+        <rect x="180" y="40" width="100" height="40" fill="#fcf3cf" stroke="#f1c40f" stroke-width="2" stroke-dasharray="4,4"/>
+        <text x="230" y="65" fill="#e67e22" font-size="12" font-weight="bold" text-anchor="middle">BOŞ (Nop)</text>
+        
+        <rect x="280" y="40" width="100" height="40" fill="#2ecc71" stroke="#fff" stroke-width="2"/>
+        <text x="330" y="65" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">Veri Yükleme</text>
+
+        <path d="M 390 60 L 410 60" fill="none" stroke="#7f8c8d" stroke-width="2"/>
+        <text x="415" y="65" font-size="14" font-weight="bold" fill="#e67e22" text-anchor="start">Yatay Atık</text>
+
+        <text x="30" y="125" font-size="14" font-weight="bold" fill="#2c3e50" text-anchor="middle">Çevrim 2</text>
+        <rect x="80" y="100" width="100" height="40" fill="#fadbd8" stroke="#e74c3c" stroke-width="2" stroke-dasharray="4,4"/>
+        <rect x="180" y="100" width="100" height="40" fill="#fadbd8" stroke="#e74c3c" stroke-width="2" stroke-dasharray="4,4"/>
+        <rect x="280" y="100" width="100" height="40" fill="#fadbd8" stroke="#e74c3c" stroke-width="2" stroke-dasharray="4,4"/>
+        <text x="230" y="125" fill="#c0392b" font-size="12" font-weight="bold" text-anchor="middle">Veri Bekleniyor (Stall) - Tamamen BOŞ</text>
+
+        <path d="M 390 120 L 410 120" fill="none" stroke="#7f8c8d" stroke-width="2"/>
+        <text x="415" y="125" font-size="14" font-weight="bold" fill="#c0392b" text-anchor="start">Dikey Atık</text>
+
+        <text x="30" y="185" font-size="14" font-weight="bold" fill="#2c3e50" text-anchor="middle">Çevrim 3</text>
+        <rect x="80" y="160" width="100" height="40" fill="#3498db" stroke="#fff" stroke-width="2"/>
+        <text x="130" y="185" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">Çarpma İşlemi</text>
+        
+        <rect x="180" y="160" width="100" height="40" fill="#3498db" stroke="#fff" stroke-width="2"/>
+        <text x="230" y="185" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">Çıkarma İşlemi</text>
+        
+        <rect x="280" y="160" width="100" height="40" fill="#fcf3cf" stroke="#f1c40f" stroke-width="2" stroke-dasharray="4,4"/>
+        <text x="330" y="185" fill="#e67e22" font-size="12" font-weight="bold" text-anchor="middle">BOŞ (Nop)</text>
+    </g>
+
+    <rect x="80" y="270" width="440" height="60" rx="5" fill="#f4f6f9" stroke="#bdc3c7"/>
+    <text x="300" y="295" font-size="12" fill="#34495e" text-anchor="middle">VLIW mimarisinde donanımı tam kapasite doldurmak zordur.</text>
+    <text x="300" y="315" font-size="12" fill="#34495e" text-anchor="middle">Boş yuvalar (Nop) performansı düşüren atıkları (waste) temsil eder.</text>
+</svg>

@@ -382,74 +382,50 @@ Mikroişlemci teknolojisi, Moore Yasası olarak bilinen ve devre karmaşıklığ
 
 ### 4.2 Mikroişlemci Mimarilerinde Örtük Paralellik (Implicit Parallelism)
 
-Gençler, kodumuzu özel olarak paralelleştirmek için uğraşmasak bile modern donanım ve derleyiciler arka planda işleri hızlandırmak için çeşitli taktikler kullanır. Yazılımcının müdahalesi olmadan donanım ve derleyici (compiler) seviyesinde sağlanan bu yapıya **Örtük Paralellik (Implicit Parallelism)** diyoruz.
+Gençler, kodumuzu özel olarak paralelleştirmek için uğraşmasak bile modern donanım ve derleyiciler (compiler) arka planda işleri hızlandırmak için çeşitli taktikler kullanır. Yazılımcının doğrudan müdahalesi olmadan, donanım ve derleyici seviyesinde sağlanan bu eşzamanlı çalışma yapısına **Örtük Paralellik (Implicit Parallelism)** diyoruz.
 
-#### 4.2.1 Boru Hattı (Pipelining) ve Süper-skaler Yürütme
+#### 4.2.1 Boru Hattı (Pipelining) ve Süper-skaler (Superscalar) Yürütme
 
-Bir mikroişlemcinin komutları nasıl işlediğini anlamak için bir otomobil fabrikasındaki montaj hattını düşünelim. Tek bir işçinin bir arabayı baştan sona tek başına üretmesi yerine, işi aşamalara böleriz. Buna donanım mimarisinde **Boru Hattı (Pipelining)** diyoruz. İngilizce *pipe* (boru) kelimesinden türeyen bu terim, verinin bir borudan sürekli akması gibi komutların da işlemciden kesintisiz akmasını ifade eder.
+Bir mikroişlemcinin komutları (instructions) nasıl işlediğini anlamak için profesyonel bir restoran mutfağını düşünelim. Gelen bir yemek siparişinin baştan sona hazırlanması dört aşamadan oluşsun: Kilerden malzemenin getirilmesi, tarifin okunup malzemelerin doğranması, ocakta pişirilmesi ve tabağa alınıp servis bandına konması.
 
-Bir komutun işlenmesi temelde dört aşamadan oluşur:
-1. **Fetch (Getirme):** Komutun bellekten alınması.
-2. **Decode (Çözme):** Komutun ne anlama geldiğinin çözümlenmesi (Latince *de-* ayrılma ve *codex* şifre kelimelerinden türemiştir, şifreyi/kodu çözmek anlamına gelir).
-3. **Execute (Yürütme):** Matematiksel veya mantıksal işlemin yapılması.
-4. **Write-back (Geri Yazma):** Sonucun bellek veya yazmaçlara (registers) kaydedilmesi.
+Eğer mutfakta tek bir aşçı varsa, bir siparişi tamamen bitirmeden diğer siparişe geçemez. Ancak işi istasyonlara bölersek (malzemeci, doğrayıcı, pişirici, sunumcu), birinci sipariş pişme aşamasına geçtiği an, doğrayıcı ikinci siparişi kesmeye, malzemeci ise üçüncü siparişin erzağını getirmeye başlayabilir. Buna bilgisayar mimarisinde **Boru Hattı (Pipelining)** diyoruz. İngilizce *pipe* (boru) kelimesinden türeyen bu terim, verinin bir borudan kesintisiz akmasını ifade eder.
 
-Bu aşamaların üst üste bindirildiği yapı aşağıda gösterilmektedir:
+İşlemcide de bir komutun işlenmesi temelde dört istasyondan geçer:
+1. **Fetch (Getirme):** Komutun bellekten işlemciye alınması (Malzemenin getirilmesi).
+2. **Decode (Çözme):** Komutun ne anlama geldiğinin çözümlenmesi (Latince *de-* ayrılma ve *codex* şifre/kitap kelimelerinden türemiştir. İşlemcinin ne yapacağını anlamasıdır).
+3. **Execute (Yürütme):** İlgili matematiksel veya mantıksal işlemin aritmetik mantık biriminde (ALU) yapılması (Yemeğin pişirilmesi).
+4. **Write-back (Geri Yazma):** Elde edilen sonucun belleğe veya yazmaçlara (registers) kaydedilmesi (Yemeğin servise sunulması).
 
-```dot
-digraph PipelineTable {
-    node [shape=none, fontname="Helvetica"];
-    Pipeline [label=<
-    <table border="0" cellborder="1" cellspacing="0" cellpadding="8">
-        <tr>
-            <td bgcolor="#e5e7e9"><b>Zaman &rarr;</b></td>
-            <td bgcolor="#d5f5e3"><b>t1</b></td>
-            <td bgcolor="#d5f5e3"><b>t2</b></td>
-            <td bgcolor="#d5f5e3"><b>t3</b></td>
-            <td bgcolor="#d5f5e3"><b>t4</b></td>
-            <td bgcolor="#d5f5e3"><b>t5</b></td>
-        </tr>
-        <tr>
-            <td bgcolor="#ebdef0"><b>Komut 1</b></td>
-            <td bgcolor="#aed6f1">Fetch</td>
-            <td bgcolor="#aed6f1">Decode</td>
-            <td bgcolor="#aed6f1">Execute</td>
-            <td bgcolor="#aed6f1">Write</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td bgcolor="#ebdef0"><b>Komut 2</b></td>
-            <td></td>
-            <td bgcolor="#f9e79f">Fetch</td>
-            <td bgcolor="#f9e79f">Decode</td>
-            <td bgcolor="#f9e79f">Execute</td>
-            <td bgcolor="#f9e79f">Write</td>
-        </tr>
-    </table>
-    >];
-}
-```
+![Boru Hattı (Pipelining) İşleyişi](images/pipelining.svg)
+*Şekil 11. Boru hattı mimarisinde ardışık komutların zaman içindeki yürütülme aşamaları. Her bir saat vuruşunda (t), donanımın farklı birimleri farklı komutların aşamalarını işleyerek kaynak kullanımını maksimize eder.*
 
-Dikkat ederseniz, komutların tamamlanma süresi kısalmaz; ancak aşamalar üst üste bindiği için birim zamanda tamamlanan komut sayısı (throughput) artırılır. Süper-skaler işlemciler ise, aynı anda birden fazla komutu işleme alabilen birden fazla boru hattına sahiptir. Ancak bu mimaride üç temel bağımlılık (dependency) türü performansı sınırlar:
+Dikkat ederseniz, pipelining tek bir yemeğin (komutun) pişme süresini kısaltmaz; ancak aşamalar üst üste bindiği için birim zamanda restorandan çıkan toplam yemek sayısını (throughput) ciddi oranda artırır. 
 
-1. **Gerçek Veri Bağımlılığı (True Data Dependency):** Bir komutun sonucu, bir sonraki komutun girdisi olduğunda ortaya çıkar.
-2. **Kaynak Bağımlılığı (Resource Dependency):** İki komutun aynı anda aynı donanım birimine (örn. tek bir kayan nokta ünitesi) erişmek istemesidir.
-3. **Yordamsal Bağımlılık (Procedural Dependency):** Dallanma (branch) komutları nedeniyle bir sonraki komutun adresinin belirsiz olmasıdır. Bu durum, yanlış dallanma tahmini yapıldığında boru hattının boşaltılmasına (pipeline flush) ve ciddi performans kaybına yol açar.
+**Süper-skaler (Superscalar) işlemciler** ise mutfağa fazladan ocaklar ve kesme tahtaları ekleyerek, aynı anda birden fazla siparişi aynı istasyonda işleyebilen çoklu boru hatlarına sahip mimarilerdir. Ancak bu sistemde performansı sınırlandıran üç temel darboğaz (bağımlılık) vardır:
 
-#### 4.2.2 VLIW (Çok Uzun Komut Kelimesi) İşlemciler
+1. **Gerçek Veri Bağımlılığı (True Data Dependency):** Domatesler doğranmadan menemen pişirilemez. Bir komutun üreteceği sonuç, hemen ardından gelen komutun girdisi ise mecburen bekleme (stall) yaşanır.
+2. **Kaynak Bağımlılığı (Resource Dependency):** Mutfakta tek bir fırın varsa ve iki farklı yemek aynı anda fırın gerektiriyorsa, fırın boşalana kadar biri beklemek zorundadır. Donanımda da örneğin tek bir kayan nokta (floating-point) ünitesi varsa benzer bekleme olur.
+3. **Yordamsal Bağımlılık (Procedural Dependency):** Müşterinin yemeğe acı sos isteyip istemediği belli değildir (dallanma - branch komutları). Aşçı zaman kazanmak için "kesin ister" diyerek sosu hazırlamaya başlar. Ancak garson gelip "müşteri sos istemiyor" derse, o ana kadar sos için yapılan tüm hazırlık çöpe atılır. Buna işlemci dünyasında **boru hattı boşaltımı (pipeline flush)** denir ve çok ciddi performans kaybı yaratır.
 
-VLIW mimarisi, süper-skaler mimarinin karmaşık bağımlılık analiz donanımını ortadan kaldırarak bu yükü derleyiciye aktarır. Bağımsız komutlar derleme zamanında tek bir uzun kelime içinde paketlenir.
+#### 4.2.2 VLIW (Çok Uzun Komut Kelimesi) Mimari
+
+Süper-skaler mimaride işlemci donanımı, tıpkı telaşlı bir aşçıbaşı gibi sürekli mutfağa bakıp "Hangi ocak boş? Hangi yemek bekliyor? Veri hazır mı?" diye anlık kararlar vermek zorundadır. Bu durum donanımı aşırı karmaşıklaştırır ve ısıyı artırır.
+
+VLIW (Very Long Instruction Word) mimarisi ise bu anlık karar yükünü donanımdan alır ve yazılımı derleyen programa (Compiler) yükler. VLIW yaklaşımında derleyiciyi, bir gün önceden mutfağın saniye saniye planını yapan bir şef gibi düşünebiliriz. Şef, hangi personelin hangi saniyede hangi işi yapacağını devasa bir "uzun kelime" (paket) halinde yazar. İşlemci donanımı hiçbir bağımlılık analizi yapmaz, sadece önüne gelen kağıttaki komutları körü körüne uygular.
 
 | Özellik | Süper-skaler Mimari | VLIW Mimari (IA64 vb.) |
 | :--- | :--- | :--- |
-| **Zamanlama Kararı** | Çalışma zamanı (Donanım) | Derleme zamanı (Yazılım) |
-| **Bağımlılık Analizi** | Karmaşık donanım mantığı | Derleyici optimizasyonu |
-| **Donanım Karmaşıklığı** | Yüksek | Düşük |
-| **Verimlilik Kaybı** | Dinamik stall'lar | Yatay ve Dikey Atık (Waste) |
+| **Zamanlama Kararı** | Çalışma zamanı (Donanım anlık karar verir) | Derleme zamanı (Yazılım önceden planlar) |
+| **Bağımlılık Analizi** | Karmaşık donanım mantığı | Derleyicinin zekası ve optimizasyonu |
+| **Donanım Karmaşıklığı** | Yüksek (Silikon alanı israfı ve ısınma) | Düşük (Sadece işleme odaklı donanım) |
+| **Verimlilik Kaybı Türü** | Dinamik stall'lar (Anlık beklemeler) | Yatay ve Dikey Atık (Waste) |
 
-VLIW sistemlerde, bir çevrimde bazı işlem birimlerinin boş kalması yatay atık (horizontal waste), hiçbir komut paketinin gönderilememesi ise dikey atık (vertical waste) olarak tanımlanır (Şekil 2.1c).
+VLIW sistemlerde, önceden yapılan bu katı planlama sırasında her saniye tüm personeli tam kapasite doldurmak zordur. Bir saat çevriminde bazı işlem birimlerinin boş kalmasına **Yatay Atık (Horizontal Waste)**, donanımın veri gecikmesi nedeniyle tamamen boş geçtiği durumlara ise **Dikey Atık (Vertical Waste)** adı verilir.
 
-Gençler, işlemciler yıllar içinde muazzam hızlandı; ancak ana belleğin (RAM) veriyi aynı hızda ulaştıramaması, bilgisayar mimarisinde meşhur "von Neumann darboğazı" (von Neumann bottleneck) dediğimiz sorunu yarattı. Modern sistemler bu darboğazı aşmak için katmanlı bir bellek hiyerarşisi inşa ederler.
+![VLIW Atık Türleri](images/vliw_waste.svg)
+*Şekil 12. VLIW mimarisinde Çok Uzun Komut Kelimesi içindeki boş yuvaların (Yatay Atık) ve donanımın tamamen durakladığı durumların (Dikey Atık) gösterimi.*
+
+Gençler, işlemciler yıllar içinde iç yapılarını bu tekniklerle muazzam derecede hızlandırmış olsalar da; ana belleğin (RAM) veriyi aynı hızda ulaştıramaması, bilgisayar mimarisinde meşhur "von Neumann darboğazı" (von Neumann bottleneck) dediğimiz sorunu yaratmıştır. Modern sistemler bu darboğazı aşmak için katmanlı bir bellek hiyerarşisi inşa ederler.
 
 ### 4.3 Bellek Sistemi Performansı ve Sınırlamalar
 
