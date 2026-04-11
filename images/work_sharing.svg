@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 620" font-family="Arial, sans-serif">
+    <rect width="800" height="620" fill="#f4f6f9"/>
+
+    <text x="400" y="40" font-size="24" font-weight="bold" text-anchor="middle" fill="#2c3e50">OpenMP "parallel for" İşleyişi (Work-Sharing)</text>
+
+    <rect x="150" y="60" width="500" height="85" rx="8" fill="#282c34"/>
+    <text x="170" y="90" font-family="monospace" font-size="16" fill="#c678dd">#pragma <tspan fill="#56b6c2">omp parallel for</tspan></text>
+    <text x="170" y="115" font-family="monospace" font-size="16" fill="#c678dd">for <tspan fill="#abb2bf">(int i = 0; i &lt; N; i++) {</tspan></text>
+    <text x="190" y="135" font-family="monospace" font-size="16" fill="#7f8c8d">// Yapılacak işlemler</text>
+    <text x="170" y="135" font-family="monospace" font-size="16" fill="#abb2bf"> }</text>
+
+    <text x="400" y="185" font-size="16" font-weight="bold" text-anchor="middle" fill="#34495e">İterasyon Uzayı (0'dan N-1'e kadar)</text>
+    <g transform="translate(100, 200)">
+        <rect x="0" y="0" width="600" height="35" rx="4" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="2"/>
+        <text x="300" y="22" font-size="16" text-anchor="middle" fill="#7f8c8d">0 ............................................................................ N-1</text>
+
+        <line x1="200" y1="0" x2="200" y2="35" stroke="#bdc3c7" stroke-width="2"/>
+        <line x1="400" y1="0" x2="400" y2="35" stroke="#bdc3c7" stroke-width="2"/>
+
+        <text x="100" y="55" font-size="14" text-anchor="middle" fill="#2c3e50">Döngü İterasyonları: 0 .. K</text>
+        <text x="300" y="55" font-size="14" text-anchor="middle" fill="#2c3e50">Döngü İterasyonları: K+1 .. M</text>
+        <text x="500" y="55" font-size="14" text-anchor="middle" fill="#2c3e50">Döngü İterasyonları: M+1 .. N-1</text>
+    </g>
+
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#7f8c8d" />
+        </marker>
+    </defs>
+
+    <text x="400" y="295" font-size="14" font-style="italic" text-anchor="middle" fill="#7f8c8d">OpenMP "Fork": Döngü eşit parçalara bölünür ve Thread'lere dağıtılır</text>
+    <path d="M 200 270 L 200 320" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 400 270 L 400 320" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 600 270 L 600 320" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="100" y="330" width="190" height="90" rx="8" fill="#d4efdf" stroke="#27ae60" stroke-width="2"/>
+    <text x="195" y="355" font-size="16" font-weight="bold" text-anchor="middle" fill="#27ae60">Thread 0</text>
+    <text x="195" y="380" font-size="14" text-anchor="middle">Sadece 0 ile K arası</text>
+    <text x="195" y="398" font-size="14" text-anchor="middle">iterasyonları çalıştırır.</text>
+
+    <rect x="305" y="330" width="190" height="90" rx="8" fill="#fcf3cf" stroke="#f1c40f" stroke-width="2"/>
+    <text x="400" y="355" font-size="16" font-weight="bold" text-anchor="middle" fill="#d4ac0d">Thread 1</text>
+    <text x="400" y="380" font-size="14" text-anchor="middle">Sadece K+1 ile M arası</text>
+    <text x="400" y="398" font-size="14" text-anchor="middle">iterasyonları çalıştırır.</text>
+
+    <rect x="510" y="330" width="190" height="90" rx="8" fill="#d6eaf8" stroke="#2980b9" stroke-width="2"/>
+    <text x="605" y="355" font-size="16" font-weight="bold" text-anchor="middle" fill="#2980b9">Thread 2</text>
+    <text x="605" y="380" font-size="14" text-anchor="middle">Sadece M+1 ile N-1 arası</text>
+    <text x="605" y="398" font-size="14" text-anchor="middle">iterasyonları çalıştırır.</text>
+
+    <text x="400" y="475" font-size="14" font-style="italic" text-anchor="middle" fill="#7f8c8d">Örtük Bariyer (Implicit Barrier): Tüm thread'lerin bitmesi beklenir</text>
+    <path d="M 200 430 L 380 510" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 400 430 L 400 510" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 600 430 L 420 510" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="300" y="520" width="200" height="40" rx="5" fill="#fff" stroke="#34495e" stroke-width="2"/>
+    <text x="400" y="546" font-size="16" font-weight="bold" text-anchor="middle" fill="#2c3e50">Ana Thread (Master)</text>
+    <path d="M 400 560 L 400 590" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="400" y="605" font-size="14" font-style="italic" text-anchor="middle" fill="#7f8c8d">Seri çalışmaya geri dönülür...</text>
+
+</svg>
