@@ -552,50 +552,70 @@ Verinin ihtiyaç duyulmadan önce donanım veya yazılım tarafından önbelleğ
 > **Vurgu Kutusu: Bant Genişliği ve Trade-off (Örnek 2.9)**
 > Multithreading, gecikmeyi gizlese de toplam bant genişliği ihtiyacını artırır. Tek bir thread %90 hit oranıyla 400 MB/s bant genişliği talep ederken; 32 thread kullanıldığında her birinin cache payı azalacağından (örn. %25 hit oranı), toplam ihtiyaç 3 GB/s seviyesine çıkabilir.
 
+Gençler, bir bilgisayarın performans sınırlarını ve hesaplama yapısını anlamak için, işlemcilerin bellekle nasıl konuştuğuna ve görevleri nasıl paylaştığına yakından bakmamız gerekir. Sıradaki bölümde buna odaklanalım bakalım.
+
 ### 4.6 Performans Limitleri ve Analiz Modelleri
 
-**STREAM Benchmark Analizi (Örnek 2.4):** Bir vektör nokta çarpımı (dot-product) işleminde, 100ns gecikmeli bir sistemde:
+Bir işlemci tek başına ne kadar hızlı olursa olsun, veriye ulaşamadığı sürece beklemek zorundadır. İşlemci ile ana bellek arasındaki bu veri getirme süresine **gecikme** (latency) diyoruz.
 
-- Blok boyutu 1 kelime ise: $100 \text{ ns}$'de 1 kelime çekilir $\rightarrow$ 10 MFLOPS.
-- Blok boyutu 4 kelime (cache line) ise: $100 \text{ ns}$'de çekilen 4 kelime sonraki 4 operasyonun verisini sağlar. Bu durum, mekansal yerellik sayesinde gecikmenin 4 operasyona amortize edilmesini sağlar ve performansı 40 MFLOPS seviyesine çıkarır.
+**STREAM Benchmark Analizi (Örnek 2.4):** Bir vektör nokta çarpımı (dot-product) işlemini ele alalım. Sistemimizde belleğe erişim gecikmesinin $100 \text{ ns}$ (nanosaniye) olduğunu varsayalım.
+
+- **Blok boyutu 1 kelime ise:** İşlemci belleğe gider, sadece 1 kelimelik veri alır ve bunun için $100 \text{ ns}$ harcar. Bu durumda işlemcimiz saniyede sadece 10 milyon işlem yapabilir, yani performansı 10 MFLOPS (Million Floating-Point Operations Per Second - Saniyede Milyon Kayan Noktalı İşlem) seviyesinde kalır. Bunu kütüphaneden her seferinde tek bir sayfa okuyup masanıza geri dönmek gibi düşünebilirsiniz. Oldukça verimsizdir.
+
+- **Blok boyutu 4 kelime (cache line) ise:** Bellekten veriler tek tek değil, arka arkaya sıralanmış "bloklar" halinde çekilir. $100 \text{ ns}$ gecikme ile 4 kelime birden getirildiğinde, işlemci ilk veriyi beklerken zaman kaybeder ancak sonraki 3 işlem için gerekli veri zaten elinin altındadır (önbellektedir). İlk gecikme, sonraki 4 operasyona dağıtılmış, yani amortize edilmiştir. Bu duruma **Mekansal Yerellik** (Spatial Locality) denir. Aynı kütüphane örneğinde olduğu gibi, bir sayfa için gitmişken tüm kitabı masanıza alırsınız. Bu sayede performansımız 40 MFLOPS seviyesine çıkar.
 
 ### 4.7 Paralel Platformlar ve Kontrol Yapıları
 
-- **SIMD (Single Instruction, Multiple Data):** Tek bir komutun birden fazla veri üzerinde (örn. vektör işlemcileri) icrasıdır.
-  > **Örnek 2.11:** SIMD mimarisinde `if-else` blokları performansı düşürür; çünkü `if` bloğunu çalıştıran işlemciler varken `else` kısmındakiler atıl beklemek zorundadır (masking).
-- **MIMD (Multiple Instruction, Multiple Data):** Her işlemcinin bağımsız program ve veri akışına sahip olmasıdır.
-- **Paylaşılan Adres Uzayı:**
-  - **UMA:** Tüm işlemciler tüm belleğe aynı sürede erişir.
-  - **NUMA (Şekil 2.5):** İşlemcinin yerel belleğine erişimi, diğer işlemcilerin yerel (uzak) belleklerine erişiminden daha hızlıdır.
+Veriyi hızlı getirmeyi çözdükten sonra, işlemcilerin bu veriyi nasıl işleyeceğini organize etmemiz gerekir. Bilgisayar bilimlerinde mimariler, komut (instruction) ve veri (data) akışlarına göre sınıflandırılır.
+
+- **SIMD (Single Instruction, Multiple Data - Tek Komut, Çoklu Veri):** Tek bir komut yayınlanır ve birden fazla işlem birimi bu komutu kendi verisi üzerinde aynı anda uygular. Vektör işlemciler ve günümüz grafik kartları (GPU - Graphics Processing Unit) bu mantıkla çalışır.
+  > **Maskeleme (Masking) Durumu (Örnek 2.11):** SIMD mimarisinde her birim aynı emri uygulamak zorunda olduğu için, kodun içinde bir `if-else` koşulu varsa performans ciddi şekilde düşer. `if` şartını sağlayan işlemciler çalışırken, `else` şartına uyan işlemciler hiçbir şey yapmadan beklemek (maskelenmek) zorundadır. Komutlar ayrıştığı an sistemin bir kısmı atıl kalır.
+
+- **MIMD (Multiple Instruction, Multiple Data - Çoklu Komut, Çoklu Veri):** Her işlemcinin bağımsız bir beyni vardır. Kendi programlarını kendi veri akışları üzerinden birbirinden tamamen bağımsız olarak yürütebilirler. Günümüzdeki çok çekirdekli standart işlemciler (CPU - Central Processing Unit) bu yapıdadır.
+
+**Paylaşılan Adres Uzayı (Shared Address Space) Modelleri:**
+
+İşlemciler belleği ortak kullanıyorsa, bu belleğe fiziksel olarak nasıl eriştikleri performansı doğrudan etkiler.
+
+- **UMA (Uniform Memory Access - Eşbiçimli Bellek Erişimi):** Latince *unus* (tek/bir) ve *forma* (biçim) kelimelerinden gelir. Sistemdeki tüm işlemcilerin, belleğin herhangi bir noktasına erişim süresi tamamen aynıdır.
+- **NUMA (Non-Uniform Memory Access - Eşbiçimsiz Bellek Erişimi):** İşlemci sayısının çok arttığı sistemlerde belleği tek bir merkeze koymak darboğaz yaratır. Bu yüzden bellek, işlemcilere (veya işlemci düğümlerine) paylaştırılır. Kendi masanızdaki (yerel) bellekten veri okumak çok hızlıyken, ağ üzerinden yan odadaki (uzak) işlemcinin belleğinden veri okumak yavaştır.
+
+![UMA ve NUMA Mimarileri](images/uma_numa.svg)
 
 ### 4.8 Algoritma Tasarım Prensipleri ve Görev Bağımlılıkları
 
-Paralel algoritma tasarımında problem görevlere (tasks) ayrıştırılır ve bu görevler arasındaki bağımlılıklar bir Görev Bağımlılık Grafiği (DAG) ile gösterilir.
+Kod yazarken her şeyi aynı anda çalıştıramayız. Bazı görevler diğerlerinin ürettiği veriye ihtiyaç duyar. Problemi daha küçük alt görevlere böldüğümüzde, bu görevler arasındaki zorunlu sırayı **Görev Bağımlılık Grafiği** (DAG - Directed Acyclic Graph, Yönlü Döngüsüz Grafik) ile gösteririz.
 
 #### 4.8.1 Temel Formülasyonlar
 
-Grama ve ark. (2003) uyarınca, paralellik derecesini belirleyen metrikler:
+Grama ve ark. (2003) metodolojisine göre, yazdığımız bir paralel kodun ne kadar iyi ölçeklenebileceğini şu temel metriklerle ölçeriz:
 
-- **Toplam İş (W):** Tüm görevlerin toplam süresi.
-- **Kritik Yol Uzunluğu (L):** Grafikteki en uzun bağımlılık yolu.
-- **Ortalama Paralellik Derecesi (Avg Concurrency):**
-  $$ \text{Avg Concurrency} = \frac{W}{L} $$
+- **Toplam İş (W - Work):** Eğer bu programı tek bir işlemcide çalıştırsaydık ne kadar süre alırdı? Tüm görevlerin harcadığı zamanın veya işlem yükünün toplamıdır.
+- **Kritik Yol Uzunluğu (L - Critical Path):** Grafikteki başlangıçtan bitişe giden en uzun, birbirine bağımlı görevler zinciridir. Sisteme sonsuz sayıda işlemci bile koysanız, programınızın bitme süresi kritik yolun altına inemez. İnşaat yaparken, temel atılmadan duvar çıkılamaz, duvar çıkılmadan çatı yapılamaz. Bu ardışık sıralama sizin kritik yolunuzdur.
+- **Ortalama Paralellik Derecesi (Average Concurrency):** Latince *concurrere* (birlikte koşmak) kökünden gelir. Sistemde aynı anda ortalama kaç görevin aktif olarak yürütüldüğünü gösterir.
+  $$\text{Avg Concurrency} = \frac{W}{L}$$
 
-#### 4.8.2 Veritabanı Sorgu İşleme Analizi (Şekil 3.2 ve 3.3)
+#### 4.8.2 Veritabanı Sorgu İşleme Analizi
 
-İki farklı ayrıştırma stratejisinin karşılaştırmalı analizi:
+Büyük bir veritabanı sorgusunu (örneğin birden fazla tablonun birleştirilmesi işlemi) iki farklı algoritmik stratejiyle böldüğümüzü varsayalım. Bu stratejilerin ağaç yapıları performansı nasıl etkiler inceleyelim.
 
-**1. Strateji (a):**
-- Toplam İş (W): 63 birim.
-- Kritik Yol (L): 27 birim.
+**1. Strateji (a): Dengeli Dağılım**
+
+![Strateji A Görev Bağımlılık Grafiği](images/dag_strategy_a.svg)
+
+- Toplam İş (W): Çizgedeki tüm birimlerin toplamı, $10 + 8 + 15 + 13 + 10 + 7 = \mathbf{63 \text{ birim}}$.
+- Kritik Yol (L): En uzun bağımlılık zinciri ($A \rightarrow D \rightarrow E$), $10 + 10 + 7 = \mathbf{27 \text{ birim}}$.
 - Ortalama Paralellik: $63 / 27 \approx \mathbf{2.33}$
 
-**2. Strateji (b):**
-- Toplam İş (W): 64 birim.
-- Kritik Yol (L): 34 birim.
+**2. Strateji (b): Ardışık (Dengesiz) Dağılım**
+
+![Strateji B Görev Bağımlılık Grafiği](images/dag_strategy_b.svg)
+
+- Toplam İş (W): $10 + 10 + 10 + 10 + 15 + 9 = \mathbf{64 \text{ birim}}$.
+- Kritik Yol (L): En uzun bağımlılık zinciri ($A \rightarrow D \rightarrow E$), $10 + 15 + 9 = \mathbf{34 \text{ birim}}$.
 - Ortalama Paralellik: $64 / 34 \approx \mathbf{1.88}$
 
-> **Akademik Sonuç:** Strateji (a), daha kısa bir kritik yola ve daha yüksek bir ortalama paralellik derecesine sahip olduğu için daha verimli bir paralel yapı sunar. Algoritma tasarımında temel hedef, kritik yolu minimize ederek işlemci kaynaklarını maksimize etmektir.
+**Akademik Sonuç:** Her iki stratejide de bilgisayarın yapması gereken toplam iş miktarı neredeyse aynıdır (63'e 64). Ancak Strateji (a), daha kısa bir kritik yola (27) ve doğal olarak daha yüksek bir ortalama paralellik derecesine (2.33) sahiptir. Algoritma tasarımında temel hedefimiz sadece işi küçük parçalara bölmek değil, bu parçalar arasındaki bağımlılığı (kritik yolu) minimize ederek donanımdaki işlemci kaynaklarını aynı anda, en yüksek verimle çalıştırabilmektir.
 
 ## Bölüm 5 — Paylaşımlı Bellek Programlama ve OpenMP Temelleri
 

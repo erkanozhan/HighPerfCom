@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 350" font-family="sans-serif">
+  <rect width="600" height="350" fill="#ffffff"/>
+  
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7f8c8d" />
+    </marker>
+  </defs>
+
+  <line x1="150" y1="80" x2="250" y2="150" stroke="#e74c3c" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <line x1="150" y1="150" x2="250" y2="150" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="250" y1="280" x2="400" y2="150" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="250" y1="150" x2="400" y2="150" stroke="#e74c3c" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <line x1="250" y1="60" x2="400" y2="150" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="400" y1="80" x2="400" y2="150" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <circle cx="150" cy="80" r="25" fill="#3498db" />
+  <text x="150" y="85" fill="#fff" font-weight="bold" text-anchor="middle">A(10)</text>
+  
+  <circle cx="150" cy="150" r="25" fill="#3498db" />
+  <text x="150" y="155" fill="#fff" font-weight="bold" text-anchor="middle">B(8)</text>
+
+  <circle cx="250" cy="60" r="25" fill="#3498db" />
+  <text x="250" y="65" fill="#fff" font-weight="bold" text-anchor="middle">C(15)</text>
+
+  <circle cx="250" cy="150" r="25" fill="#e74c3c" />
+  <text x="250" y="155" fill="#fff" font-weight="bold" text-anchor="middle">D(10)</text>
+
+  <circle cx="250" cy="280" r="25" fill="#3498db" />
+  <text x="250" y="285" fill="#fff" font-weight="bold" text-anchor="middle">F(13)</text>
+
+  <circle cx="400" cy="150" r="25" fill="#e74c3c" />
+  <text x="400" y="155" fill="#fff" font-weight="bold" text-anchor="middle">E(7)</text>
+
+  <text x="50" y="320" font-size="14" fill="#2c3e50">Toplam İş (W) = 10+8+15+10+13+7 = 63</text>
+  <text x="50" y="340" font-size="14" fill="#e74c3c" font-weight="bold">Kritik Yol (L) = A(10) -> D(10) -> E(7) = 27</text>
+</svg>

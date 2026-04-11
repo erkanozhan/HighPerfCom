@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" font-family="sans-serif">
+  <rect width="800" height="350" fill="#f8f9fa"/>
+  
+  <text x="200" y="40" font-size="20" font-weight="bold" text-anchor="middle" fill="#2c3e50">UMA Mimari</text>
+  <rect x="50" y="240" width="300" height="60" rx="8" fill="#3498db" />
+  <text x="200" y="275" font-size="18" font-weight="bold" fill="#fff" text-anchor="middle">Ortak Bellek (Shared Memory)</text>
+  
+  <rect x="50" y="160" width="300" height="20" fill="#bdc3c7" />
+  <text x="200" y="175" font-size="12" fill="#2c3e50" text-anchor="middle">Sistem Veriyolu (Bus / Interconnect)</text>
+  
+  <g transform="translate(60, 80)">
+    <rect width="50" height="50" rx="5" fill="#e74c3c" />
+    <text x="25" y="30" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">CPU</text>
+    <line x1="25" y1="50" x2="25" y2="80" stroke="#7f8c8d" stroke-width="4"/>
+  </g>
+  <g transform="translate(135, 80)">
+    <rect width="50" height="50" rx="5" fill="#e74c3c" />
+    <text x="25" y="30" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">CPU</text>
+    <line x1="25" y1="50" x2="25" y2="80" stroke="#7f8c8d" stroke-width="4"/>
+  </g>
+  <g transform="translate(210, 80)">
+    <rect width="50" height="50" rx="5" fill="#e74c3c" />
+    <text x="25" y="30" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">CPU</text>
+    <line x1="25" y1="50" x2="25" y2="80" stroke="#7f8c8d" stroke-width="4"/>
+  </g>
+  <g transform="translate(285, 80)">
+    <rect width="50" height="50" rx="5" fill="#e74c3c" />
+    <text x="25" y="30" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">CPU</text>
+    <line x1="25" y1="50" x2="25" y2="80" stroke="#7f8c8d" stroke-width="4"/>
+  </g>
+  <line x1="200" y1="180" x2="200" y2="240" stroke="#7f8c8d" stroke-width="6"/>
+
+  <line x1="400" y1="20" x2="400" y2="330" stroke="#bdc3c7" stroke-width="2" stroke-dasharray="10,10"/>
+
+  <text x="600" y="40" font-size="20" font-weight="bold" text-anchor="middle" fill="#2c3e50">NUMA Mimari</text>
+  
+  <rect x="430" y="70" width="150" height="230" rx="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="2"/>
+  <text x="505" y="95" font-size="14" font-weight="bold" fill="#7f8c8d" text-anchor="middle">Düğüm 1</text>
+  
+  <g transform="translate(450, 110)">
+    <rect width="45" height="45" rx="5" fill="#e74c3c" />
+    <text x="22.5" y="27" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">CPU</text>
+  </g>
+  <g transform="translate(515, 110)">
+    <rect width="45" height="45" rx="5" fill="#e74c3c" />
+    <text x="22.5" y="27" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">CPU</text>
+  </g>
+  <rect x="450" y="180" width="110" height="40" rx="5" fill="#2ecc71" />
+  <text x="505" y="205" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">Yerel Bellek</text>
+  
+  <line x1="472.5" y1="155" x2="472.5" y2="180" stroke="#7f8c8d" stroke-width="3"/>
+  <line x1="537.5" y1="155" x2="537.5" y2="180" stroke="#7f8c8d" stroke-width="3"/>
+
+  <path d="M 505 220 L 505 270 L 695 270 L 695 220" fill="none" stroke="#e67e22" stroke-width="6"/>
+  <text x="600" y="295" font-size="14" font-weight="bold" fill="#e67e22" text-anchor="middle">Hızlı Ara Bağlantı (Interconnect)</text>
+
+  <rect x="620" y="70" width="150" height="230" rx="10" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="2"/>
+  <text x="695" y="95" font-size="14" font-weight="bold" fill="#7f8c8d" text-anchor="middle">Düğüm 2</text>
+  
+  <g transform="translate(640, 110)">
+    <rect width="45" height="45" rx="5" fill="#e74c3c" />
+    <text x="22.5" y="27" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">CPU</text>
+  </g>
+  <g transform="translate(705, 110)">
+    <rect width="45" height="45" rx="5" fill="#e74c3c" />
+    <text x="22.5" y="27" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">CPU</text>
+  </g>
+  <rect x="640" y="180" width="110" height="40" rx="5" fill="#2ecc71" />
+  <text x="695" y="205" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">Yerel Bellek</text>
+  
+  <line x1="662.5" y1="155" x2="662.5" y2="180" stroke="#7f8c8d" stroke-width="3"/>
+  <line x1="727.5" y1="155" x2="727.5" y2="180" stroke="#7f8c8d" stroke-width="3"/>
+</svg>
