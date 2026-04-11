@@ -683,4 +683,12 @@ for (int i = 0; i < N; i++) {
 }
 ```
 
+![OpenMP Reduction Pattern - Work-sharing and local variable aggregation](/images/reduction.svg)
+
+### Çizimin Açıkladığı Adımlar:
+1. **İş Paylaşımı (Work-sharing):** `#pragma omp parallel for` komutu, `N` boyutlu diziyi var olan *thread* (iş parçacığı) sayısına göre (örnekte 3'e bölünmüş olarak) paylaştırır. Herkes dizinin farklı bir kısmını (örneğin Thread 0: `0..K` arasını) hesaplar.
+2. **Yerel Değişkenler (Local Copies):** `reduction(+:toplam)` sayesinde, global olan `toplam` değişkeni üzerine eşzamanlı yazma (race condition) olmaması için her *thread* kendi içinde `lokal_toplam` adında özel bir kopya yaratır ve bunu `0` (toplama işlemi için etkisiz eleman) ile başlatır.
+3. **Paralel Hesaplama:** Her thread kendisine düşen dizi elemanlarını *sadece kendi lokal toplam* değişkenine ekler.
+4. **İndirgeme / Birleştirme (Reduction):** Bütün thread'ler kendi işlerini bitirdiğinde (senkronizasyon noktası), yerel sonuçlar belirtilen `+` operatörü ile otomatik olarak toplanır ve global ana bellek üzerindeki asıl `toplam` değişkenine yazılır. Böylece güvenli ve hızlı bir hesaplama elde edilir.
+
 Bu yapı, toplama (+), çarpma (*), mantıksal VE/VEYA (&, |) gibi işleçleri (operator) destekler. Her bir iş parçacığı arka planda o işlecin etkisiz elemanıyla (toplama için 0, çarpma için 1) başlayan gizli bir yerel değişken oluşturur ve döngü bitiminde sonuçları güvenle ana değişkende birleştirir.
