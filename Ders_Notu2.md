@@ -470,7 +470,7 @@ Aradığı veri bu depoda mevcutsa buna **Önbellek İsabeti (Cache Hit)** deriz
 
 Bu karar mekanizmasını ve veri akışını aşağıdaki şemada görebilirsiniz:
 
-![Önbellek Veri Akışı](images/cache_flow.svg)
+![Şekil 6: Önbellek Karar Mekanizması ve Veri Akış Diyagramı](images/cache_flow.svg)
 
 Önbellek performansının yüksek olması donanımsal bir sihir veya rastlantı değildir; yazılımlarımızın genel bir karakteristiği olan **Yerellik İlkesi (Locality of Reference)** üzerine kuruludur. İki tür yerellikten söz ederiz:
 
@@ -496,7 +496,7 @@ C ve C++ gibi dillerde iki boyutlu matrisler bellekte satır satır (Row-Major O
 
 Bu durumu, devasa bir ansiklopediden bir bilgi ararken her seferinde kütüphaneye gidip raftan koca bir cilt alıp masanıza getirdiğinizi, içinden sadece tek bir kelime okuyup cildi geri götürdüğünüzü düşünerek somutlaştırabilirsiniz. Getirdiğiniz sayfadaki diğer kelimeleri (yanındaki verileri) okumadığınız için mekansal yerelliği (spatial locality) yok edersiniz.
 
-![Adımlı Erişim ve Bellek Dizilimi](images/strided_access.svg)
+![Şekil 7: Bellekte Adımlı Erişim (Strided Access) ve Veri Atlama Problemi](images/strided_access.svg)
 
 ```c
 // Kötü Mekansal Yerellik (Sütun Öncelikli Erişim / Column-Major Access)
@@ -513,7 +513,7 @@ for (int i = 0; i < 1000; i++) {
 
 İşlediğimiz matrisler veya veri setleri çok büyük olduğunda, verinin tamamını işlemcinin önbelleğinde (cache) tutmamız imkansızlaşır. Bu sorunu çözmek için veriyi küçük bloklara (fayans veya karo anlamına gelen "tile"lara) böleriz. Tiling tekniği, büyük veri setlerini önbelleğe tam olarak sığacak alt matrislere ayırarak bellek bant genişliği (bandwidth) gereksinimini minimize eder. Kütüphaneden alabildiğimiz kadar kitabı masamıza yığıp, o kitaplarla yapılabilecek tüm işi bitirmeden yenilerini almamak gibidir.
 
-![Döngü Döşeme (Tiling) Mantığı](images/loop_tiling.svg)
+![Şekil 8: Döngü Döşeme (Tiling) ile Verinin Önbellek Bloklarına Ayrılması](images/loop_tiling.svg)
 
 ```c
 // Tiling (Bloklama) Mantığı
@@ -540,7 +540,7 @@ Programlama yaparken nesnelerimizi bellekte iki farklı yaklaşımla tutabiliriz
 
 **Teknik Not:** Bilimsel hesaplamalarda ve yüksek performanslı yazılımlarda çoğunlukla SoA tercih edilir. Çünkü SIMD (Single Instruction, Multiple Data - Tek Komut, Çoklu Veri) işlemci birimleri, hesaplama yaparken aynı özniteliği (örneğin sadece x koordinatlarını) birden fazla parçacık için bitişik bellekten tek bir saat vuruşunda, blok halinde (contiguous loading) çekmek ister. AoS düzeninde x'lerin arasında y ve z'ler olduğu için SIMD birimleri tam kapasiteyle çalışamaz.
 
-![AoS ve SoA Dizilimleri](images/aos_soa.svg)
+![Şekil 9: AoS (Array of Structures) ve SoA (Structure of Arrays) Bellek Yerleşim Karşılaştırması](images/aos_soa.svg)
 
 ### 4.5 Bellek Gecikmesini Gizleme Teknikleri
 
@@ -588,7 +588,7 @@ Veriyi hızlı getirmeyi çözdükten sonra, işlemcilerin bu veriyi nasıl işl
 - **UMA (Uniform Memory Access - Eşbiçimli Bellek Erişimi):** Latince *unus* (tek/bir) ve *forma* (biçim) kelimelerinden gelir. Sistemdeki tüm işlemcilerin, belleğin herhangi bir noktasına erişim süresi tamamen aynıdır.
 - **NUMA (Non-Uniform Memory Access - Eşbiçimsiz Bellek Erişimi):** İşlemci sayısının çok arttığı sistemlerde belleği tek bir merkeze koymak darboğaz yaratır. Bu yüzden bellek, işlemcilere (veya işlemci düğümlerine) paylaştırılır. Kendi masanızdaki (yerel) bellekten veri okumak çok hızlıyken, ağ üzerinden yan odadaki (uzak) işlemcinin belleğinden veri okumak yavaştır.
 
-![UMA ve NUMA Mimarileri](images/uma_numa.svg)
+![Şekil 10: UMA (Paylaşılan) ve NUMA (Dağıtık) Bellek Mimarileri](images/uma_numa.svg)
 
 ### 4.8 Algoritma Tasarım Prensipleri ve Görev Bağımlılıkları
 
@@ -609,7 +609,7 @@ Büyük bir veritabanı sorgusunu (örneğin birden fazla tablonun birleştirilm
 
 **1. Strateji (a): Dengeli Dağılım**
 
-![Strateji A Görev Bağımlılık Grafiği](images/dag_strategy_a.svg)
+![Şekil 11: Strateji A - Yüksek Paralellik Sunan Dengeli Görev Bağımlılık Grafiği](images/dag_strategy_a.svg)
 
 - Toplam İş (W): Çizgedeki tüm birimlerin toplamı, $10 + 8 + 15 + 13 + 10 + 7 = \mathbf{63 \text{ birim}}$.
 - Kritik Yol (L): En uzun bağımlılık zinciri ($A \rightarrow D \rightarrow E$), $10 + 10 + 7 = \mathbf{27 \text{ birim}}$.
@@ -617,7 +617,7 @@ Büyük bir veritabanı sorgusunu (örneğin birden fazla tablonun birleştirilm
 
 **2. Strateji (b): Ardışık (Dengesiz) Dağılım**
 
-![Strateji B Görev Bağımlılık Grafiği](images/dag_strategy_b.svg)
+![Şekil 12: Strateji B - Uzun Kritik Yollu Ardışık Görev Bağımlılık Grafiği](images/dag_strategy_b.svg)
 
 - Toplam İş (W): $10 + 10 + 10 + 10 + 15 + 9 = \mathbf{64 \text{ birim}}$.
 - Kritik Yol (L): En uzun bağımlılık zinciri ($A \rightarrow D \rightarrow E$), $10 + 15 + 9 = \mathbf{34 \text{ birim}}$.
@@ -644,9 +644,9 @@ OpenMP, iş parçacıklarını yönetmek için **Fork-Join** (Dallanma-Birleşme
 
 Aşağıdaki interaktif şema, tek bir ana iş parçacığının nasıl çoğaldığını, paralel bir görevi nasıl yerine getirdiğini ve ardından tekrar tek bir izlek halinde nasıl birleştiğini görselleştirmektedir.
 
-![OpenMP Fork-Join Modeli](images/fork_join.svg)
+![Şekil 13: OpenMP Fork-Join (Dallanma-Birleşme) Yürütme Modeli](images/fork_join.svg)
 
-![Hareketli Model](images/hareketli_fork_join.svg)
+![Şekil 14: Hareketli Fork-Join Modeli Animasyonu](images/hareketli_fork_join.svg)
 
 Ana iş parçacığı tarafından oluşturulan bu yeni iş parçacığı kümesine "takım" (team) adı verilir. Takımdaki her bir çocuk (child) iş parçacığı, belirtilen kod bloğunu aynı anda çalıştırır. Blok bittiğinde ise tüm iş parçacıkları görünmez bir bariyerde (implicit barrier) birbirini bekler, birleşir (Join) ve sadece ana iş parçacığı kodu sırayla yürütmeye devam eder.
 
@@ -671,7 +671,7 @@ for (int i = 0; i < N; i++) {
 ```
 Bu OpenMP kodunun çalışma mantığını, iterasyonların bölünmesini (**work-sharing**) ve eşzamanlı çalışmayı (fork-join modelini) gösterir. Bu kodda `reduction` olmadığı için veri birleştirme adımı yoktur; sadece işin bölüşülmesi ve paralel yürütülmesi vurgulanmıştır.
 
-<img src="images/work_sharing.svg">
+<img src="images/work_sharing.svg" alt="OpenMP Work-Sharing ve Fork-Join Modeli">
 
 
 ### Adımlar:
