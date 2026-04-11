@@ -611,37 +611,28 @@ OpenMP kullanırken doğrudan karmaşık iş parçacığı oluşturma (thread cr
 
 ### 5.2 Fork-Join (Dallanma-Birleşme) Modeli
 
-OpenMP, iş parçacıklarını yönetirken **Fork-Join** adı verilen bir model kullanır. Program çalışmaya başladığında, sadece tek bir ana iş parçacığı (Master Thread) aktiftir. Bu ana iş parçacığı, paralelleştirilmesi gereken bir kod bloğuna (`#pragma omp parallel`) ulaştığında kendini çoğaltır, yani dallanır (Fork). 
+### 5.2 Fork-Join (Dallanma-Birleşme) Modeli
+
+OpenMP, iş parçacıklarını yönetmek için **Fork-Join** (Dallanma-Birleşme) adı verilen güçlü ve sezgisel bir model kullanır. Bu model, programın seri ve paralel bölümleri arasındaki geçişi açıkça tanımlar.
+
+Aşağıdaki interaktif şema, tek bir ana iş parçacığının nasıl çoğaldığını, paralel bir görevi nasıl yerine getirdiğini ve ardından tekrar tek bir izlek halinde nasıl birleştiğini görselleştirmektedir.
+
+### 5.2 Fork-Join (Dallanma-Birleşme) Modeli
+
+OpenMP, iş parçacıklarını yönetirken Fork-Join adı verilen bir model kullanır. Program çalışmaya başladığında, sadece tek bir ana iş parçacığı (Master Thread) aktiftir. Bu ana iş parçacığı, paralelleştirilmesi gereken bir kod bloğuna (#pragma omp parallel) ulaştığında kendini çoğaltır, yani dallanır (Fork).
 
 Aşağıdaki şemada bu mantığı görebilirsiniz:
 
-```dot
-digraph ForkJoin {
-    rankdir=LR;
-    node [shape=box, style=rounded, fontname="Helvetica", color="#2c3e50", fontcolor="#2c3e50"];
-    edge [color="#7f8c8d"];
+![OpenMP Fork-Join Modeli](images/fork_join.svg)
 
-    Start [label="Ana İş Parçacığı\n(Master Thread)", shape=plaintext];
-    Fork [label="Fork\n(Dallanma)", shape=circle, style=filled, fillcolor="#ecf0f1"];
-    T1 [label="Thread 0 (Master)"];
-    T2 [label="Thread 1 (Child)"];
-    T3 [label="Thread 2 (Child)"];
-    T4 [label="Thread ..."];
-    Join [label="Join\n(Birleşme)", shape=circle, style=filled, fillcolor="#ecf0f1"];
-    End [label="Ana İş Parçacığı\nDevam Eder", shape=plaintext];
+Ana iş parçacığı tarafından oluşturulan bu yeni iş parçacığı kümesine "takım" (team) adı verilir. Takımdaki her bir çocuk (child) iş parçacığı, belirtilen kod bloğunu aynı anda çalıştırır. Blok bittiğinde ise tüm iş parçacıkları görünmez bir bariyerde (implicit barrier) birbirini bekler, birleşir (Join) ve sadece ana iş parçacığı kodu sırayla yürütmeye devam eder.
 
-    Start -> Fork;
-    Fork -> T1;
-    Fork -> T2;
-    Fork -> T3;
-    Fork -> T4;
-    T1 -> Join;
-    T2 -> Join;
-    T3 -> Join;
-    T4 -> Join;
-    Join -> End;
-}
-```
+#### Modelin Çalışma Mantığı
+
+1.  **Seri Başlangıç:** Program çalışmaya başladığında, sadece tek bir ana iş parçacığı (**Master Thread**) aktiftir. Bu iş parçacığı, kodu sırayla yürütür.
+2.  **Dallanma (Fork):** Ana iş parçacığı, paralelleştirilmesi gereken bir kod bloğuna (`#pragma omp parallel`) ulaştığında, kendini çoğaltır. Bu işleme **Dallanma (Fork)** adı verilir.
+3.  **Paralel Bölge ve Takım:** Dallanma sonucunda oluşan bu yeni iş parçacığı kümesine "**takım**" (team) adı verilir. Takımdaki her bir iş parçacığı (**Thread 0 (Master), Thread 1 (Child), ...**) belirtilen paralel kod bloğunu aynı anda, ancak kendi veri kümeleri üzerinde çalıştırır. Şemada bu bölge açıkça vurgulanmıştır.
+4.  **Birleşme (Join) ve Bariyer:** Paralel kod bloğu sona erdiğinde, tüm iş parçacıkları bir **Örtük Bariyerde** (implicit barrier) birbirini bekler. Tüm takım işini bitirmeden birleşme gerçekleşemez. Sonunda iş parçacıkları birleşir (**Join**) ve sadece ana iş parçacığı (Master Thread) kodu sırayla yürütmeye devam eder.
 
 Ana iş parçacığı tarafından oluşturulan bu yeni iş parçacığı kümesine "takım" (team) adı verilir. Takımdaki her bir çocuk (child) iş parçacığı, belirtilen kod bloğunu aynı anda çalıştırır. Blok bittiğinde ise tüm iş parçacıkları görünmez bir bariyerde (implicit barrier) birbirini bekler, birleşir (Join) ve sadece ana iş parçacığı kodu sırayla yürütmeye devam eder.
 
