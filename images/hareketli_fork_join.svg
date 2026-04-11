@@ -7,9 +7,10 @@
         .thread-bot { animation: flowBot 5s infinite linear; }
         .master-out { animation: flowOut 5s infinite linear; }
 
+        /* Kırmızı topun dikey eksen (195px) düzeltmesi yapıldı */
         @keyframes flowIn {
-            0% { transform: translateX(100px); opacity: 1; }
-            20% { transform: translateX(270px); opacity: 1; }
+            0% { transform: translate(100px, 195px); opacity: 1; }
+            20% { transform: translate(270px, 195px); opacity: 1; }
             21%, 100% { opacity: 0; }
         }
         @keyframes flowTop {
@@ -37,9 +38,9 @@
             81%, 100% { opacity: 0; }
         }
         @keyframes flowOut {
-            0%, 80% { opacity: 0; transform: translateX(650px); }
+            0%, 80% { opacity: 0; transform: translate(650px, 195px); }
             81% { opacity: 1; }
-            100% { transform: translateX(820px); opacity: 1; }
+            100% { transform: translate(820px, 195px); opacity: 1; }
         }
     </style>
 
@@ -64,6 +65,7 @@
     <text x="650" y="190" text-anchor="middle" font-size="16" font-weight="bold" fill="#2c3e50">Join</text>
 
     <circle class="master-in" cx="0" cy="0" r="10" fill="#e74c3c" />
+    
     <circle class="thread-top" cx="0" cy="0" r="10" fill="#27ae60" />
     <text class="thread-top" x="0" y="-15" text-anchor="middle" font-size="12" font-weight="bold" fill="#27ae60">T0</text>
     
