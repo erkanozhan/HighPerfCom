@@ -19,82 +19,70 @@ Bugün, bilgisayarlar bankacılıktan tıpa, eğitimden eğlenceye kadar her sek
 ### Kayan Noktalı Aritmetik ve Sayı Temsili
 Bilgisayar bilimlerinde, kayan noktalı aritmetik (Floating Point-FP), gerçek sayıların alt kümelerini, sabit bir hassasiyete sahip bir tamsayı (signifikand) olarak, sabit bir tabanın tamsayı üssü ile çarpılarak gösteren bir aritmetiktir. Bu formdaki sayılara kayan noktalı sayılar denir.
 
-### Kayan Noktalı Sayıların Görsel Anatomisi (IEEE 754 32-bit Standartı)
+### IEEE 754 32-bit Standardı: Kayan Noktalı Sayıların Yapısı
 
-İlk olarak, sabit noktalı (fixed-point) sayılarla kayan noktalı sayıların farkını göstermek için basit bir blok çizimi yapabilirsiniz:
+Sayıların bilgisayarda nasıl saklandığını anlamak, performans odaklı kod yazmanın temel taşlarından biridir. Önce sorunu, ardından çözümü ele alalım.
 
-**1. Sabit Noktalı Sistem (Sorunlu Yapı):**
-Noktanın yeri sabittir. Çok büyük sayılarda tam sayı kısmı taşar, çok küçük sayılarda kesir kısmı yetersiz kalır.
+#### Sorun: Sabit Noktalı (Fixed-Point) Temsil
 
-```text
-[ Tam Sayı Kısmı (16 bit) ] . [ Kesir Kısmı (16 bit) ]
-                            ^
-                     Nokta hep buradadır
+32 bitlik bir kaydı ikiye böldüğümüzü düşünelim: 16 bit tam sayı, 16 bit kesir için. Bu tasarımda noktanın yeri kalıcı olarak sabittir.
 
-```
+![Sabit Noktalı Temsil](images/fixed-point-layout.svg)
 
-**2. Kayan Noktalı Sistem (Çözüm):**
-Sayıyı bilimsel gösterime çevirip parçalara ayırırız. Noktanın nerede "duracağı" bilgisini ayrı bir kutuda (Üs) tutarız.
+Sorun açıktır: büyük bir sayıyı temsil etmek istediğinizde tam sayı kısmı taşar (overflow); çok küçük bir sayıda ise kesir kısmı yeterli çözünürlüğü sağlayamaz. Bir terzi, hem kilometre cinsinden kumaş toplarını hem de milimetrik dikişleri aynı mezura ile ölçmeye çalışıyorsa iki uçta da yetersiz kalır.
 
-```text
-  1 Bit       8 Bit                  23 Bit
-  +---+ +----------------+ +-----------------------------------------+
-  | S | |       Üs       | |                 Mantis                  |
-  |   | |   (Exponent)   | |      (Significand / Anlamlı Kısım)      |
-  +---+ +----------------+ +-----------------------------------------+
-   31    30            23   22                                      0
+#### Çözüm: Kayan Noktalı (Floating-Point) Temsil — IEEE 754
 
-```
+Standart, sayıyı bilimsel gösterime benzer biçimde üç alana böler. Her 32-bitlik kayan noktalı sayı şu yapıda saklanır:
 
-- **S (Sign - 1 bit):** İşaret biti. $0$ ise pozitif, $1$ ise negatif.
-- **Üs (Exponent - 8 bit):** Noktanın ne kadar sağa veya sola kaydığını tutar. (Bias/Sapma değeri eklenerek saklanır).
-- **Mantis (Mantissa - 23 bit):** Sayının asıl anlamlı basamaklarını tutar.
+![IEEE 754 32-bit Yapısı](images/ieee754-layout.svg)
+
+- **S — İşaret (Sign), 1 bit:** $0$ pozitif, $1$ negatif.
+- **Üs (Exponent), 8 bit:** Noktanın kaç basamak sağa ya da sola kaydığını kodlar. Negatif üsleri de temsil edebilmek için gerçek üs değerine **bias** (sapma) adı verilen sabit bir değer olan 127 eklenerek saklanır; bellekteki değer her zaman *gerçek üs + 127*'dir.
+- **Mantis (Mantissa / Significand / Anlamlı Kısım), 23 bit:** Sayının anlamlı basamaklarını taşır. Normalleştirilmiş sayılarda baştaki `1.` daima mevcut kabul edildiğinden hafızaya yazılmaz — bu **gizli bit (hidden bit)** kuralı sayesinde 23 bit ile aslında 24 bitlik hassasiyet elde edilir.
+
+Genel formül:
+
+$$\text{Değer} = (-1)^{S} \times 1.\text{Mantis} \times 2^{(\text{Üs} - 127)}$$
 
 ---
 
-### $5.75$ Sayısını Bilgisayar Nasıl Görür?
+### $5.75$ Sayısının IEEE 754 Gösterimi
 
-Bu işlemi tahtada adım adım şu şekilde görselleştirebilirsiniz:
+Somut bir örnekle bu yapıyı pekiştirelim.
 
-**Adım 1: Sayıyı İkili (Binary) Sisteme Çevirme**
-Tam sayı ve kesir kısmını ayrı ayrı çeviriyoruz:
+#### Adım 1 — İkili (Binary) Sisteme Dönüştürme
 
-- Tam sayı kısmı: $5_{10} = 101_2$
-- Kesir kısmı: $0.75_{10} = 0.5 + 0.25 = 0.11_2$
-- **Birleşim:** $101.11_2$
+Tam sayı ve kesir kısımlarını ayrı ayrı dönüştürürüz:
 
-**Adım 2: Sayıyı Normalize Etme (Noktayı Kaydırma)**
-Bilimsel gösterimde olduğu gibi, noktayı en baştaki $1$'in yanına kadar kaydırıyoruz. Nokta $2$ basamak sola kayıyor.
+- $5_{10} = 101_{2}$
+- $0.75_{10} = 0.5 + 0.25 = 0.11_{2}$
+- Birleşim: $101.11_{2}$
 
-- **Orijinal:** $101.11$
-- **Kayan Noktalı Hali:** $1.0111 \times 2^2$
+#### Adım 2 — Normalleştirme
 
-**Adım 3: Blokları Doldurma (Şema Üzerinde)**
+Noktayı en soldaki 1'in hemen sağına taşıyoruz; bilimsel gösterimdeki mantıkla aynıdır:
+
+$$101.11_{2} \;\longrightarrow\; 1.0111 \times 2^{2}$$
+
+Nokta 2 basamak sola kaydı, dolayısıyla gerçek üs = 2.
+
+#### Adım 3 — Alanları Doldurma
 
 **A) İşaret (S):**
-Sayı pozitif olduğu için kutuya **0** yazılır.
+Sayı pozitif → **0**
 
 **B) Üs (Exponent):**
-Noktayı $2$ basamak kaydırdık. Ancak IEEE 754 standardında negatif üslerle uğraşmamak için sabit bir sapma (bias) değeri olan $127$ eklenir.
-
-* Hesap: $2 + 127 = 129$
-* $129$'un ikili karşılığı: **10000001**
+$2 + 127 = 129 = 10000001_{2}$
 
 **C) Mantis (Mantissa):**
-Virgülden sonraki kısmı (`0111`) alırız. Standarda göre baştaki "1." kısmı her zaman var kabul edildiği için (Gizli bit / Hidden bit kuralı) hafızaya yazılmaz, bu sayede 1 bit yer kazanılır.
+Normalleştirme sonrası virgülden sonraki kısım `0111`'dir. Gizli bit kuralı gereği başındaki `1.` saklanmaz; kalan 23 biti sona sıfır ekleyerek doldururuz: `01110000000000000000000`
 
-* Geriye kalan 23 biti doldurmak için sonuna sıfırlar eklenir: **01110000000000000000000**
+Bellekteki nihai düzen:
 
-**Sonuç: Bilgisayarın Hafızasındaki Görünüm**
-Öğrencilere nihai yapıyı şu şema ile birleştirerek gösterebilirsiniz:
+![5.75 Sayısının IEEE 754 Gösterimi](images/ieee754-example-5-75.svg)
 
-```text
-   S       ÜS (Exponent)             MANTİS (Mantissa)
- +---+ +------------------+ +---------------------------------------+
- | 0 | | 1 0 0 0 0 0 0 1  | | 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
- +---+ +------------------+ +---------------------------------------+
-
-```
+Sonucu doğrulayalım: $(-1)^{0} \times 1.0111_{2} \times 2^{2} = 101.11_{2} = 5.75$ ✓
 
 
 ## Bölüm 1 — Modern Donanım ve Paralel Hesaplamaya Giriş
@@ -112,209 +100,205 @@ Sonuç: Artık donanım ekleyerek eski seri yazılımları otomatik hızlandırm
 
 ## Bölüm 2 — Paralel Mimariler ve Flynn Taksonomisi
 
-Paralel bilgisayar donanımları, eşzamanlı olarak yönetebildikleri komut (instruction) ve veri (data) akışlarının sayısına göre sınıflandırılır (Flynn Taksonomisi, 1966). Bu sınıflandırma, aşağıda **Şekil 1**'de de özetlendiği gibi temelde donanımın veriyi ve talimatı nasıl işlediğine odaklanan dört farklı kategoriden (SISD, SIMD, MISD, MIMD) oluşur.
+Michael Flynn (1966), paralel bilgisayar mimarilerini sınıflandırmak için iki eksenli bir çerçeve önerdi: eş zamanlı işlenebilen **komut (instruction)** akışı sayısı ve **veri (data)** akışı sayısı. Her eksen iki değer alır — tekli ya da çoklu — ve bu kombinasyonlar dört kategoriyi tanımlar:
 
-```mermaid
-mindmap
-  root((Flynn<br/>Taksonomisi))
-    SISD
-      [Seri İşleme]
-      (Klasik CPU)
-    SIMD
-      [Veri Paralelliği]
-      (GPU, Vektör)
-        SIMT
-    MISD
-      [Hata Toleransı]
-      (Uzay Araçları)
-    MIMD
-      [Görev Paralelliği]
-      (Çoklu Çekirdek, Küme)
-        SPMD
-```
+![Flynn Taksonomisi](images/flynn-taxonomy.svg)
 
-### 2.1 SISD (Single Instruction, Single Data)
+Mimariyi etiketlemek için önce komut akışının, ardından veri akışının tekli mi çoklu mu olduğuna bakmak yeterlidir.
 
-Klasik von Neumann mimarisi: tek bir komut tek bir veri üzerinde çalışır — seri, tek çekirdekli sistemleri tanımlar.
+### 2.1 SISD — Tek Komut, Tek Veri (Single Instruction, Single Data)
 
-Örnek: Sadece bir garsonun, sadece tek bir masanın siparişini alıp mutfağa götürmesidir. Her şey sırayla yapılır.
+Klasik von Neumann mimarisi tam olarak bu tanıma oturur: tek bir işlemci, tek bir komut dizisini, tek bir veri akışı üzerinde sırayla yürütür. Bugünkü çok çekirdekli sistemlerin her çekirdeği seri kodda SISD gibi davranır; bu nedenle SISD, paralel performansı değerlendirirken kullanılan referans noktasıdır.
 
-### 2.2 SIMD (Single Instruction, Multiple Data)
+Kasabadaki tek eczacıyı düşünün: müşteriler sırayla reçetelerini getirir, eczacı her birini ayrı ayrı hazırlar. Hız tamamen eczacının kapasitesiyle sınırlıdır.
 
-Tek bir kontrol birimi aynı komutu birden çok veri öğesine uygular. Döngü seviyesindeki veri paralelliği için idealdir.
-Örnekler: GPU'lar, CPU vektör uzantıları (SSE, AVX). GPU hesaplamalarında bunun türevi olan **SIMT (Single Instruction, Multiple Threads)** mimarisi kullanılır.
+### 2.2 SIMD — Tek Komut, Çok Veri (Single Instruction, Multiple Data)
 
-Örnek: Bir garsonun kocaman bir tepsiyle 4 farklı müşteriye aynı anda kahve (aynı işlem) götürmesidir. Tek hareketle çok veri işlenmiş olur.
+Tek bir kontrol birimi, aynı komutu eş zamanlı olarak birçok veri öğesine uygular; buna **veri paralelliği (data parallelism)** denir. Döngü gövdelerindeki bağımsız aritmetik işlemler bu modele en uygun adaylardır.
 
-### 2.3 MIMD (Multiple Instruction, Multiple Data)
+CPU vektör uzantıları olan **SSE** (Streaming SIMD Extensions) ve **AVX** (Advanced Vector Extensions), tek bir komutla 4 ya da 8 kayan noktalı değeri aynı anda işler. **GPU** (Graphics Processing Unit / Grafik İşlem Birimi) çekirdekleri de bu yaklaşımı son derece geniş veri genişliklerinde uygular.
 
-Birden çok bağımsız işlem birimi farklı komutları ve verileri aynı anda işler. Günümüz büyük paralel sistemlerinin çoğu MIMD'dir.
-Alt türler: Paylaşımlı bellek (shared-memory) ve dağıtık bellek (distributed-memory) sistemleri. Pratikte çok sık olarak **SPMD (Single Program, Multiple Data)** modeliyle (ör. MPI) programlanır.
+Konserve fabrikasındaki doldurma hattını düşünün: tek bir piston hareketi, bant üzerinde yan yana duran 8 kutuyu aynı anda doldurur. Komut aynı; kutuların içindeki veri farklı.
 
-Örnek: Büyük bir peyzaj işinde (bahçecilik), bir bahçıvanın çim biçme makinesiyle çimleri biçmesi, diğerinin makasla ağaçları budaması, bir başkasının ise hortumla çiçekleri sulaması gibidir. Her biri farklı bir aletle (farklı komut), bahçenin farklı bir köşesinde (farklı veri) aynı anda ve bağımsız çalışır.
+GPU mimarisinde SIMD'nin iş parçacığı düzeyine taşınmış biçimi olan **SIMT** (Single Instruction, Multiple Threads — Tek Komut, Çok İş Parçacığı) kullanılır. SIMT, iş parçacıklarının kendi koşullu dallanmalarını yönetmesine izin vererek programlama modelini önemli ölçüde kolaylaştırır. Öte yandan `if-else` dallanmaları farklı iş parçacıklarını farklı yollara yönlendirdiğinde, bazı birimler o adımı boşta geçirmek zorunda kalır — bu duruma **maskeleme (masking)** denir ve gerçek verimi düşürür.
 
-### 2.4 MISD (Multiple Instruction, Single Data)
+### 2.3 MIMD — Çok Komut, Çok Veri (Multiple Instruction, Multiple Data)
 
-Nadir kullanılan bir yapı; aynı veri üzerinde farklı komutların çalıştırıldığı, genellikle yüksek güvenilirlik/yedeklilik gerektiren sistemlerde rastlanır.
+Birbirinden bağımsız işlem birimleri, her biri kendi komut akışıyla, farklı veri kümeleri üzerinde eş zamanlı çalışır. Günümüzdeki çok çekirdekli masaüstü işlemcilerden yüz binlerce çekirdekli HPC sistemlerine kadar büyük çoğunluk bu kategoriye girer.
 
-Örnek: Aşçının pişirdiği tek bir tabağın (tek veri), hem mutfak şefi hem de bir gurme tarafından aynı anda (farklı talimatlarla) tadılıp puanlanmasıdır. Çift kontrol mekanizmasıdır.
+Büyük bir inşaat şantiyesini düşünün: elektrikçi tesisatı çekerken sıvacı iç duvarları işler, çatı ustası ise kiremit döşer. Her ekip farklı araç kullanıyor, farklı materyal işliyor; hepsi aynı anda bağımsız biçimde çalışıyor.
+
+MIMD sistemler çoğunlukla **SPMD** (Single Program, Multiple Data — Tek Program, Çok Veri) modeliyle programlanır: her işlem birimi aynı programı çalıştırır, ancak kendi kimliğine (rank / ID) göre farklı veri dilimini işler. **MPI** (Message Passing Interface — İleti Geçirme Arayüzü) tabanlı uygulamalar bu modelin en yaygın örneğidir. MIMD'nin esnekliği büyük; ancak bunun karşılığı, doğruluğu güvence altına almak için gereken senkronizasyon mekanizmaları ve artan yazılım karmaşıklığıdır.
+
+### 2.4 MISD — Çok Komut, Tek Veri (Multiple Instruction, Single Data)
+
+Aynı veri akışı, birbirinden bağımsız birden fazla işlem biriminden geçirilir ve her birim farklı işlem uygular. Pratikte nadir rastlanan bu yapının asıl kullanım alanı **hata toleransı (fault tolerance)** gerektiren kritik sistemlerdir: uzay araçlarında ya da uçuş kontrol sistemlerinde aynı sensör verisi birden fazla hesaplama birimi tarafından bağımsız olarak işlenir ve sonuçlar çoğunluk oylamasıyla (voting) doğrulanır.
+
+Bir tıp merkezinin laboratuvarında aynı kan örneğinin birbirinden bağımsız üç analizörde eş zamanlı test edilmesini düşünün: örnek aynı, uygulanan ölçüm protokolleri farklı; tüm sonuçlar tutarlıysa tanıya güvenilir.
 
 ## Bölüm 3 — Paralel Hesaplamanın Temel Metrikleri ve Yasaları
 
-Paralel program performansını değerlendirirken seri çözüme göre sağlanan kazanımı ölçeriz.
+Paralel bir programın ne kadar başarılı çalıştığını anlamak için ölçülebilir büyüklüklere ihtiyaç vardır. Bu bölümde performansı sayısallaştıran iki temel metrik ve bu metriklerin donanım sınırlarıyla ilişkisini ortaya koyan iki yasa ele alınmaktadır.
 
 ### 3.1 Hızlanma (Speedup) ve Verimlilik (Efficiency)
 
-Hızlanma $S$ şu şekilde tanımlanır:
+Seri çalışma süresini $T_{\text{serial}}$, $p$ işlemcili paralel çalışma süresini $T_{\text{parallel}}$ ile gösterirsek, **hızlanma (speedup)** şöyle tanımlanır:
 
-$$
-S = \frac{T_{\mathrm{serial}}}{T_{\mathrm{parallel}}}
-$$
+$$S(p) = \frac{T_{\text{serial}}}{T_{\text{parallel}}}$$
 
-İdeal durumda $p$ işlemci ile $S=p$ (lineer hızlanma) beklenir; ancak **overhead** (yükleme) bu hedefi engeller.
+İdeal durumda $p$ işlemci ile $S = p$ beklenir. Bu hedefe neredeyse hiç ulaşılamaz; temel engel **overhead**'dir. Overhead, Latince *superponere* (üstüne yüklemek) kökenli değil ama kavram olarak tam olarak bunu ifade eder: hesaplama yapmak yerine koordinasyon için harcanan her türlü zaman. Paralel hesaplamada başlıca overhead kaynakları şunlardır:
 
-#### Overhead Nedir?
+- **Senkronizasyon (synchronization):** iş parçacıklarının ortak bir kontrol noktasında birbirini beklemesi
+- **İletişim (communication):** işlemciler arası veri transferi
+- **Yük dengesizliği (load imbalance):** bazı iş parçacıklarının daha erken bitmesi ve diğerlerini boşta beklemesi
+- **Başlatma maliyeti:** iş parçacıklarının oluşturulup zamanlayıcıya teslim edilmesi
 
-**Overhead**, paralel hesaplama sırasında asıl işten ziyade koordinasyon ve yönetim görevleri için harcanan gereksiz zamandır. Bu, paralelleştirmenin maliyetidir ve asıl problemi çözmek için doğrudan katkısı olmayan işlemlerdir.
+Bunu somutlaştırmak için büyük bir inşaat şantiyesini düşünün. 20 işçiyi eşgüdümlü çalıştırmak için sabah toplantısı, öğle koordinasyonu ve akşam kontrolü gerekir. Bu toplantılar sırasında hiç tuğla örülmez; kaç işçi olursa olsun bu koordinasyon zamanı sıfıra inmez, aksine çoğu durumda işçi sayısıyla birlikte büyür.
 
-- Yönetim yapması gereken bir aşçıbaşı, 10 aşçıyı koordine etmek (kimse ne yapacağını bilmediğinden), aralarında malzeme akışını sağlamak ve herkesin çalışmasını denetlemek için   harcadığı 2 saat, hiçbir yemeği hazırlamaz. O 2 saat tamamen **overhead**'dir.
-- Beş bahçıvan çalışırken, bahçeyi bölümlere ayırma, araçları paylaştırma ve sonunda çalışmaları birleştirme planlaması yapılsa da, bu planlama zamanı bahçeyi biçmemektedir.
-- Bir paketi 5 kargo görevlisine dağıtmak isteyebilirsiniz; ancak kimin nereye gideceğini söylemek için 30 dakika harcarsanız, bu 30 dakika paket taşınmamıştır.
+**Verimlilik (efficiency)**, hızlanmanın ideal değere oranını gösterir:
 
-Paralel hesaplamada overhead, **senkronizasyon** (tüm işçilerin bir noktada beklenmesi), **iletişim** (veri transferi), **yük dengeleme** (işi eşit dağıtma) ve **program/kontrol maliyeti** olarak geçer.
+$$E(p) = \frac{S(p)}{p} = \frac{T_{\text{serial}}}{p \cdot T_{\text{parallel}}}$$
 
-Örnek: Yüzlerce sayfalık ders notuna tek başına 10 saatte çalışan bir öğrencinin (Seri çalışma) yanına, kendi seviyesinde 4 arkadaşı eklenip notları aralarında paylaştıklarında sürenin 2 saate (Speedup=5) inmesini umarız. Ancak öğrenciler sayfaları kimin çalışacağını planlarken (senkronizasyon) ve çalışma sonunda birbirlerine özet geçerken (iletişim) yarım saat kaybettiklerinde (toplam süre 2.5 saat olur), bu kaybedilen süre **overhead**'dir. Hızlanma 4'te kalır ve verimlilik (Efficiency) %80'e düşer.
-
-Verimlilik $E$ ise:
-
-$$
-E = \frac{S}{p} = \frac{T_{\mathrm{serial}}}{p\,T_{\mathrm{parallel}}}
-$$
+$E = 1.0$ mükemmel verimlilik, $E < 1$ overhead veya yük dengesizliği demektir. HPC uygulamalarında yaygın kabul gören pratik alt sınır $E \geq 0.70$'tir; bunun altında ek işlemci eklemek marjinal kazancını yitirir.
 
 ### 3.2 Amdahl Yasası (Amdahl's Law)
 
-Amdahl yasası paralelleştirilemeyen bölümün (oranı $r$) maksimum hızlanmayı sınırladığını söyler.
+Gene Amdahl (1967), herhangi bir programın **seri kalmak zorunda olan** $r$ oranındaki kısmının maksimum hızlanmayı doğrudan kısıtladığını formüle etti. $p$ işlemcili sistemde:
 
-Örnek: İki şehir arasında çok hızlı bir tren veya uçak (ulaşım araçları) işletmek istediğinizi düşünün. Sadece yolda (havada/raylarda) geçen süreyi hızlandırarak (ör. çok daha güçlü ve hızlı yeni bir taşıt alarak) yolculuğu en aza indirebilirsiniz. Ancak yolcuların terminale gelmesi, güvenlikten geçmesi ve peronlara yürüyerek taşıta binmesi için geçen toplam 1 saatlik süre (Seri kısım) hep aynı kalacaktır. Taşıtınızın hızı limitsiz (sonsuz paralel) bile olsa, o rota asla bu 1 saatlik boarding süresinin altına inemez. Amdahl yasası sisteminizin hızlanma sınırını işte bu seri kısmın belirlediğini söyler.
+$$S(p) = \frac{1}{r + \dfrac{1-r}{p}}$$
 
-Genel formülü şu şekildedir ($p$ işlemci sayısı):
+$p \to \infty$ sınırında teorik üst tavan görünür:
 
-$$
-S(p) = \frac{1}{r + \frac{1-r}{p}}
-$$
+$$S_{\max} = \frac{1}{r}$$
 
-Eğer programın $r$ kadarı seri ise, işlemci sayısı $p\to\infty$ olursa hızlanmanın üst sınırı:
+Bir fabrikanın üretim hattını düşünün: bantların taşıma hızını istediğiniz kadar artırabilirsiniz, ancak her parti başındaki kalıp kurma süresi (seri bölüm) sabit kalır. Bant ne kadar hızlanırsa hızlansın, kalıp kurma süresi toplam sürenin tabanını belirler.
 
-$$
-S_{\max} = \frac{1}{r}
-$$
+Sayısal tablo keskindir:
 
-Örnek: Programın %90'ı paralelleştirilebiliyorsa ($r=0.1$), en fazla $1/0.1=10$ kat hızlanma elde edilir.
+| Seri Kesir $r$ | S_max (teorik üst sınır) |
+| :---: | :---: |
+| %50 | 2× |
+| %25 | 4× |
+| %10 | 10× |
+| %5 | 20× |
+| %1 | 100× |
+
+![Amdahl Yasası — Farklı seri kesir oranlarında hızlanma](images/amdahl-speedup.svg)
+
+Grafikten çıkan kritik sonuç: seri kesri %10'dan %1'e indirmek, işlemci sayısını iki katına çıkarmaktan çok daha büyük kazanım sağlar. Bu nedenle HPC programcıları, donanıma yatırım yapmadan önce profileyici (profiler) kullanarak darboğazları bulup seri kısımları küçültmeye odaklanır.
 
 ### 3.3 Gustafson–Barsis Yasası (Gustafson's Law)
 
-Gustafson ve Barsis, problem boyutu işlemci sayısıyla birlikte artırıldığında (weak scaling) seri kısmın göreli etkisinin küçüldüğünü gösterdiler. Pratikte daha fazla çekirdek mevcutsa problem boyutu büyütülerek toplam hızlanma korunabilir veya artırılabilir.
+Amdahl, **sabit** bir problem boyutunu daha fazla işlemciyle çözmeye bakıyordu; buna **güçlü ölçekleme (strong scaling)** denir. Ancak HPC sistemlerine geçişin asıl gerekçesi çoğunlukla farklıdır: aynı sürede çok daha büyük problem çözmek.
 
-Ölçeklenmiş hızlanma (scaled speedup) formülü:
+John Gustafson ve Ed Barsis (1988), bu bakış açısında tablonun değiştiğini gösterdi. Problem boyutu işlemci sayısıyla birlikte büyütüldüğünde — buna **zayıf ölçekleme (weak scaling)** denir — seri bölümün göreli ağırlığı küçülür ve **ölçeklenmiş hızlanma (scaled speedup)** çok daha iyimser bir değer verir:
 
-$$
-S(p) = p - r(p-1)
-$$
+$$S(p) = p - r(p - 1)$$
 
-Sonuç: Amdahl'ın kısıtlayıcı öngörüsü her zaman geçerli olmayabilir; ölçeklendirme stratejisi önemlidir.
+$r = 0.1$, $p = 32$ için:
 
-## Yüksek Başarımlı Hesaplama (HPC) - Hafta 2 Ders Notları
+$$S(32) = 32 - 0.1 \times 31 = 28.9$$
+
+Amdahl aynı parametrelerle $S_{\max} = 1/0.1 = 10$ öngörürken Gustafson 28.9 veriyor. Bu iki sonuç çelişmez; farklı soruların yanıtıdır.
+
+> **Amdahl:** "Aynı işi $p$ kat daha hızlı yapabilir miyim?"
+> **Gustafson:** "Aynı sürede $p$ kat daha büyük iş yapabilir miyim?"
+
+### 3.4 Güçlü ve Zayıf Ölçekleme: Ölçüm ve Yorum
+
+Teorik sınırları bilmek gereklidir ama yeterli değildir; uygulamada bu yasaların pratiğe yansımasını ölçmek de en az teori kadar önemlidir.
+
+**Güçlü ölçekleme testi (strong scaling test):** Problem boyutu sabit tutulur, işlemci sayısı artırılır. İdeal davranış: $T_{\text{parallel}}(p) = T_{\text{serial}} / p$. Gerçek eğri idealin altına düştüğünde seri bölüm ve overhead devreye girmiştir.
+
+**Zayıf ölçekleme testi (weak scaling test):** Her işlemcinin üstüne düşen iş miktarı sabit tutularak işlemci sayısı artırılır. İdeal davranış: duvar saati süresi (wall-clock time) değişmez. Artan süre, iletişim maliyetini ve senkronizasyon ağırlığını gösterir.
+
+| | Güçlü Ölçekleme | Zayıf Ölçekleme |
+| :--- | :---: | :---: |
+| **Problem boyutu** | Sabit | $p$ ile orantılı büyür |
+| **Sorulan soru** | Kaç kat daha hızlı? | Aynı sürede ne kadar büyük? |
+| **İdeal ölçüt** | $S(p) = p$ | $T_{\text{parallel}} = T_{\text{serial}}$ |
+| **Sınırlayan faktör** | Seri kesir $r$ | İletişim & senkronizasyon overhead |
+| **Yasa** | Amdahl | Gustafson–Barsis |
+
+Gerçek bir HPC uygulamasında her iki test de yapılır. Güçlü ölçekleme testi, kodun hangi işlemci sayısına kadar verimli çalıştığını; zayıf ölçekleme testi ise sistemin büyük problem boyutlarına gerçekten uyarlanıp uyarlanamadığını ortaya koyar.
+
+
 
 ### Bölüm 1 — İşlemci Mimarisi ve Bellek Hiyerarşisi
 
-Modern işlemciler (CPU), komutları ve hesaplamaları ana bellekten (DRAM) veri getirme hızına kıyasla çok daha hızlı işleyebilir. İşlemci hızı ile bellek hızı arasındaki bu giderek açılan farka von Neumann darboğazı veya DRAM boşluğu (DRAM gap) adı verilir.
+Modern bir işlemci (CPU — Central Processing Unit, merkezi işlem birimi), bir komut dizisini ana bellekten (DRAM — Dynamic Random-Access Memory) veri çekme hızından çok daha hızlı tamamlayabilir. Son kırk yılda işlemci frekansları yılda yaklaşık %50 büyürken DRAM gecikme süreleri (latency) yalnızca birkaç kat iyileşebildi; bu giderek açılan makasın adı **von Neumann darboğazı** (von Neumann bottleneck) ya da **DRAM boşluğu** (DRAM gap) olarak geçer.
 
-Bu performans darboğazını aşmak için bilgisayar mimarları, çok hızlı çalışan işlemci yazmaçları (register) ile görece yavaş olan ana bellek arasına önbellek (cache) adı verilen bir veya birden fazla seviyeden (L1, L2, L3) oluşan, düşük gecikmeli (latency) ve yüksek bant genişlikli (bandwidth) SRAM bellekler yerleştirmiştir.
+Mimarlar bu boşluğu kapatmak için işlemcinin içine veya hemen yanına, ana bellekten çok daha hızlı çalışan fakat kapasitesi sınırlı SRAM (Static RAM — statik rastgele erişimli bellek) birimler yerleştirdi. Bu bellek katmanları **önbellek** (cache) olarak adlandırılır ve bir işlemcide genellikle üç düzey bulunur: L1 en hızlı ve en küçük; L3 en yavaş ve en büyük olanıdır. L1 erişim süresi tek haneli nanosaniye mertebesindeyken, DRAM erişimi 60–100 ns'yi geçebilir.
 
 #### 1.1 Yerellik Prensipleri (Locality of Reference)
 
-Önbelleklerin verimli çalışması, yazılımların genel davranışı olan yerellik prensiplerine dayanır.
+Önbelleklerin işe yaraması, programların büyük çoğunluğunun **yerellik prensiplerine** (locality of reference) uygun davranmasından kaynaklanır.
 
-Örnek: İşlemciyi bir aşçı (CPU), tezgahı önbellek (Cache) ve kileri de ana bellek (RAM) olarak düşünün. Aşçı her baharat için kilere gitmek istemez.
+İşlemciyi bir aşçı, tezgahı önbellek, kileri ana bellek olarak hayal edin. Aşçı her baharat için kilere gidip gelmek yerine, sık kullandığı şeyleri tezgahında tutar. Bir yemeğe tuz attıktan birkaç dakika sonra bir başkasına da tuz atma ihtimali yüksektir — bu, **zamansal yerelliğin** (temporal locality) somut karşılığıdır: yakın zamanda erişilen veriye yakın gelecekte yeniden erişilme olasılığı yüksektir. Öte yandan kilere tuz almaya gidildiğinde hemen yanındaki karabiber de tezgaha getirilir; bu ise **uzamsal yerelliğe** (spatial locality) karşılık gelir: bir bellek adresine erişildiğinde, komşu adreslere de kısa süre içinde erişilme olasılığı yüksektir.
 
-- **Zamansal Yerellik:** Bir yemeğe tuz atıyorsanız, 5 dakika sonra başka bir yemeğe de tuz atma ihtimaliniz yüksektir. O yüzden tuzu tezgaha (önbelleğe) koyarsınız.
-- **Uzamsal Yerellik:** Kilere tuz almaya gittiğinizde, hemen yanındaki karabiberi de tezgaha getirirsiniz; çünkü tuz kullanılan yerde genelde karabiber de kullanılıyordur.
-
-- **Zamansal Yerellik (Temporal Locality):** Yakın zamanda erişilen veriye yakın gelecekte tekrar erişilme olasılığı yüksektir.
-- **Uzamsal Yerellik (Spatial Locality):** Bir bellek adresine erişildiğinde, o adrese fiziksel olarak yakın adreslere de yakında erişilme olasılığı yüksektir.
-
-Sistemler uzamsal yerellikten yararlanmak için verileri ana bellekten tek tek değil, önbellek satırları (cache line) adı verilen bitişik bloklar hâlinde (genellikle 64 byte) çeker.
+Sistemler uzamsal yerellikten yararlanmak için verileri ana bellekten tek tek bayt olarak değil, **önbellek satırı** (cache line) adı verilen bitişik bloklar hâlinde alır. Günümüz x86 sistemlerinde önbellek satırı **64 byte** uzunluğundadır; bir `float` (4 byte) değerine erişildiğinde onu çevreleyen 15 `float` da otomatik olarak önbelleğe girer.
 
 #### 1.2 Önbellek Iskalamaları ve Üç C Kuralı
 
-CPU'nun ihtiyaç duyduğu veri önbellekte bulunamazsa buna önbellek ıskalaması (cache miss) denir. Bu durumda CPU, veri ana bellekten gelene kadar duraklar (stall). Önbellek ıskalamalarının arkasında yatan sebepler donanım mimarisinde "Üç C Kuralı" ile tanımlanır (**Bkz. Şekil 2**). Bu grafikte ıskalamalarının yaygın karşılaşılan temel motivasyon dağılımları verilmiştir.
+CPU'nun ihtiyaç duyduğu veri önbellekte bulunamazsa buna **önbellek ıskalaması** (cache miss) denir. Bu durumda işlemci, veri DRAM'den gelene kadar duraksama (stall) yaşar. Donanım mimarisinde önbellek ıskalamaları **Üç C Kuralı** (Three C's of Cache Misses) ile sınıflandırılır:
 
-## Şekil 2: Önbellek Iskalamaları (Üç C Kuralı)
+![Üç C Kuralı — Compulsory, Capacity, Conflict ıskalamaları](images/cache-miss-3c.svg)
 
-```mermaid
-pie title Üç C Kuralı (Cache Misses)
-  "Compulsory (Zorunlu)\nİlk erişim" : 30
-  "Capacity (Kapasite)\nÖnbelleğe sığmama" : 45
-  "Conflict (Çakışma)\nAynı satıra eşlenme" : 25
-```
-
-- Zorunlu (Compulsory) ıskalamalar: Veriye ilk erişimden kaynaklanır (cold cache).
-- Kapasite (Capacity) ıskalamaları: Çalışma seti önbelleğe sığmadığı için oluşur.
-- Çakışma (Conflict) ıskalamaları: Farklı veri bloklarının aynı satıra eşlenip birbirini atmasıyla (thrashing) oluşur.
+- **Zorunlu ıskalaması** (Compulsory miss): Veriye ilk erişim; önbellekte olmadığı için kaçınılamaz. Önyükleme (prefetching) ile etkisi azaltılabilir.
+- **Kapasite ıskalaması** (Capacity miss): Programın aktif çalışma seti (working set) önbellek kapasitesini aştığında önceden yüklenen veriler atılmak zorunda kalınır. Döngü bloklama (loop tiling) ile çalışma seti küçültülerek önlenir.
+- **Çakışma ıskalaması** (Conflict miss): Farklı bellek bloklarının aynı önbellek konumuna eşlenmesiyle birbirini atma (thrashing) döngüsü oluşur. Dizi dolgusu (padding) veya çok yollu (n-way set-associative) önbellek mimarileri bu sorunu azaltır.
 
 ### Bölüm 2 — Veri Odaklı Tasarım (Data-Oriented Design)
 
-Nesne Yönelimli Programlama (OOP), kod organizasyonunu kolaylaştırsa da çoğu zaman işlemci ve bellek davranışını ikinci plana atar. Çok büyük nesne kümeleri üzerinde yoğun metod çağrıları; dallanma, çağrı zinciri maliyeti ve önbellek ıskalamaları nedeniyle performansı düşürebilir.
+Nesne Yönelimli Programlama (OOP — Object-Oriented Programming), kodun okunabilirliğini ve modülerliğini artırır; ancak büyük nesne koleksiyonları üzerinde toplu hesaplama yapılırken işlemci ve önbellek davranışını ikinci plana atar. Dallanma tahmin hataları, sanal fonksiyon dolaylı çağrıları ve dağınık bellek erişimleri, özellikle SIMD uyumluluğunu ciddi biçimde kısıtlayabilir.
 
-Veri Odaklı Tasarım, odağı kod yazma konforundan donanım düzeyinde performansa ve veri yerleşimine (data layout) kaydırır. Temel amaç, veriyi diziler hâlinde düzenleyip toplu ve sıralı işlemektir.
+**Veri Odaklı Tasarım** (Data-Oriented Design, DOD), odak noktasını nesne soyutlamasından veri akışına ve bellek yerleşimine (data layout) kaydırır. Temel soru şudur: "Bu veri, erişileceği sıraya uygun biçimde bellekte mi duruyor?" Endüstriyel bir mutfağı düşünün: OOP yaklaşımı her aşçıya bireysel bir hazır-yemek seti (tüm malzemeler bir arada) dağıtmak gibiyken, DOD tüm patatesleri büyük bir kasaya, tüm soğanları başka bir kasaya koymak ve her aşçının kendi kasasından sırayla çalışmasını sağlamak gibidir — verimlilik, sıralı erişimden gelir.
 
-Örnek: AoS mantığında, mutfak için her personelin önüne bir 'set' menüyü (Havuç, Patates, Soğan paketi) eksiksiz koyarsınız. Ancak sadece patates soyması gereken aşçı, kullanmayacağı havuç ve soğanı da kucağında taşımak zorunda kalır. SoA ise endüstriyel mutfak gibidir: Bütün patatesler bir kapta, soğanlar başka bir kaptadır. Patates soyan aşçı, çuvaldan ardışık olarak sürekli patates (sıralı erişim) alır ve çok daha hızlı çalışır.
+#### 2.1 AoS — Array of Structures (Yapıların Dizisi)
 
-#### 2.1 AoS (Array of Structures)
+AoS yaklaşımında bir varlığın tüm alanları (örneğin 3B parçacığın `x`, `y`, `z` koordinatları) tek bir `struct` içinde bir arada tutulur ve bu yapıların dizisi oluşturulur.
 
-AoS yaklaşımında bir varlığa ait alanlar (örneğin X, Y, Z koordinatları) tek bir yapı içinde tutulur ve bu bütün halindeki yapıların dizisi oluşturulur. **Şekil 3'te** görüldüğü gibi, her bir bloğun yan yana kendi bileşenlerini (X1, Y1, Z1) taşıdığı bu bellek serilimi geleneksel Nesne Yönelimli (OOP) kodların varsayılan durumudur.
-
-## Şekil 3: AoS (Array of Structures) Bellek Yerleşimi
-
-```mermaid
-block-beta
-  columns 3
-  A1["X1"] B1["Y1"] C1["Z1"]
-  A2["X2"] B2["Y2"] C2["Z2"]
-  A3["X3"] B3["Y3"] C3["Z3"]
-  style A1 fill:#ff9999,stroke:#333;
-  style B1 fill:#99ccff,stroke:#333;
-  style C1 fill:#99ff99,stroke:#333;
+```c
+struct Particle { float x, y, z; };
+Particle particles[N];   // AoS
 ```
 
-- Avantaj: Aynı varlığın tüm alanları birlikte kullanılıyorsa yerellik iyidir.
-- Dezavantaj: Yalnızca tek bir alan işleniyorsa gereksiz veri taşınır; SIMD verimi düşebilir.
+Bellekteki sıralama: `[X₀ Y₀ Z₀ | X₁ Y₁ Z₁ | X₂ Y₂ Z₂ | X₃ Y₃ Z₃ | ...]`. Tüm alanlar birlikte kullanıldığında (örneğin çarpışma hesabı) bu düzen avantaj sağlar. Ancak yalnızca `x` değerlerini işleyen bir SIMD döngüsü, X₀, X₁, X₂, X₃ değerlerine sırayla ulaşmak için Y ve Z'yi atlayarak 12 byte'lık adımlar (stride) atmak zorunda kalır — toplayıcı (gather) operasyonu gerekir.
 
-### 2.2 SoA (Structure of Arrays)
+#### 2.2 SoA — Structure of Arrays (Dizilerin Yapısı)
 
-SoA yaklaşımında, Vektörel işlemciler (SIMD vb.) için uygun veri dizilimidir. Her bir alan kendi ayrı dizisinde tutulur. **Şekil 4'te**, bir varlığın tüm uzaysal alanlarını (Örneğin tüm X değerleri: X1, X2, X3) aynı bellek satırında ardışık saklayan SoA mimarisi sunulmaktadır. Bu yerleşim sayesinde önbellekten alınan bir "Satır" tamamıyla aynı tür ve işlem görecek verilere sahip olur.
+SoA yaklaşımında her alan kendi ayrı dizisinde tutulur.
 
-## Şekil 4: SoA (Structure of Arrays) Bellek Yerleşimi
-
-```mermaid
-block-beta
-  columns 3
-  A1["X1"] A2["X2"] A3["X3"]
-  B1["Y1"] B2["Y2"] B3["Y3"]
-  C1["Z1"] C2["Z2"] C3["Z3"]
-  style A1 fill:#ff9999,stroke:#333;
-  style A2 fill:#ff9999,stroke:#333;
-  style A3 fill:#ff9999,stroke:#333;
+```c
+struct Particles { float x[N], y[N], z[N]; };  // SoA
 ```
 
-- Avantaj: Sıralı (unit-stride) erişim sayesinde önbellek ve SIMD kullanımı daha verimli olur.
-- Dezavantaj: Çok sayıda alan aynı anda kullanıldığında bellek akışları artar ve yönetim zorlaşabilir.
+Bellek düzeni: `[X₀ X₁ X₂ X₃ … | Y₀ Y₁ Y₂ Y₃ … | Z₀ Z₁ Z₂ Z₃ …]`. Yalnızca `x` değerleri işlendiğinde dizi ardışık ve kesintisizdir; SIMD birimi tek bir 128-bit veya 256-bit yüklemeyle 4–8 `float` değerini aynı anda işleyebilir.
 
-Genel eğilim olarak, büyük veri akışlarının işlendiği yapılarda SoA sıklıkla daha iyi sonuç verir.
+![AoS ve SoA bellek yerleşimi karşılaştırması](images/memory-layout-aos-soa.svg)
 
-### 2.3 AoSoA (Array of Structures of Arrays)
+Yukarıdaki şemada görüldüğü gibi, AoS'ta X değerlerine erişim için 48 byte yüklenir ancak yalnızca 16 byte kullanılır (%33 bant genişliği verimliliği). SoA'da ise 4 X değeri için tam olarak 16 byte yüklenir ve tamamı kullanılır (%100 verimlilik).
 
-AoSoA, AoS ve SoA'nın güçlü yönlerini birleştiren hibrit bir yerleşimdir. Veriler bloklara (tile) ayrılır; blok boyutu donanımın vektör uzunluğuna uygun seçilerek hem sıralı erişim hem de yönetilebilir akış sayısı hedeflenir.
+#### 2.3 AoSoA — Array of Structures of Arrays (Karma Yerleşim)
+
+AoSoA, AoS ve SoA'nın güçlü yönlerini birleştiren karma (hybrid) bir bellek düzenidir. Veriler önce donanımın SIMD genişliğine karşılık gelen boyutta **döşeme** (tile) adı verilen bloklara ayrılır, ardından her döşeme içinde SoA düzeni uygulanır.
+
+```c
+// AVX2: 8 float. Tile genişliği = 8
+struct Tile { float x[8], y[8], z[8]; };
+Tile tiles[N/8];    // AoSoA
+```
+
+Döşeme boyutu doğrudan SIMD kayıt genişliğine bağlanır: SSE için 4, AVX/AVX2 için 8, AVX-512 için 16 `float`. Bu seçim hem sıralı SIMD yüklemesini hem de birden fazla alanın aynı anda kullanıldığı durumda yönetilebilir sayıda akışı garanti eder.
+
+#### 2.4 Yerleşim Seçim Rehberi
+
+| Erişim Kalıbı | Önerilen Yerleşim |
+| :--- | :---: |
+| Tüm alanlar birlikte kullanılıyor (çarpışma, dönüşüm) | AoS |
+| Tek alan kümesi toplu işleme (SIMD, GPU) | SoA |
+| Karma erişim + SIMD uyumluluğu | AoSoA (tile = SIMD genişliği) |
+| Önbellek kapasitesi kritik, döngü bloklama uygulanıyor | SoA veya AoSoA |
 
 ### Bölüm 3 — Performans Limitleri ve Profil Analizi
 
@@ -684,3 +668,99 @@ for (int i = 0; i < N; i++) {
 ```
 
 Bu yapı, toplama (+), çarpma (*), mantıksal VE/VEYA (&, |) gibi işleçleri (operator) destekler. Her bir iş parçacığı arka planda o işlecin etkisiz elemanıyla (toplama için 0, çarpma için 1) başlayan gizli bir yerel değişken oluşturur ve döngü bitiminde sonuçları güvenle ana değişkende birleştirir.
+
+### 5.5 Senkronizasyon: Kritik Bölge (Critical Section) ve Atomik İşlemler (Atomic Operations)
+
+Paylaşılan bir değişkene iş parçacıklarından yalnızca biri güvenle yazmayı bitirmeden diğerinin müdahale etmesine izin vermememiz gerekir. Bu tür koruma gerektiren bölümlere **kritik bölge (critical section)** denir. Yemekhanede tek bir kasiyer varken kalabalık bir sıranın oluştuğunu düşünün; herkes kasiyerin önünde sırayla bekler, ikisi aynı anda ödeme yapmaz — kritik bölge işte bu sıra disiplinidir.
+
+OpenMP'de iki temel mekanizma vardır:
+
+**`critical` direktifi:** Blok içindeki kodu bir seferde yalnızca bir iş parçacığının yürütmesine izin verir. Granülerlik yüksektir, kullanımı esnektir; ancak her `critical` bloğu küresel bir kilit (mutex) oluşturur.
+
+```c
+#pragma omp parallel for
+for (int i = 0; i < N; i++) {
+    double val = agir_hesaplama(i);
+    #pragma omp critical
+    {
+        global_liste[boyut++] = val; // tek iş parçacığı yazar
+    }
+}
+```
+
+`critical` bloku dışındaki `agir_hesaplama(i)` çağrısı hâlâ paralel çalışır; yalnızca listeye ekleme sıralı yapılır. Bu sayede iş parçacıklarının büyük bölümü korunmadan serbest bırakılmış olur.
+
+**`atomic` direktifi:** Tek bir bellek güncellemesini (okuma-değiştirme-yazma) atomik, yani bölünmez kılar. Donanım düzeyindeki atomik komutlara (örneğin x86 üzerinde `LOCK XADD`) dönüştürüldüğünden `critical`'a kıyasla çok daha düşük maliyeti vardır; ancak yalnızca skaler bir değişkene yapılan basit aritmetik işlemleri destekler.
+
+```c
+int sayac = 0;
+#pragma omp parallel for
+for (int i = 0; i < N; i++) {
+    if (kosul(i)) {
+        #pragma omp atomic
+        sayac++;   // lock-free donanım komutuyla gerçekleşir
+    }
+}
+```
+
+Ne zaman hangisi? Basit bir sayaç ya da tek bir değişken üzerindeki aritmetik: `atomic`. Birden fazla değişkeni etkileyen ya da karmaşık veri yapısı güncellemeleri içeren bloklar: `critical`.
+
+### 5.6 Zamanlama Direktifleri (Scheduling Directives)
+
+OpenMP bir `for` döngüsünü iş parçacıklarına dağıtırken hangi iş parçacığının hangi iterasyonları alacağına karar vermek zorundadır. Bu kararı `schedule` maddesi (clause) denetler. Seçim, her iterasyonun ne kadar iş yükü taşıdığına ve bu yükün iterasyonlar arasında ne ölçüde değişkenlik gösterdiğine bağlıdır.
+
+```c
+#pragma omp parallel for schedule(tür, yığın_boyutu)
+for (int i = 0; i < N; i++) { ... }
+```
+
+**`static` (Statik):** Döngü başlamadan önce iterasyonlar eşit bloklara bölünür ve iş parçacıklarına sabit biçimde atanır. `schedule(static, B)` yazıldığında her iş parçacığı sırayla $B$ büyüklüğünde bloklar alır; boyut belirtilmezse $N/p$ kullanılır.
+
+- Yükleme maliyeti sıfıra yakın; çalışma zamanı kararı yoktur.
+- Her iterasyon yaklaşık aynı süreyi alıyorsa en iyi seçimdir (örneğin saf vektör aritmetiği).
+- Yük dengesizliği varsa bazı iş parçacıkları erkenden biter ve başkalarını bekler — bu boşta bekleme overhead'ine yol açar.
+
+Mutfak benzetmesiyle: dört aşçıya 400 patatesi 100'er adetlik eşit paketler halinde vermek. Paket boyutları sabittir; malzemelerin soyulması yaklaşık aynı sürüyorsa mükemmeldir.
+
+**`dynamic` (Dinamik):** İş parçacıkları ellerindeki işi bitirdiğinde çalışma zamanından (runtime) yeni bir blok ister. Her talep küçük bir senkronizasyon maliyeti doğurur; ancak yük dengesizliğini (load imbalance) otomatik olarak giderir.
+
+```c
+#pragma omp parallel for schedule(dynamic, 10)
+for (int i = 0; i < N; i++) {
+    agir_hesaplama_degisken_sureli(i);
+}
+```
+
+Yük dengesizliği yüksekse (örneğin bazı iterasyonlar yüzlerce kat daha ağırsa) `dynamic` çok daha iyi verim sağlar. Yığın boyutunu (chunk size) küçük tutmak dengelemeyi iyileştirir; ancak senkronizasyon yükünü artırır. İyi bir başlangıç noktası: $B \approx N / (10p)$.
+
+**`guided` (Güdümlü):** `dynamic`'in özel bir biçimidir. Blok boyutu başlangıçta büyük tutulur, ardından azalarak minimum boyuta iner. Büyük bloklar senkronizasyon maliyetini düşürür, küçük son bloklar ise bitiş zamanlarını dengeler.
+
+| Zamanlama Türü | Yük Dağılımı | Senkronizasyon Maliyeti | Ne Zaman? |
+| :--- | :--- | :--- | :--- |
+| `static` | Eşit (önceden) | En düşük | Tüm iterasyonlar eşit ağırlıkta |
+| `dynamic` | Çalışma zamanında | Orta-yüksek | Değişken yük, heterojen sistemler |
+| `guided` | Büyükten küçüğe | Orta | Dinamik ile statik arasında denge |
+
+Doğru zamanlama seçimi, çoğu zaman döngü içeriğini değiştirmeden ölçülebilir bir kazanım sağlar. Dolayısıyla profilleme (profiling) sonucunda yük dengesizliği görülüyorsa `static`'ten `dynamic` veya `guided`'a geçmek, düşük maliyetli ilk adım olmalıdır.
+
+### 5.7 `nowait` ve Bariyer Yönetimi
+
+Her paralel `for` bloğunun sonunda örtük bir bariyer (implicit barrier) bulunur: tüm iş parçacıkları o noktada birbirini bekler. Bu davranış doğruluk açısından güvenlidir; ancak bazı durumlarda gereksiz beklemeye yol açar.
+
+Ardışık iki bağımsız döngü söz konusuysa ilk döngüde `nowait` kullanarak bariyeri kaldırabilirsiniz:
+
+```c
+#pragma omp parallel
+{
+    #pragma omp for nowait
+    for (int i = 0; i < N; i++) {
+        A[i] = f(i);           // B[] ile bağımsız
+    }
+    #pragma omp for
+    for (int i = 0; i < N; i++) {
+        B[i] = g(i);           // ikinci döngüde bariyer var
+    }
+}
+```
+
+İki döngünün verisi birbirinden bağımsız olduğunda bu düzenleme boşta beklemeyi ortadan kaldırır. Ancak veri bağımlılığı varsa `nowait` bir yarış durumuna (race condition) dönüşür; bu yüzden veri akışını dikkatli analiz etmeden kullanımından kaçınılmalıdır.

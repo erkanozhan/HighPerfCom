@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="310" viewBox="0 0 720 310">
+  <defs>
+    <style>
+      .sans { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .mono { font-family: 'Consolas', 'Courier New', monospace; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="360" y="20" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a252f" class="sans">Flynn Taksonomisi (Flynn's Taxonomy, 1966)</text>
+
+  <!-- Column header: Single Data -->
+  <rect x="190" y="30" width="245" height="38" rx="3" fill="#d6eaf8" stroke="#1a6fa0" stroke-width="1.5"/>
+  <text x="312" y="46" text-anchor="middle" font-size="11" font-weight="bold" fill="#1a5276" class="sans">Tek Veri Akışı</text>
+  <text x="312" y="60" text-anchor="middle" font-size="10" fill="#1a5276" class="sans">(Single Data Stream)</text>
+
+  <!-- Column header: Multiple Data -->
+  <rect x="445" y="30" width="245" height="38" rx="3" fill="#d5f5e3" stroke="#1e8449" stroke-width="1.5"/>
+  <text x="567" y="46" text-anchor="middle" font-size="11" font-weight="bold" fill="#1a5276" class="sans">Çok Veri Akışı</text>
+  <text x="567" y="60" text-anchor="middle" font-size="10" fill="#1a5276" class="sans">(Multiple Data Stream)</text>
+
+  <!-- Row header: Single Instruction -->
+  <rect x="10" y="78" width="170" height="104" rx="3" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+  <text x="95" y="116" text-anchor="middle" font-size="11" font-weight="bold" fill="#922b21" class="sans">Tek Komut Akışı</text>
+  <text x="95" y="130" text-anchor="middle" font-size="10" fill="#922b21" class="sans">(Single Instruction</text>
+  <text x="95" y="143" text-anchor="middle" font-size="10" fill="#922b21" class="sans">Stream)</text>
+
+  <!-- Row header: Multiple Instruction -->
+  <rect x="10" y="192" width="170" height="104" rx="3" fill="#f9ebff" stroke="#7d3c98" stroke-width="1.5"/>
+  <text x="95" y="230" text-anchor="middle" font-size="11" font-weight="bold" fill="#6c3483" class="sans">Çok Komut Akışı</text>
+  <text x="95" y="244" text-anchor="middle" font-size="10" fill="#6c3483" class="sans">(Multiple Instruction</text>
+  <text x="95" y="257" text-anchor="middle" font-size="10" fill="#6c3483" class="sans">Stream)</text>
+
+  <!-- SISD cell -->
+  <rect x="190" y="78" width="245" height="104" rx="3" fill="#fef9e7" stroke="#b7950b" stroke-width="1.5"/>
+  <text x="312" y="103" text-anchor="middle" font-size="16" font-weight="bold" fill="#9a7d0a" class="mono">SISD</text>
+  <text x="312" y="121" text-anchor="middle" font-size="10" fill="#7d6608" class="sans">Klasik seri işlemci</text>
+  <text x="312" y="136" text-anchor="middle" font-size="10" fill="#7d6608" class="sans">von Neumann mimarisi</text>
+  <text x="312" y="151" text-anchor="middle" font-size="10" fill="#7d6608" class="sans">Tek çekirdekli CPU</text>
+  <text x="312" y="168" text-anchor="middle" font-size="9" fill="#9a7d0a" class="sans">⚠ Modern sistemlerde soyut referans noktası</text>
+
+  <!-- SIMD cell -->
+  <rect x="445" y="78" width="245" height="104" rx="3" fill="#eafaf1" stroke="#1e8449" stroke-width="1.5"/>
+  <text x="567" y="103" text-anchor="middle" font-size="16" font-weight="bold" fill="#1a7a4a" class="mono">SIMD</text>
+  <text x="567" y="121" text-anchor="middle" font-size="10" fill="#1a7a4a" class="sans">Vektör işleme, GPU çekirdekleri</text>
+  <text x="567" y="136" text-anchor="middle" font-size="10" fill="#1a7a4a" class="sans">SSE, AVX, CUDA</text>
+  <text x="567" y="151" text-anchor="middle" font-size="10" fill="#1a7a4a" class="sans">↳ GPU'larda: SIMT (Multi-Thread)</text>
+  <text x="567" y="168" text-anchor="middle" font-size="9" fill="#1a7a4a" class="sans">✓ Veri paralelliği için ideal</text>
+
+  <!-- MISD cell -->
+  <rect x="190" y="192" width="245" height="104" rx="3" fill="#f2f3f4" stroke="#7f8c8d" stroke-width="1.5"/>
+  <text x="312" y="217" text-anchor="middle" font-size="16" font-weight="bold" fill="#566573" class="mono">MISD</text>
+  <text x="312" y="235" text-anchor="middle" font-size="10" fill="#566573" class="sans">Hata toleranslı / yedekli sistemler</text>
+  <text x="312" y="250" text-anchor="middle" font-size="10" fill="#566573" class="sans">Uzay araçları kontrol bilgisayarları</text>
+  <text x="312" y="265" text-anchor="middle" font-size="10" fill="#566573" class="sans">—</text>
+  <text x="312" y="282" text-anchor="middle" font-size="9" fill="#7f8c8d" class="sans">⚠ Pratikte nadir; teorik tamamlayıcı</text>
+
+  <!-- MIMD cell -->
+  <rect x="445" y="192" width="245" height="104" rx="3" fill="#eaf0fb" stroke="#1a6fa0" stroke-width="1.5"/>
+  <text x="567" y="217" text-anchor="middle" font-size="16" font-weight="bold" fill="#1a4a8a" class="mono">MIMD</text>
+  <text x="567" y="235" text-anchor="middle" font-size="10" fill="#1a4a8a" class="sans">Çok çekirdekli CPU, HPC kümeleri</text>
+  <text x="567" y="250" text-anchor="middle" font-size="10" fill="#1a4a8a" class="sans">OpenMP (shared-mem), MPI (dist-mem)</text>
+  <text x="567" y="265" text-anchor="middle" font-size="10" fill="#1a4a8a" class="sans">↳ Genellikle SPMD modeliyle programlanır</text>
+  <text x="567" y="282" text-anchor="middle" font-size="9" fill="#1a4a8a" class="sans">✓ Günümüz paralel sistemlerinin büyük çoğunluğu</text>
+</svg>

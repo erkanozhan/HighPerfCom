@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="200" viewBox="0 0 720 200">
+  <defs>
+    <style>
+      text { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="360" y="22" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a252f">IEEE 754 Tek Duyarlıklı (Single Precision) 32-bit Kayan Noktalı Sayı</text>
+
+  <!-- Bit index ruler: 31 down to 0 -->
+  <!-- Sign bit: position 31 -->
+  <text x="48" y="40" text-anchor="middle" font-size="10" fill="#555">31</text>
+
+  <!-- Exponent: positions 30..23 -->
+  <text x="185" y="40" text-anchor="middle" font-size="10" fill="#555">30</text>
+  <text x="310" y="40" text-anchor="middle" font-size="10" fill="#555">23</text>
+
+  <!-- Mantissa: positions 22..0 -->
+  <text x="360" y="40" text-anchor="middle" font-size="10" fill="#555">22</text>
+  <text x="698" y="40" text-anchor="middle" font-size="10" fill="#555">0</text>
+
+  <!-- Sign block (1 bit — narrow) -->
+  <rect x="22" y="48" width="52" height="68" rx="4" fill="#ebdef0" stroke="#7d3c98" stroke-width="2"/>
+  <text x="48" y="78" text-anchor="middle" font-size="14" font-weight="bold" fill="#6c3483">S</text>
+  <text x="48" y="95" text-anchor="middle" font-size="10" fill="#6c3483">İşaret</text>
+  <text x="48" y="108" text-anchor="middle" font-size="10" fill="#6c3483">1 bit</text>
+
+  <!-- Exponent block (8 bits) -->
+  <rect x="80" y="48" width="256" height="68" rx="4" fill="#d6eaf8" stroke="#1a6fa0" stroke-width="2"/>
+  <text x="208" y="75" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a5276">Üs (Exponent)</text>
+  <text x="208" y="93" text-anchor="middle" font-size="11" fill="#1a5276">8 bit — Bias = 127 ile saklanır</text>
+  <text x="208" y="109" text-anchor="middle" font-size="10" fill="#1a5276">Gerçek üs = saklanan değer − 127</text>
+
+  <!-- Mantissa block (23 bits) -->
+  <rect x="342" y="48" width="356" height="68" rx="4" fill="#d5f5e3" stroke="#1e8449" stroke-width="2"/>
+  <text x="520" y="75" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a5276">Mantis (Mantissa / Significand)</text>
+  <text x="520" y="93" text-anchor="middle" font-size="11" fill="#1a5276">23 bit — Gizli bit (Hidden Bit) dahil değil</text>
+  <text x="520" y="109" text-anchor="middle" font-size="10" fill="#1a5276">Gerçek mantis = 1.{mantissa bits}</text>
+
+  <!-- Formula line -->
+  <text x="360" y="148" text-anchor="middle" font-size="12" fill="#2c3e50">Değer =  (−1)^S  ×  1.Mantis  ×  2^(Üs − 127)</text>
+
+  <!-- Range note -->
+  <text x="360" y="170" text-anchor="middle" font-size="10" fill="#7f8c8d">Aralık: ≈ ±1.18 × 10⁻³⁸  →  ±3.4 × 10³⁸     |     Hassasiyet: yaklaşık 7 anlamlı ondalık basamak</text>
+</svg>
