@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" font-family="sans-serif">
+    <rect width="800" height="350" fill="#f8f9fa"/>
+    
+    <text x="150" y="40" font-size="18" font-weight="bold" fill="#2c3e50" text-anchor="middle">AoS (Array of Structures)</text>
+    <text x="150" y="60" font-size="12" fill="#7f8c8d" text-anchor="middle">Nesne Odaklı - [ XYZ ] [ XYZ ]</text>
+    
+    <g transform="translate(50, 80)">
+        <rect x="0" y="0" width="60" height="40" fill="#e74c3c" stroke="#fff" stroke-width="2"/>
+        <text x="30" y="25" fill="#fff" font-weight="bold" text-anchor="middle">X1</text>
+        <rect x="60" y="0" width="60" height="40" fill="#f1c40f" stroke="#fff" stroke-width="2"/>
+        <text x="90" y="25" fill="#fff" font-weight="bold" text-anchor="middle">Y1</text>
+        <rect x="120" y="0" width="60" height="40" fill="#2ecc71" stroke="#fff" stroke-width="2"/>
+        <text x="150" y="25" fill="#fff" font-weight="bold" text-anchor="middle">Z1</text>
+        <rect x="180" y="0" width="60" height="40" fill="#e74c3c" stroke="#fff" stroke-width="2"/>
+        <text x="210" y="25" fill="#fff" font-weight="bold" text-anchor="middle">X2</text>
+        <rect x="240" y="0" width="60" height="40" fill="#f1c40f" stroke="#fff" stroke-width="2"/>
+        <text x="270" y="25" fill="#fff" font-weight="bold" text-anchor="middle">Y2</text>
+        <rect x="300" y="0" width="60" height="40" fill="#2ecc71" stroke="#fff" stroke-width="2"/>
+        <text x="330" y="25" fill="#fff" font-weight="bold" text-anchor="middle">Z2</text>
+    </g>
+
+    <path d="M 120 135 L 140 155 M 140 135 L 120 155" stroke="#e74c3c" stroke-width="4"/>
+    <text x="160" y="150" font-size="12" fill="#e74c3c" font-weight="bold">X'leri tek seferde okumak zor</text>
+
+
+    <line x1="420" y1="20" x2="420" y2="330" stroke="#bdc3c7" stroke-width="2" stroke-dasharray="10,10"/>
+
+
+    <text x="600" y="40" font-size="18" font-weight="bold" fill="#27ae60" text-anchor="middle">SoA (Structure of Arrays)</text>
+    <text x="600" y="60" font-size="12" fill="#7f8c8d" text-anchor="middle">Vektör SIMD Odaklı - [ XX ] [ YY ] [ ZZ ]</text>
+    
+    <g transform="translate(450, 80)">
+        <rect x="0" y="0" width="60" height="40" fill="#e74c3c" stroke="#fff" stroke-width="2"/>
+        <text x="30" y="25" fill="#fff" font-weight="bold" text-anchor="middle">X1</text>
+        <rect x="60" y="0" width="60" height="40" fill="#e74c3c" stroke="#fff" stroke-width="2"/>
+        <text x="90" y="25" fill="#fff" font-weight="bold" text-anchor="middle">X2</text>
+        <rect x="120" y="0" width="60" height="40" fill="#e74c3c" stroke="#fff" stroke-width="2"/>
+        <text x="150" y="25" fill="#fff" font-weight="bold" text-anchor="middle">X3</text>
+        <rect x="-5" y="-5" width="190" height="50" fill="none" stroke="#2980b9" stroke-width="3" stroke-dasharray="4,4"/>
+        <text x="90" y="-12" font-size="12" fill="#2980b9" font-weight="bold" text-anchor="middle">1 İşlemci Vuruşunda SIMD Yüklemesi</text>
+
+        <rect x="0" y="60" width="60" height="40" fill="#f1c40f" stroke="#fff" stroke-width="2"/>
+        <text x="30" y="85" fill="#fff" font-weight="bold" text-anchor="middle">Y1</text>
+        <rect x="60" y="60" width="60" height="40" fill="#f1c40f" stroke="#fff" stroke-width="2"/>
+        <text x="90" y="85" fill="#fff" font-weight="bold" text-anchor="middle">Y2</text>
+        <rect x="120" y="60" width="60" height="40" fill="#f1c40f" stroke="#fff" stroke-width="2"/>
+        <text x="150" y="85" fill="#fff" font-weight="bold" text-anchor="middle">Y3</text>
+
+        <rect x="0" y="120" width="60" height="40" fill="#2ecc71" stroke="#fff" stroke-width="2"/>
+        <text x="30" y="145" fill="#fff" font-weight="bold" text-anchor="middle">Z1</text>
+        <rect x="60" y="120" width="60" height="40" fill="#2ecc71" stroke="#fff" stroke-width="2"/>
+        <text x="90" y="145" fill="#fff" font-weight="bold" text-anchor="middle">Z2</text>
+        <rect x="120" y="120" width="60" height="40" fill="#2ecc71" stroke="#fff" stroke-width="2"/>
+        <text x="150" y="145" fill="#fff" font-weight="bold" text-anchor="middle">Z3</text>
+    </g>
+
+    <text x="600" y="270" font-size="14" fill="#27ae60" font-weight="bold" text-anchor="middle">Ardışık Veri = Yüksek Performans</text>
+</svg>

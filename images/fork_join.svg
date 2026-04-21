@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 400" font-family="Arial, sans-serif">
+    <rect width="850" height="400" fill="#f4f6f9"/>
+    
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#7f8c8d" />
+        </marker>
+    </defs>
+
+    <text x="90" y="190" text-anchor="middle" font-size="16" font-weight="bold" fill="#2c3e50">Ana İş Parçacığı</text>
+    <text x="90" y="210" text-anchor="middle" font-size="14" fill="#7f8c8d">(Master Thread)</text>
+    <line x1="160" y1="195" x2="230" y2="195" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <circle cx="270" cy="195" r="35" fill="#ecf0f1" stroke="#34495e" stroke-width="2"/>
+    <text x="270" y="190" text-anchor="middle" font-size="16" font-weight="bold" fill="#2c3e50">Fork</text>
+    <text x="270" y="210" text-anchor="middle" font-size="12" fill="#7f8c8d">(Dallanma)</text>
+
+    <rect x="350" y="60" width="220" height="270" rx="10" fill="#e8eaed" stroke="#bdc3c7" stroke-width="1" stroke-dasharray="5,5"/>
+    <text x="460" y="50" text-anchor="middle" font-size="14" font-style="italic" fill="#7f8c8d">Paralel Bölge (Takım)</text>
+
+    <path d="M 305 180 Q 340 100 380 100" fill="none" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="380" y="80" width="160" height="40" rx="8" fill="#d4efdf" stroke="#27ae60" stroke-width="2"/>
+    <text x="460" y="105" text-anchor="middle" font-size="15" font-weight="bold" fill="#27ae60">Thread 0 (Master)</text>
+
+    <path d="M 305 195 L 380 195" fill="none" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="380" y="175" width="160" height="40" rx="8" fill="#fcf3cf" stroke="#f1c40f" stroke-width="2"/>
+    <text x="460" y="200" text-anchor="middle" font-size="15" font-weight="bold" fill="#d4ac0d">Thread 1 (Child)</text>
+
+    <path d="M 305 210 Q 340 290 380 290" fill="none" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="380" y="270" width="160" height="40" rx="8" fill="#d6eaf8" stroke="#2980b9" stroke-width="2"/>
+    <text x="460" y="295" text-anchor="middle" font-size="15" font-weight="bold" fill="#2980b9">Thread 2 (Child)</text>
+
+    <path d="M 540 100 Q 580 100 615 180" fill="none" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 540 195 L 615 195" fill="none" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 540 290 Q 580 290 615 210" fill="none" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <circle cx="650" cy="195" r="35" fill="#ecf0f1" stroke="#34495e" stroke-width="2"/>
+    <text x="650" y="190" text-anchor="middle" font-size="16" font-weight="bold" fill="#2c3e50">Join</text>
+    <text x="650" y="210" text-anchor="middle" font-size="12" fill="#7f8c8d">(Birleşme)</text>
+
+    <line x1="685" y1="195" x2="755" y2="195" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="795" y="190" text-anchor="middle" font-size="16" font-weight="bold" fill="#2c3e50">Ana İş Parçacığı</text>
+    <text x="795" y="210" text-anchor="middle" font-size="14" fill="#7f8c8d">Devam Eder...</text>
+</svg>

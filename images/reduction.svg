@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 680" font-family="Arial, sans-serif">
+    <rect width="800" height="680" fill="#f4f6f9"/>
+
+    <text x="400" y="40" font-size="24" font-weight="bold" text-anchor="middle" fill="#2c3e50">OpenMP "parallel for reduction" İşleyişi</text>
+
+    <rect x="100" y="60" width="600" height="100" rx="8" fill="#282c34"/>
+    <text x="120" y="90" font-family="monospace" font-size="16" fill="#e06c75">int <tspan fill="#abb2bf">toplam = </tspan><tspan fill="#d19a66">0</tspan><tspan fill="#abb2bf">;</tspan></text>
+    <text x="120" y="115" font-family="monospace" font-size="16" fill="#c678dd">#pragma <tspan fill="#56b6c2">omp parallel for reduction</tspan><tspan fill="#abb2bf">(+:</tspan><tspan fill="#e06c75">toplam</tspan><tspan fill="#abb2bf">)</tspan></text>
+    <text x="120" y="140" font-family="monospace" font-size="16" fill="#c678dd">for <tspan fill="#abb2bf">(int i = 0; i &lt; N; i++) { </tspan><tspan fill="#e06c75">toplam </tspan><tspan fill="#abb2bf">+= dizi[i]; }</tspan></text>
+
+    <text x="400" y="195" font-size="16" font-weight="bold" text-anchor="middle" fill="#34495e">Ana Bellek (Paylaşılan - Shared)</text>
+    <rect x="330" y="205" width="140" height="40" rx="5" fill="#fff" stroke="#34495e" stroke-width="2"/>
+    <text x="400" y="230" font-size="16" text-anchor="middle" fill="#e74c3c" font-weight="bold">toplam = 0</text>
+
+    <g transform="translate(100, 270)">
+        <rect x="0" y="0" width="600" height="35" rx="4" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="2"/>
+        <text x="300" y="-10" font-size="14" text-anchor="middle" fill="#7f8c8d">dizi [ 0 ........................................ N-1 ]</text>
+        
+        <line x1="200" y1="0" x2="200" y2="35" stroke="#bdc3c7" stroke-width="2"/>
+        <line x1="400" y1="0" x2="400" y2="35" stroke="#bdc3c7" stroke-width="2"/>
+        
+        <text x="100" y="22" font-size="14" text-anchor="middle" fill="#2c3e50">İterasyon: 0'dan K'ya</text>
+        <text x="300" y="22" font-size="14" text-anchor="middle" fill="#2c3e50">İterasyon: K'dan M'ye</text>
+        <text x="500" y="22" font-size="14" text-anchor="middle" fill="#2c3e50">İterasyon: M'den N-1'e</text>
+    </g>
+
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#7f8c8d" />
+        </marker>
+    </defs>
+
+    <path d="M 200 305 L 200 350" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 400 305 L 400 350" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 600 305 L 600 350" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <text x="400" y="340" font-size="14" font-style="italic" text-anchor="middle" fill="#7f8c8d">OpenMP diziyi Thread'lere böler (Work-sharing)</text>
+
+    <rect x="100" y="360" width="190" height="90" rx="8" fill="#d4efdf" stroke="#27ae60" stroke-width="2"/>
+    <text x="195" y="385" font-size="16" font-weight="bold" text-anchor="middle" fill="#27ae60">Thread 0</text>
+    <text x="195" y="405" font-size="14" text-anchor="middle">lokal_toplam = 0</text>
+    <text x="195" y="425" font-size="14" text-anchor="middle">lokal_toplam += dizi[i]</text>
+
+    <rect x="305" y="360" width="190" height="90" rx="8" fill="#fcf3cf" stroke="#f1c40f" stroke-width="2"/>
+    <text x="400" y="385" font-size="16" font-weight="bold" text-anchor="middle" fill="#d4ac0d">Thread 1</text>
+    <text x="400" y="405" font-size="14" text-anchor="middle">lokal_toplam = 0</text>
+    <text x="400" y="425" font-size="14" text-anchor="middle">lokal_toplam += dizi[i]</text>
+
+    <rect x="510" y="360" width="190" height="90" rx="8" fill="#d6eaf8" stroke="#2980b9" stroke-width="2"/>
+    <text x="605" y="385" font-size="16" font-weight="bold" text-anchor="middle" fill="#2980b9">Thread 2</text>
+    <text x="605" y="405" font-size="14" text-anchor="middle">lokal_toplam = 0</text>
+    <text x="605" y="425" font-size="14" text-anchor="middle">lokal_toplam += dizi[i]</text>
+
+    <path d="M 195 450 L 380 540" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 400 450 L 400 540" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M 605 450 L 420 540" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <circle cx="400" cy="555" r="22" fill="#e74c3c" stroke="#fff" stroke-width="3"/>
+    <text x="400" y="563" font-size="24" font-weight="bold" text-anchor="middle" fill="#fff">+</text>
+    <text x="495" y="560" font-size="14" font-style="italic" fill="#7f8c8d">Reduction (Birleştirme) İşlemi</text>
+
+    <path d="M 400 577 L 400 610" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="270" y="610" width="260" height="45" rx="5" fill="#fff" stroke="#34495e" stroke-width="2"/>
+    <text x="400" y="638" font-size="16" font-weight="bold" text-anchor="middle" fill="#2c3e50">Genel 'toplam' = T0 + T1 + T2</text>
+</svg>
