@@ -18,6 +18,16 @@ sudo apt update
 sudo apt install openjdk-8-jre-headless
 ```
 
+**Linux'te Yüklü Java Sürümlerini Görme ve İstenilen Sürümü Aktif Etme:**
+
+Eğer sisteminizde birden fazla Java sürümü yüklüyse, aşağıdaki komutu kullanarak yüklü sürümleri listeleyebilir ve varsayılan olarak kullanılacak sürümü seçebilirsiniz:
+
+```bash
+sudo update-alternatives --config java
+```
+
+Bu komutu çalıştırdığınızda, yüklü olan Java sürümleri listelenecektir. İstenilen sürümün karşısındaki numarayı yazıp "Enter" tuşuna basarak o sürümü aktif hale getirebilirsiniz.
+
 **Java Sürümünü Doğrulama:**
 
 ```bash
