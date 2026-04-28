@@ -140,6 +140,11 @@ Bu iki kodu çalıştırdığınızda (özellikle büyük `N` değerlerinde veya
 
 Bilgisayarlarda ondalıklı sayılar (`float`, `double`) sınırlı hassasiyette (precision) tutulduğu için, toplama işleminin sırasının değişmesi yuvarlama hatalarının (rounding error) farklı birikmesine yol açar. Bu yüzden paralel ve seri hesaplamaların matematiksel sonuçları tamamen aynı olmayabilir.
 
+**Peki Sadece Tam Sayılar (Örn: 1'den 11 Milyona) Toplandığında Fark Olur mu?**
+Eğer toplamı tuttuğunuz değişken ondalıklı değil de **tam sayı tipindeyse** (örneğin `long long sum = 0;`) ve paralel kodda `reduction` gibi veri yarışını (race condition) engelleyen bir mekanizma kullanıyorsanız **sonuçlar arasında kesinlikle hiçbir fark olmaz**. Tam sayı aritmetiğinde birleşme özelliği vardır; değişkenin sınırını (overflow) aşmadığı sürece hangi sırayla toplandığının önemi yoktur.
+
+*Not: Bizim yukarıdaki kod örneğimizde ("Seri Toplama" ve "Paralel Toplama") iterasyon tam sayı olsa da, toplamı tutan değişken `double sum = 0;` olarak tanımlanmıştır. 1'den 4 milyara kadar olan sayıların toplamı yaklaşık $8 \times 10^{18}$ eder. Bu değer `double` tipinin tam sayıları hatasız tutabildiği maksimum sınırı (yaklaşık $9 \times 10^{15}$) aştığı için, kod tam sayılarla çalışıyor gibi görünse de arkada ondalıklı sayı kayıpları devreye girmekte ve yine farklılıklara yol açmaktadır. İşte bu yüzden yukarıdaki "Seri Toplama" ve "Paralel Toplama" kodlarını çalıştırdığınızda ekrana basılan toplam değerlerinin birbirinden farklı çıktığını görürsünüz.*
+
 #### Örnek 1.3.3: Pi Sayısı Hesaplama (Sayısal İntegrasyon)
 Bu örnek, OpenMP kullanarak `reduction` parametresi ile Pi sayısının sayısal integrasyon yöntemiyle nasıl paralel hesaplanabileceğini göstermektedir. Hem değişkenlerin yerel (`private`) kullanımlarını hem de genel (`reduction`) işlemlerini içerir.
 
