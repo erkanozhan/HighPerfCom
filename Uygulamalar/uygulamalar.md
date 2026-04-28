@@ -132,6 +132,14 @@ int main() {
 }
 ```
 
+**Seri ve Paralel Toplam Sonuçları Arasındaki Farkın Nedeni:**
+Bu iki kodu çalıştırdığınızda (özellikle büyük `N` değerlerinde veya ondalıklı sayılarla çalışırken) seri toplam ile paralel toplamın sonuçları arasında çok küçük küsurat farklılıkları veya tam sayı uyuşmazlıkları görebilirsiniz. Bunun temel nedeni **Kayan Noktalı Sayı (Floating-Point) Aritmetiğinin Birleşme Özelliğinin (Associativity) Olmamasıdır.**
+
+* **Seri Toplamada:** Sayılar baştan sona tek bir sırayla toplanır `((A + B) + C) + D...`
+* **Paralel Toplamada:** İş parçacıkları (thread) diziyi böler. Her thread kendi iç toplamını (local sum) hesaplar ve en sonunda bu alt toplamlar birleştirilir `(A + B) + (C + D)...`
+
+Bilgisayarlarda ondalıklı sayılar (`float`, `double`) sınırlı hassasiyette (precision) tutulduğu için, toplama işleminin sırasının değişmesi yuvarlama hatalarının (rounding error) farklı birikmesine yol açar. Bu yüzden paralel ve seri hesaplamaların matematiksel sonuçları tamamen aynı olmayabilir.
+
 #### Örnek 1.3.3: Pi Sayısı Hesaplama (Sayısal İntegrasyon)
 Bu örnek, OpenMP kullanarak `reduction` parametresi ile Pi sayısının sayısal integrasyon yöntemiyle nasıl paralel hesaplanabileceğini göstermektedir. Hem değişkenlerin yerel (`private`) kullanımlarını hem de genel (`reduction`) işlemlerini içerir.
 
