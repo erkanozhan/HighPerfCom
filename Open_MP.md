@@ -158,4 +158,4 @@ Grama ve ark. (2003) uyarınca, paralellik derecesini belirleyen metrikler:
 - Kritik Yol (L): 34 birim.
 - Ortalama Paralellik: $64 / 34 \approx \mathbf{1.88}$
 
-> **Akademik Sonuç:** Strateji (a), daha kısa bir kritik yola ve daha yüksek bir ortalama paralellik derecesine sahip olduğu için daha verimli bir paralel yapı sunar. Algoritma tasarımında temel hedef, kritik yolu minimize ederek işlemci kaynaklarını maksimize etmektir.
+>Strateji (a), daha kısa bir kritik yola ve daha yüksek bir ortalama paralellik derecesine sahip olduğu için daha verimli bir paralel yapı sunar. Algoritma tasarımında temel hedef, kritik yolu minimize ederek işlemci kaynaklarını maksimize etmektir.

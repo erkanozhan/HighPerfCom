@@ -132,6 +132,92 @@ int main() {
 }
 ```
 
+#### Örnek 1.3.3: Pi Sayısı Hesaplama (Sayısal İntegrasyon)
+Bu örnek, OpenMP kullanarak `reduction` parametresi ile Pi sayısının sayısal integrasyon yöntemiyle nasıl paralel hesaplanabileceğini göstermektedir. Hem değişkenlerin yerel (`private`) kullanımlarını hem de genel (`reduction`) işlemlerini içerir.
+
+**`pi_hesaplama.c`:**
+```c
+#include <stdio.h>
+#include <omp.h>
+
+static long num_steps = 1000000000;
+double step;
+
+int main () {
+    int i;
+    double x, pi, sum = 0.0;
+    double start_time, run_time;
+
+    step = 1.0 / (double) num_steps;
+    
+    start_time = omp_get_wtime();
+
+    // Paralel for döngüsü ve reduction kullanımı
+    #pragma omp parallel for private(x) reduction(+:sum)
+    for (i = 0; i < num_steps; i++) {
+        x = (i + 0.5) * step;
+        sum = sum + 4.0 / (1.0 + x * x);
+    }
+    
+    pi = step * sum;
+    run_time = omp_get_wtime() - start_time;
+
+    printf("Pi degeri: %.15f, %ld adimda hesaplandi.\n", pi, num_steps);
+    printf("Hesaplama suresi: %f saniye\n", run_time);
+    
+    return 0;
+}
+```
+
+#### Örnek 1.3.4: Büyük Veri Setlerinde Vektör Toplama
+Bu örnek, çok büyük veri dizileri (vektörler) üzerinde paralelleştirmenin veri paralelliği (data parallelism) kullanılarak nasıl uygulanacağını gösterir. Aynı zamanda dizi ilklendirme işleminin de (initialization) nasıl paralel yapılabileceği örneklenmiştir.
+
+**`vektor_toplama.c`:**
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+
+#define N 50000000
+
+int main() {
+    double *A, *B, *C;
+    
+    // Bellek tahsisi
+    A = (double*)malloc(N * sizeof(double));
+    B = (double*)malloc(N * sizeof(double));
+    C = (double*)malloc(N * sizeof(double));
+
+    // Dizi başlatma işlemi (Paralel)
+    #pragma omp parallel for
+    for(int i = 0; i < N; i++) {
+        A[i] = i * 1.0;
+        B[i] = i * 2.0;
+    }
+
+    double start_time = omp_get_wtime();
+
+    // Vektör Toplama İşlemi (Paralel)
+    #pragma omp parallel for
+    for(int i = 0; i < N; i++) {
+        C[i] = A[i] + B[i];
+    }
+
+    double run_time = omp_get_wtime() - start_time;
+
+    printf("Vektor toplama (%d eleman) islemi tamamlandi.\n", N);
+    printf("Hesaplama suresi: %f saniye\n", run_time);
+    printf("Ornek sonuc: C[100] = %.1f\n", C[100]);
+
+    // Bellek temizliği
+    free(A);
+    free(B);
+    free(C);
+    
+    return 0;
+}
+```
+
 ---
 
 ## Bölüm 2: Weka ile Dağıtık Veri İşleme (Master-Slave Mimarisi)

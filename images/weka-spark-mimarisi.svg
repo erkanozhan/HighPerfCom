@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 530" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+    </marker>
+    <marker id="arr-dash" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#aaa"/>
+    </marker>
+  </defs>
+  <rect width="760" height="530" fill="#f5f5f7" rx="12"/>
+  <text x="380" y="38" text-anchor="middle" font-size="16" font-weight="bold" fill="#1a1a2e">Weka–Spark Dağıtık Mimari</text>
+
+  <!-- Driver -->
+  <rect x="280" y="55" width="200" height="70" rx="8" fill="#2e6da4" stroke="#1a4a7a" stroke-width="2"/>
+  <text x="380" y="82" text-anchor="middle" fill="white" font-size="14" font-weight="bold">Weka Driver</text>
+  <text x="380" y="99" text-anchor="middle" fill="#c8ddff" font-size="11">SparkContext başlatılır</text>
+  <text x="380" y="115" text-anchor="middle" fill="#c8ddff" font-size="10">WekaClassifierSparkJob</text>
+
+  <line x1="380" y1="125" x2="380" y2="162" stroke="#555" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="392" y="147" fill="#666" font-size="10">iş gönder</text>
+
+  <!-- Spark Master -->
+  <rect x="255" y="163" width="250" height="68" rx="8" fill="#c8622a" stroke="#8a3f10" stroke-width="2"/>
+  <text x="380" y="188" text-anchor="middle" fill="white" font-size="14" font-weight="bold">Spark Master</text>
+  <text x="380" y="207" text-anchor="middle" fill="#ffe0c8" font-size="11">Cluster Resource Manager</text>
+  <text x="380" y="222" text-anchor="middle" fill="#ffe0c8" font-size="10">(Küme Kaynak Yöneticisi)</text>
+
+  <line x1="298" y1="231" x2="140" y2="300" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="380" y1="231" x2="380" y2="300" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="462" y1="231" x2="620" y2="300" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <!-- Worker 1 -->
+  <rect x="30" y="300" width="220" height="88" rx="8" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+  <text x="140" y="323" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Worker 1</text>
+  <text x="140" y="341" text-anchor="middle" fill="#c8f5c8" font-size="11">Executor (Yürütücü)</text>
+  <text x="140" y="358" text-anchor="middle" fill="#a0e8a0" font-size="10">Weka Sınıflandırıcı × 1</text>
+  <text x="140" y="374" text-anchor="middle" fill="#a0e8a0" font-size="10">Bölüm 1 / N</text>
+
+  <!-- Worker 2 -->
+  <rect x="270" y="300" width="220" height="88" rx="8" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+  <text x="380" y="323" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Worker 2</text>
+  <text x="380" y="341" text-anchor="middle" fill="#c8f5c8" font-size="11">Executor (Yürütücü)</text>
+  <text x="380" y="358" text-anchor="middle" fill="#a0e8a0" font-size="10">Weka Sınıflandırıcı × 1</text>
+  <text x="380" y="374" text-anchor="middle" fill="#a0e8a0" font-size="10">Bölüm 2 / N</text>
+
+  <!-- Worker 3 -->
+  <rect x="510" y="300" width="220" height="88" rx="8" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+  <text x="620" y="323" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Worker 3</text>
+  <text x="620" y="341" text-anchor="middle" fill="#c8f5c8" font-size="11">Executor (Yürütücü)</text>
+  <text x="620" y="358" text-anchor="middle" fill="#a0e8a0" font-size="10">Weka Sınıflandırıcı × 1</text>
+  <text x="620" y="374" text-anchor="middle" fill="#a0e8a0" font-size="10">Bölüm N / N</text>
+
+  <line x1="140" y1="388" x2="310" y2="455" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="380" y1="388" x2="380" y2="455" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="620" y1="388" x2="450" y2="455" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <!-- Aggregation -->
+  <rect x="270" y="455" width="220" height="55" rx="8" fill="#6a3d9a" stroke="#3d1a6a" stroke-width="2"/>
+  <text x="380" y="479" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Model Birleştirme</text>
+  <text x="380" y="497" text-anchor="middle" fill="#ddc8ff" font-size="11">Aggregation / Ensemble</text>
+
+  <!-- Return dashed arrow -->
+  <path d="M 490 482 Q 700 482 700 197 Q 700 70 490 70" stroke="#aaa" stroke-width="1.5" fill="none" stroke-dasharray="6,4" marker-end="url(#arr-dash)"/>
+  <text x="715" y="280" fill="#999" font-size="10" text-anchor="middle" transform="rotate(-90,715,280)">nihai model → Driver</text>
+</svg>
