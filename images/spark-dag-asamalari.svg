@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 345" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+    </marker>
+    <marker id="arr-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c00"/>
+    </marker>
+  </defs>
+  <rect width="730" height="345" fill="#f5f5f7" rx="12"/>
+  <text x="365" y="32" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a2e">DAG Aşamaları ve Shuffle Sınırı</text>
+
+  <!-- Stage 1 background -->
+  <rect x="15" y="50" width="305" height="235" rx="10" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" stroke-dasharray="7,3"/>
+  <text x="167" y="73" text-anchor="middle" font-size="13" font-weight="bold" fill="#2e7d32">Aşama 1 (Stage 1)</text>
+  <text x="167" y="89" text-anchor="middle" font-size="10" fill="#4a9a4a">Dar bağımlılık — ağ transferi yok</text>
+
+  <!-- Stage 1 tasks col 1 -->
+  <rect x="30" y="100" width="90" height="40" rx="5" fill="#2e7d32" stroke="#1b5e20"/>
+  <text x="75" y="117" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Görev 1</text>
+  <text x="75" y="132" text-anchor="middle" fill="#c8f5c8" font-size="9">Bölüm 1</text>
+
+  <rect x="30" y="158" width="90" height="40" rx="5" fill="#2e7d32" stroke="#1b5e20"/>
+  <text x="75" y="175" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Görev 2</text>
+  <text x="75" y="190" text-anchor="middle" fill="#c8f5c8" font-size="9">Bölüm 2</text>
+
+  <rect x="30" y="216" width="90" height="40" rx="5" fill="#2e7d32" stroke="#1b5e20"/>
+  <text x="75" y="233" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Görev 3</text>
+  <text x="75" y="248" text-anchor="middle" fill="#c8f5c8" font-size="9">Bölüm 3</text>
+
+  <!-- Arrows col1 -> col2 -->
+  <line x1="120" y1="120" x2="162" y2="120" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="120" y1="178" x2="162" y2="178" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="120" y1="236" x2="162" y2="236" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="141" y="113" text-anchor="middle" fill="#555" font-size="9">map/filter</text>
+  <text x="141" y="171" text-anchor="middle" fill="#555" font-size="9">map/filter</text>
+  <text x="141" y="229" text-anchor="middle" fill="#555" font-size="9">map/filter</text>
+
+  <!-- Stage 1 tasks col 2 -->
+  <rect x="163" y="100" width="130" height="40" rx="5" fill="#4caf50" stroke="#1b5e20"/>
+  <text x="228" y="117" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Ara Sonuç 1</text>
+  <text x="228" y="132" text-anchor="middle" fill="#c8f5c8" font-size="9">RDD bölümü</text>
+
+  <rect x="163" y="158" width="130" height="40" rx="5" fill="#4caf50" stroke="#1b5e20"/>
+  <text x="228" y="175" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Ara Sonuç 2</text>
+  <text x="228" y="190" text-anchor="middle" fill="#c8f5c8" font-size="9">RDD bölümü</text>
+
+  <rect x="163" y="216" width="130" height="40" rx="5" fill="#4caf50" stroke="#1b5e20"/>
+  <text x="228" y="233" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Ara Sonuç 3</text>
+  <text x="228" y="248" text-anchor="middle" fill="#c8f5c8" font-size="9">RDD bölümü</text>
+
+  <!-- Shuffle boundary -->
+  <line x1="330" y1="48" x2="330" y2="298" stroke="#c00" stroke-width="2.5" stroke-dasharray="8,5"/>
+  <text x="330" y="315" text-anchor="middle" font-size="11" fill="#c00" font-weight="bold">Shuffle Sınırı</text>
+  <text x="330" y="331" text-anchor="middle" font-size="9" fill="#c00">(Ağ transferi — yavaş!)</text>
+
+  <!-- Stage 2 background -->
+  <rect x="348" y="50" width="365" height="235" rx="10" fill="#ede7f6" stroke="#4a148c" stroke-width="2" stroke-dasharray="7,3"/>
+  <text x="530" y="73" text-anchor="middle" font-size="13" font-weight="bold" fill="#4a148c">Aşama 2 (Stage 2)</text>
+  <text x="530" y="89" text-anchor="middle" font-size="10" fill="#7a3abc">Geniş bağımlılık — tüm bölümler birleşir</text>
+
+  <!-- Shuffle arrows (red dashed) -->
+  <line x1="293" y1="120" x2="392" y2="175" stroke="#c00" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-red)"/>
+  <line x1="293" y1="178" x2="392" y2="186" stroke="#c00" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-red)"/>
+  <line x1="293" y1="236" x2="392" y2="197" stroke="#c00" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-red)"/>
+
+  <!-- Aggregator -->
+  <rect x="363" y="115" width="145" height="125" rx="8" fill="#6a3d9a" stroke="#3d1a6a" stroke-width="2"/>
+  <text x="435" y="143" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Birleştirici</text>
+  <text x="435" y="161" text-anchor="middle" fill="#ddc8ff" font-size="11">(Aggregator)</text>
+  <text x="435" y="182" text-anchor="middle" fill="#ddc8ff" font-size="10">Tüm bölüm</text>
+  <text x="435" y="198" text-anchor="middle" fill="#ddc8ff" font-size="10">sonuçları</text>
+  <text x="435" y="214" text-anchor="middle" fill="#ddc8ff" font-size="10">burada birleşir</text>
+
+  <!-- Arrow aggregator -> result -->
+  <line x1="508" y1="178" x2="548" y2="178" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <!-- Result box -->
+  <rect x="549" y="140" width="148" height="76" rx="8" fill="#2e6da4" stroke="#1a4a7a" stroke-width="2"/>
+  <text x="623" y="165" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Sonuç</text>
+  <text x="623" y="183" text-anchor="middle" fill="#c8ddff" font-size="11">Nihai Model</text>
+  <text x="623" y="200" text-anchor="middle" fill="#c8ddff" font-size="10">→ Driver'a döner</text>
+</svg>
