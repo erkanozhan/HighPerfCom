@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 490" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#555"/>
+    </marker>
+    <marker id="arr-g" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#27ae60"/>
+    </marker>
+    <marker id="arr-p" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#6a3d9a"/>
+    </marker>
+  </defs>
+  <rect width="900" height="490" fill="#f5f5f7" rx="12"/>
+  <text x="450" y="28" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a2e">Dağıtık Çapraz Doğrulama (Distributed Cross-Validation)</text>
+  <text x="450" y="45" text-anchor="middle" font-size="10" fill="#7f8c8d">Örnek: 3 katlı CV, 2 mantıksal bölüm — 6 kısmi model → 3 nihai model</text>
+
+  <!-- ── PHASE 1 BACKGROUND ── -->
+  <rect x="10" y="56" width="875" height="220" rx="10" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="7,4"/>
+  <text x="448" y="74" text-anchor="middle" font-size="12" font-weight="bold" fill="#2e7d32">Aşama 1: Model İnşası (Model Construction)</text>
+
+  <!-- Data partitions -->
+  <rect x="25" y="82" width="200" height="52" rx="6" fill="#455a64" stroke="#263238" stroke-width="1.5"/>
+  <text x="125" y="104" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Bölüm 1</text>
+  <text x="125" y="120" text-anchor="middle" fill="#90a4ae" font-size="9">Kat 1'in ½'si | Kat 2'nin ½'si | Kat 3'ün ½'si</text>
+
+  <rect x="250" y="82" width="200" height="52" rx="6" fill="#455a64" stroke="#263238" stroke-width="1.5"/>
+  <text x="350" y="104" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Bölüm 2</text>
+  <text x="350" y="120" text-anchor="middle" fill="#90a4ae" font-size="9">Kat 1'in ½'si | Kat 2'nin ½'si | Kat 3'ün ½'si</text>
+
+  <!-- Map tasks: 6 partial models (3 fold splits × 2 partitions) -->
+  <!-- For model 1 (trained on fold 2+3) -->
+  <rect x="25" y="156" width="90" height="48" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="70" y="174" text-anchor="middle" fill="white" font-size="8" font-weight="bold">Kısmi M1a</text>
+  <text x="70" y="186" text-anchor="middle" fill="#ffe0c8" font-size="7">Kat 2+3 (Böl.1)</text>
+  <text x="70" y="197" text-anchor="middle" fill="#ffcc99" font-size="7">Map Görevi</text>
+
+  <rect x="130" y="156" width="90" height="48" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="175" y="174" text-anchor="middle" fill="white" font-size="8" font-weight="bold">Kısmi M1b</text>
+  <text x="175" y="186" text-anchor="middle" fill="#ffe0c8" font-size="7">Kat 2+3 (Böl.2)</text>
+  <text x="175" y="197" text-anchor="middle" fill="#ffcc99" font-size="7">Map Görevi</text>
+
+  <rect x="270" y="156" width="90" height="48" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="315" y="174" text-anchor="middle" fill="white" font-size="8" font-weight="bold">Kısmi M2a</text>
+  <text x="315" y="186" text-anchor="middle" fill="#ffe0c8" font-size="7">Kat 1+3 (Böl.1)</text>
+  <text x="315" y="197" text-anchor="middle" fill="#ffcc99" font-size="7">Map Görevi</text>
+
+  <rect x="375" y="156" width="90" height="48" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="420" y="174" text-anchor="middle" fill="white" font-size="8" font-weight="bold">Kısmi M2b</text>
+  <text x="420" y="186" text-anchor="middle" fill="#ffe0c8" font-size="7">Kat 1+3 (Böl.2)</text>
+  <text x="420" y="197" text-anchor="middle" fill="#ffcc99" font-size="7">Map Görevi</text>
+
+  <rect x="510" y="156" width="90" height="48" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="555" y="174" text-anchor="middle" fill="white" font-size="8" font-weight="bold">Kısmi M3a</text>
+  <text x="555" y="186" text-anchor="middle" fill="#ffe0c8" font-size="7">Kat 1+2 (Böl.1)</text>
+  <text x="555" y="197" text-anchor="middle" fill="#ffcc99" font-size="7">Map Görevi</text>
+
+  <rect x="615" y="156" width="90" height="48" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="660" y="174" text-anchor="middle" fill="white" font-size="8" font-weight="bold">Kısmi M3b</text>
+  <text x="660" y="186" text-anchor="middle" fill="#ffe0c8" font-size="7">Kat 1+2 (Böl.2)</text>
+  <text x="660" y="197" text-anchor="middle" fill="#ffcc99" font-size="7">Map Görevi</text>
+
+  <!-- Reduce: 3 final models -->
+  <line x1="70" y1="204" x2="100" y2="236" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <line x1="175" y1="204" x2="140" y2="236" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <line x1="315" y1="204" x2="350" y2="236" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <line x1="420" y1="204" x2="390" y2="236" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <line x1="555" y1="204" x2="590" y2="236" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <line x1="660" y1="204" x2="630" y2="236" stroke="#27ae60" stroke-width="1.5" marker-end="url(#arr-g)"/>
+
+  <!-- 3 Reduce outputs / final models -->
+  <rect x="60" y="238" width="120" height="38" rx="5" fill="#2e7d32" stroke="#1b5e20"/>
+  <text x="120" y="255" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Model 1</text>
+  <text x="120" y="268" text-anchor="middle" fill="#c8f5c8" font-size="8">Kat 2+3 üzerinde</text>
+
+  <rect x="310" y="238" width="120" height="38" rx="5" fill="#2e7d32" stroke="#1b5e20"/>
+  <text x="370" y="255" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Model 2</text>
+  <text x="370" y="268" text-anchor="middle" fill="#c8f5c8" font-size="8">Kat 1+3 üzerinde</text>
+
+  <rect x="560" y="238" width="120" height="38" rx="5" fill="#2e7d32" stroke="#1b5e20"/>
+  <text x="620" y="255" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Model 3</text>
+  <text x="620" y="268" text-anchor="middle" fill="#c8f5c8" font-size="8">Kat 1+2 üzerinde</text>
+
+  <!-- ── PHASE 2 BACKGROUND ── -->
+  <rect x="10" y="290" width="875" height="188" rx="10" fill="#ede7f6" stroke="#4a148c" stroke-width="1.5" stroke-dasharray="7,4"/>
+  <text x="448" y="308" text-anchor="middle" font-size="12" font-weight="bold" fill="#4a148c">Aşama 2: Model Değerlendirme (Model Evaluation)</text>
+
+  <!-- Apply models to holdout folds -->
+  <rect x="25" y="320" width="200" height="48" rx="6" fill="#7b52ab" stroke="#3d1a6a"/>
+  <text x="125" y="340" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Model 1 → Kat 1 (holdout)</text>
+  <text x="125" y="355" text-anchor="middle" fill="#ddc8ff" font-size="9">Kısmi değerlendirme sonuçları</text>
+
+  <rect x="245" y="320" width="200" height="48" rx="6" fill="#7b52ab" stroke="#3d1a6a"/>
+  <text x="345" y="340" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Model 2 → Kat 2 (holdout)</text>
+  <text x="345" y="355" text-anchor="middle" fill="#ddc8ff" font-size="9">Kısmi değerlendirme sonuçları</text>
+
+  <rect x="465" y="320" width="200" height="48" rx="6" fill="#7b52ab" stroke="#3d1a6a"/>
+  <text x="565" y="340" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Model 3 → Kat 3 (holdout)</text>
+  <text x="565" y="355" text-anchor="middle" fill="#ddc8ff" font-size="9">Kısmi değerlendirme sonuçları</text>
+
+  <!-- Reduce to final evaluation -->
+  <line x1="125" y1="368" x2="400" y2="416" stroke="#6a3d9a" stroke-width="1.5" marker-end="url(#arr-p)"/>
+  <line x1="345" y1="368" x2="420" y2="416" stroke="#6a3d9a" stroke-width="1.5" marker-end="url(#arr-p)"/>
+  <line x1="565" y1="368" x2="460" y2="416" stroke="#6a3d9a" stroke-width="1.5" marker-end="url(#arr-p)"/>
+
+  <!-- Final evaluation result -->
+  <rect x="310" y="418" width="280" height="52" rx="6" fill="#2e6da4" stroke="#1a4a7a" stroke-width="2"/>
+  <text x="450" y="440" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Nihai Değerlendirme Sonucu</text>
+  <text x="450" y="456" text-anchor="middle" fill="#c8ddff" font-size="10">Accuracy, Kappa, ROC Area…</text>
+  <text x="450" y="467" text-anchor="middle" fill="#9fbdee" font-size="9">Masaüstü Weka ile aynı biçimde çıktılanır</text>
+</svg>

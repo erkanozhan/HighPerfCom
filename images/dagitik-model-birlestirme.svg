@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 410" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#555"/>
+    </marker>
+    <marker id="arr-g" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#27ae60"/>
+    </marker>
+  </defs>
+  <rect width="860" height="410" fill="#f5f5f7" rx="12"/>
+  <text x="430" y="28" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a2e">Dağıtık Model Birleştirme: Toplamsal vs. Oy Birliği</text>
+
+  <!-- LEFT COLUMN: Naive Bayes -->
+  <rect x="15" y="42" width="400" height="355" rx="10" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="215" y="62" text-anchor="middle" font-size="13" font-weight="bold" fill="#2e7d32">Naive Bayes — Toplamsal Birleştirme</text>
+  <text x="215" y="78" text-anchor="middle" font-size="10" fill="#4a9a4a">(Additive Aggregation)</text>
+
+  <!-- Partitions -->
+  <rect x="40" y="90" width="100" height="36" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="90" y="109" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Bölüm 1</text>
+  <text x="90" y="121" text-anchor="middle" fill="#90a4ae" font-size="9">n/3 örnek</text>
+
+  <rect x="165" y="90" width="100" height="36" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="215" y="109" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Bölüm 2</text>
+  <text x="215" y="121" text-anchor="middle" fill="#90a4ae" font-size="9">n/3 örnek</text>
+
+  <rect x="290" y="90" width="100" height="36" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="340" y="109" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Bölüm 3</text>
+  <text x="340" y="121" text-anchor="middle" fill="#90a4ae" font-size="9">n/3 örnek</text>
+
+  <line x1="90" y1="126" x2="90" y2="162" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="215" y1="126" x2="215" y2="162" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="340" y1="126" x2="340" y2="162" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Map tasks: partial NB -->
+  <rect x="30" y="164" width="120" height="52" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="90" y="183" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Kısmi NB</text>
+  <text x="90" y="196" text-anchor="middle" fill="#ffe0c8" font-size="8">P(x|C) istatistikleri</text>
+  <text x="90" y="208" text-anchor="middle" fill="#ffcc99" font-size="8">toplanabilir</text>
+
+  <rect x="155" y="164" width="120" height="52" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="215" y="183" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Kısmi NB</text>
+  <text x="215" y="196" text-anchor="middle" fill="#ffe0c8" font-size="8">P(x|C) istatistikleri</text>
+  <text x="215" y="208" text-anchor="middle" fill="#ffcc99" font-size="8">toplanabilir</text>
+
+  <rect x="280" y="164" width="120" height="52" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="340" y="183" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Kısmi NB</text>
+  <text x="340" y="196" text-anchor="middle" fill="#ffe0c8" font-size="8">P(x|C) istatistikleri</text>
+  <text x="340" y="208" text-anchor="middle" fill="#ffcc99" font-size="8">toplanabilir</text>
+
+  <!-- converge arrows -->
+  <line x1="90" y1="216" x2="195" y2="282" stroke="#27ae60" stroke-width="1.8" marker-end="url(#arr-g)"/>
+  <line x1="215" y1="216" x2="215" y2="282" stroke="#27ae60" stroke-width="1.8" marker-end="url(#arr-g)"/>
+  <line x1="340" y1="216" x2="235" y2="282" stroke="#27ae60" stroke-width="1.8" marker-end="url(#arr-g)"/>
+
+  <text x="215" y="252" text-anchor="middle" fill="#27ae60" font-size="9">istatistikler toplanır</text>
+
+  <!-- Final NB model -->
+  <rect x="130" y="284" width="170" height="52" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+  <text x="215" y="306" text-anchor="middle" fill="white" font-size="11" font-weight="bold">TEK NaiveBayes</text>
+  <text x="215" y="322" text-anchor="middle" fill="#c8f5c8" font-size="9">modeli</text>
+  <text x="215" y="335" text-anchor="middle" fill="#a0e8a0" font-size="9">Sıralı çalıştırmayla özdeş</text>
+
+  <rect x="55" y="352" width="320" height="30" rx="5" fill="#c8f5c8" stroke="#2e7d32" stroke-width="1"/>
+  <text x="215" y="370" text-anchor="middle" fill="#1b5e20" font-size="10" font-weight="bold">Olasılık tahminleri artımlı ve toplanabilir</text>
+
+  <!-- RIGHT COLUMN: JRip / Trees -->
+  <rect x="440" y="42" width="400" height="355" rx="10" fill="#fce4ec" stroke="#c62828" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="640" y="62" text-anchor="middle" font-size="13" font-weight="bold" fill="#c62828">JRip / Karar Ağacı — Oy Birliği</text>
+  <text x="640" y="78" text-anchor="middle" font-size="10" fill="#e57373">(Voted Ensemble / Majority Voting)</text>
+
+  <!-- Partitions -->
+  <rect x="465" y="90" width="100" height="36" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="515" y="109" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Bölüm 1</text>
+  <text x="515" y="121" text-anchor="middle" fill="#90a4ae" font-size="9">n/4 örnek</text>
+
+  <rect x="580" y="90" width="100" height="36" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="630" y="109" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Bölüm 2</text>
+  <text x="630" y="121" text-anchor="middle" fill="#90a4ae" font-size="9">n/4 örnek</text>
+
+  <rect x="700" y="90" width="100" height="36" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="750" y="109" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Bölüm 3-4</text>
+  <text x="750" y="121" text-anchor="middle" fill="#90a4ae" font-size="9">n/2 örnek</text>
+
+  <line x1="515" y1="126" x2="515" y2="162" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="630" y1="126" x2="630" y2="162" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="750" y1="126" x2="750" y2="162" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Map tasks: partial JRip models -->
+  <rect x="455" y="164" width="120" height="52" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="515" y="183" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Kısmi JRip 1</text>
+  <text x="515" y="196" text-anchor="middle" fill="#ffe0c8" font-size="8">Bölüm 1 üzerinde</text>
+  <text x="515" y="208" text-anchor="middle" fill="#ffcc99" font-size="8">kural seti</text>
+
+  <rect x="575" y="164" width="120" height="52" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="635" y="183" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Kısmi JRip 2</text>
+  <text x="635" y="196" text-anchor="middle" fill="#ffe0c8" font-size="8">Bölüm 2 üzerinde</text>
+  <text x="635" y="208" text-anchor="middle" fill="#ffcc99" font-size="8">kural seti</text>
+
+  <rect x="700" y="164" width="120" height="52" rx="5" fill="#c8622a" stroke="#8a3f10"/>
+  <text x="760" y="183" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Kısmi JRip 3–4</text>
+  <text x="760" y="196" text-anchor="middle" fill="#ffe0c8" font-size="8">Bölüm 3-4 üzerinde</text>
+  <text x="760" y="208" text-anchor="middle" fill="#ffcc99" font-size="8">kural seti</text>
+
+  <!-- converge -->
+  <line x1="515" y1="216" x2="615" y2="282" stroke="#e53935" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="635" y1="216" x2="635" y2="282" stroke="#e53935" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="760" y1="216" x2="655" y2="282" stroke="#e53935" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <text x="635" y="252" text-anchor="middle" fill="#e53935" font-size="9">tek modele dönüştürme zor</text>
+
+  <!-- Voted ensemble box -->
+  <rect x="510" y="284" width="250" height="52" rx="6" fill="#6a3d9a" stroke="#3d1a6a" stroke-width="2"/>
+  <text x="635" y="304" text-anchor="middle" fill="white" font-size="11" font-weight="bold">BatchPredictorVote</text>
+  <text x="635" y="320" text-anchor="middle" fill="#ddc8ff" font-size="9">4 ayrı JRip kural seti</text>
+  <text x="635" y="333" text-anchor="middle" fill="#ddc8ff" font-size="9">oy çokluğuyla karar verir</text>
+
+  <rect x="460" y="352" width="360" height="30" rx="5" fill="#fce4ec" stroke="#c62828" stroke-width="1"/>
+  <text x="640" y="370" text-anchor="middle" fill="#b71c1c" font-size="10" font-weight="bold">Sıralı çalıştırmayla özdeş DEĞİL — pratik bir yaklaşım</text>
+</svg>
