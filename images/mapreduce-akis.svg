@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 530" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#555"/>
+    </marker>
+    <marker id="arr-orange" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#c8622a"/>
+    </marker>
+    <marker id="arr-purple" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#6a3d9a"/>
+    </marker>
+  </defs>
+
+  <rect width="880" height="530" fill="#f5f5f7" rx="12"/>
+  <text x="440" y="32" text-anchor="middle" font-size="16" font-weight="bold" fill="#1a1a2e">Map-Reduce İş Modeli (MapReduce Programming Model)</text>
+
+  <!-- ── ROW 1: INPUT DATASET ── -->
+  <rect x="290" y="48" width="300" height="52" rx="8" fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
+  <text x="440" y="70" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Büyük Veri Kümesi</text>
+  <text x="440" y="88" text-anchor="middle" fill="#95a5a6" font-size="10">CSV dosyası — 200 GB, disk üzerinde</text>
+
+  <!-- split arrows -->
+  <line x1="330" y1="100" x2="118" y2="148" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="380" y1="100" x2="310" y2="148" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="440" y1="100" x2="440" y2="148" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="500" y1="100" x2="572" y2="148" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="550" y1="100" x2="762" y2="148" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="440" y="124" text-anchor="middle" fill="#888" font-size="10">çerçeve otomatik böler (framework splits)</text>
+
+  <!-- ── ROW 2: DATA CHUNKS ── -->
+  <rect x="30" y="150" width="140" height="38" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="100" y="164" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Parça 1</text>
+  <text x="100" y="180" text-anchor="middle" fill="#90a4ae" font-size="9">50 MB blok</text>
+
+  <rect x="220" y="150" width="140" height="38" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="290" y="164" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Parça 2</text>
+  <text x="290" y="180" text-anchor="middle" fill="#90a4ae" font-size="9">50 MB blok</text>
+
+  <rect x="370" y="150" width="140" height="38" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="440" y="164" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Parça 3</text>
+  <text x="440" y="180" text-anchor="middle" fill="#90a4ae" font-size="9">50 MB blok</text>
+
+  <rect x="520" y="150" width="140" height="38" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="590" y="164" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Parça 4</text>
+  <text x="590" y="180" text-anchor="middle" fill="#90a4ae" font-size="9">50 MB blok</text>
+
+  <rect x="710" y="150" width="140" height="38" rx="5" fill="#455a64" stroke="#263238"/>
+  <text x="780" y="164" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Parça N</text>
+  <text x="780" y="180" text-anchor="middle" fill="#90a4ae" font-size="9">50 MB blok</text>
+
+  <text x="655" y="170" text-anchor="middle" fill="#888" font-size="16">…</text>
+
+  <!-- arrows chunk → map -->
+  <line x1="100" y1="188" x2="100" y2="238" stroke="#c8622a" stroke-width="1.8" marker-end="url(#arr-orange)"/>
+  <line x1="290" y1="188" x2="290" y2="238" stroke="#c8622a" stroke-width="1.8" marker-end="url(#arr-orange)"/>
+  <line x1="440" y1="188" x2="440" y2="238" stroke="#c8622a" stroke-width="1.8" marker-end="url(#arr-orange)"/>
+  <line x1="590" y1="188" x2="590" y2="238" stroke="#c8622a" stroke-width="1.8" marker-end="url(#arr-orange)"/>
+  <line x1="780" y1="188" x2="780" y2="238" stroke="#c8622a" stroke-width="1.8" marker-end="url(#arr-orange)"/>
+
+  <!-- ── ROW 3: MAP TASKS ── -->
+  <!-- MAP phase label -->
+  <rect x="2" y="240" width="60" height="72" rx="5" fill="#c8622a" opacity="0.15"/>
+  <text x="32" y="270" text-anchor="middle" fill="#c8622a" font-size="10" font-weight="bold" transform="rotate(-90,32,278)">MAP</text>
+
+  <rect x="30" y="240" width="140" height="72" rx="6" fill="#c8622a" stroke="#8a3f10" stroke-width="1.5"/>
+  <text x="100" y="262" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Map Görevi 1</text>
+  <text x="100" y="278" text-anchor="middle" fill="#ffe0c8" font-size="9">Bağımsız işler</text>
+  <text x="100" y="292" text-anchor="middle" fill="#ffe0c8" font-size="9">Kısmi sonuç üretir</text>
+  <text x="100" y="306" text-anchor="middle" fill="#ffcc99" font-size="9">(k₁,v₁) (k₂,v₃)…</text>
+
+  <rect x="220" y="240" width="140" height="72" rx="6" fill="#c8622a" stroke="#8a3f10" stroke-width="1.5"/>
+  <text x="290" y="262" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Map Görevi 2</text>
+  <text x="290" y="278" text-anchor="middle" fill="#ffe0c8" font-size="9">Bağımsız işler</text>
+  <text x="290" y="292" text-anchor="middle" fill="#ffe0c8" font-size="9">Kısmi sonuç üretir</text>
+  <text x="290" y="306" text-anchor="middle" fill="#ffcc99" font-size="9">(k₁,v₂) (k₃,v₁)…</text>
+
+  <rect x="370" y="240" width="140" height="72" rx="6" fill="#c8622a" stroke="#8a3f10" stroke-width="1.5"/>
+  <text x="440" y="262" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Map Görevi 3</text>
+  <text x="440" y="278" text-anchor="middle" fill="#ffe0c8" font-size="9">Bağımsız işler</text>
+  <text x="440" y="292" text-anchor="middle" fill="#ffe0c8" font-size="9">Kısmi sonuç üretir</text>
+  <text x="440" y="306" text-anchor="middle" fill="#ffcc99" font-size="9">(k₂,v₄) (k₁,v₅)…</text>
+
+  <rect x="520" y="240" width="140" height="72" rx="6" fill="#c8622a" stroke="#8a3f10" stroke-width="1.5"/>
+  <text x="590" y="262" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Map Görevi 4</text>
+  <text x="590" y="278" text-anchor="middle" fill="#ffe0c8" font-size="9">Bağımsız işler</text>
+  <text x="590" y="292" text-anchor="middle" fill="#ffe0c8" font-size="9">Kısmi sonuç üretir</text>
+  <text x="590" y="306" text-anchor="middle" fill="#ffcc99" font-size="9">(k₃,v₂) (k₁,v₆)…</text>
+
+  <rect x="710" y="240" width="140" height="72" rx="6" fill="#c8622a" stroke="#8a3f10" stroke-width="1.5"/>
+  <text x="780" y="262" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Map Görevi N</text>
+  <text x="780" y="278" text-anchor="middle" fill="#ffe0c8" font-size="9">Bağımsız işler</text>
+  <text x="780" y="292" text-anchor="middle" fill="#ffe0c8" font-size="9">Kısmi sonuç üretir</text>
+  <text x="780" y="306" text-anchor="middle" fill="#ffcc99" font-size="9">(k₂,v₇) (k₃,v₈)…</text>
+
+  <text x="655" y="282" text-anchor="middle" fill="#888" font-size="16">…</text>
+
+  <!-- ── SHUFFLE ZONE ── -->
+  <rect x="30" y="328" width="820" height="32" rx="6" fill="#6a3d9a" opacity="0.12" stroke="#6a3d9a" stroke-width="1" stroke-dasharray="5,4"/>
+  <text x="440" y="348" text-anchor="middle" fill="#6a3d9a" font-size="11" font-weight="bold">Shuffle &amp; Sort — Anahtar değere göre gruplama (key grouping)</text>
+
+  <!-- arrows map → reduce (converging) -->
+  <line x1="100" y1="360" x2="216" y2="408" stroke="#6a3d9a" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+  <line x1="290" y1="360" x2="252" y2="408" stroke="#6a3d9a" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+  <line x1="440" y1="360" x2="440" y2="408" stroke="#6a3d9a" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+  <line x1="590" y1="360" x2="628" y2="408" stroke="#6a3d9a" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+  <line x1="780" y1="360" x2="664" y2="408" stroke="#6a3d9a" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+
+  <!-- ── ROW 4: REDUCE TASKS ── -->
+  <rect x="150" y="410" width="220" height="62" rx="6" fill="#2e6da4" stroke="#1a4a7a" stroke-width="1.5"/>
+  <text x="260" y="432" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Reduce Görevi 1</text>
+  <text x="260" y="449" text-anchor="middle" fill="#c8ddff" font-size="9">k₁ için tüm değerleri toplar</text>
+  <text x="260" y="463" text-anchor="middle" fill="#c8ddff" font-size="9">→ Model bileşeni 1</text>
+
+  <rect x="400" y="410" width="220" height="62" rx="6" fill="#2e6da4" stroke="#1a4a7a" stroke-width="1.5"/>
+  <text x="510" y="432" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Reduce Görevi 2</text>
+  <text x="510" y="449" text-anchor="middle" fill="#c8ddff" font-size="9">k₂ için tüm değerleri toplar</text>
+  <text x="510" y="463" text-anchor="middle" fill="#c8ddff" font-size="9">→ Model bileşeni 2</text>
+
+  <!-- arrows reduce → result -->
+  <line x1="260" y1="472" x2="360" y2="498" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="510" y1="472" x2="440" y2="498" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <!-- ── RESULT ── -->
+  <rect x="300" y="500" width="280" height="24" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="1.5"/>
+  <text x="440" y="516" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Nihai Sonuç / Birleşik Model</text>
+
+  <!-- REDUCE label -->
+  <rect x="818" y="410" width="60" height="62" rx="5" fill="#2e6da4" opacity="0.15"/>
+  <text x="848" y="455" text-anchor="middle" fill="#2e6da4" font-size="10" font-weight="bold" transform="rotate(-90,848,441)">REDUCE</text>
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 310" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#555"/>
+    </marker>
+  </defs>
+  <rect width="680" height="310" fill="#f5f5f7" rx="12"/>
+  <text x="340" y="30" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a2e">Dağıtık Weka Paket Mimarisi</text>
+
+  <!-- Top layer label -->
+  <text x="340" y="60" text-anchor="middle" fill="#7f8c8d" font-size="11">Çerçeveye özgü sarmalayıcılar (Framework-specific wrappers)</text>
+
+  <!-- distributedWekaSpark -->
+  <rect x="40" y="70" width="260" height="80" rx="8" fill="#c8622a" stroke="#8a3f10" stroke-width="2"/>
+  <text x="170" y="100" text-anchor="middle" fill="white" font-size="13" font-weight="bold">distributedWekaSpark</text>
+  <text x="170" y="118" text-anchor="middle" fill="#ffe0c8" font-size="10">Apache Spark platformu üzerinde</text>
+  <text x="170" y="133" text-anchor="middle" fill="#ffe0c8" font-size="10">çalışan sarmalayıcı</text>
+
+  <!-- distributedWekaHadoop -->
+  <rect x="380" y="70" width="260" height="80" rx="8" fill="#2e6da4" stroke="#1a4a7a" stroke-width="2"/>
+  <text x="510" y="100" text-anchor="middle" fill="white" font-size="13" font-weight="bold">distributedWekaHadoop</text>
+  <text x="510" y="118" text-anchor="middle" fill="#c8ddff" font-size="10">Hadoop / YARN platformu üzerinde</text>
+  <text x="510" y="133" text-anchor="middle" fill="#c8ddff" font-size="10">çalışan sarmalayıcı</text>
+
+  <!-- Arrows pointing down to base -->
+  <line x1="170" y1="150" x2="240" y2="192" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="510" y1="150" x2="440" y2="192" stroke="#555" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <!-- "uses" labels -->
+  <text x="190" y="177" fill="#888" font-size="10">kullanır</text>
+  <text x="440" y="177" fill="#888" font-size="10">kullanır</text>
+
+  <!-- Base layer -->
+  <rect x="100" y="195" width="480" height="90" rx="8" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+  <text x="340" y="222" text-anchor="middle" fill="white" font-size="14" font-weight="bold">distributedWekaBase</text>
+  <text x="340" y="242" text-anchor="middle" fill="#c8f5c8" font-size="10">Çerçeveden bağımsız genel Map-Reduce görevleri</text>
+  <text x="340" y="258" text-anchor="middle" fill="#c8f5c8" font-size="10">Sınıflandırıcı eğitimi · Kümeleme · Özet istatistikler · Korelasyon</text>
+  <text x="340" y="274" text-anchor="middle" fill="#a0e8a0" font-size="9">(Framework-agnostic, reusable ML tasks)</text>
+
+  <!-- Bottom note -->
+  <text x="340" y="298" text-anchor="middle" fill="#95a5a6" font-size="10">Weka 3.7+ üzerinde çalışır — standart Weka model formatı üretir</text>
+</svg>
