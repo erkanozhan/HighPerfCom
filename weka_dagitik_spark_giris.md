@@ -80,23 +80,29 @@ Dağıtık Weka tasarlanırken birkaç temel hedef gözetilmiştir.
 
 ### Paket Yöneticisinden Kurulum
 
-Weka GUI Chooser → **Tools → Package Manager** yolunu izleyin. Liste içinde `distributedWekaSpark` paketini bulun.
+Weka'yı başlatın. Karşınıza **GUI Chooser** adlı ana pencere çıkar. Bu penceredeki menü çubuğundan **Tools → Package Manager** seçin.
 
-```text
-Package Manager → distributedWekaSpark → Install
-```
+Package Manager penceresi açıldığında:
 
-Kurulum sırasında Weka, `distributedWekaBase` paketinin de gerekli olduğunu bildirir ve birlikte kurulmasını önerir. İkisini birden onaylayın.
+1. Pencerenin üst kısmındaki **arama kutusuna** `distributedWekaSpark` yazın.
+2. Listede beliren `distributedWekaSpark` satırını **tıklayın**; sağ panelde paket açıklaması görünür.
+3. Pencerenin sağ üst köşesindeki **Install** düğmesine tıklayın.
 
-> Paketin indirme boyutu büyüktür; indirme tamamlanana kadar bekleyin.
+Weka bir onay kutusu açar: "`distributedWekaBase` bağımlılığı da kurulsun mu?" Açılan iletişim kutusunda **Yes** seçin. Her iki paket birlikte indirilir ve kurulur.
+
+> İndirme çubuğu tamamlanana kadar Package Manager penceresini kapatmayın. Kurulum bitince listede paketin yanında "Installed" ibaresi belirir.
 
 ### Yeniden Başlatma
 
-Kurulumun ardından Weka'yı kapatıp yeniden açmanız gerekir. Yeni kurulan paketler, ancak yeniden başlatma sonrası yüklenir.
+Kurulum tamamlandıktan sonra Package Manager penceresini kapatın, ardından Weka GUI Chooser'ı da kapatın (**File → Exit** ya da pencere köşesindeki X). Weka'yı yeniden başlatın; yeni paketler ancak bu adımdan sonra aktif olur.
+
+### Knowledge Flow Nasıl Açılır
+
+Weka GUI Chooser penceresinde dört büyük düğme yer alır: **Explorer**, **Experimenter**, **KnowledgeFlow** ve **Workbench**. **KnowledgeFlow** düğmesine tıklayın.
 
 ### Kurulumu Doğrulama
 
-Knowledge Flow ortamını açın. Sol paneldeki Design Palette'te **"Spark"** adlı yeni bir kategori görünüyorsa kurulum başarılıdır. Bu kategori içinde şu bileşenler bulunmalıdır:
+Knowledge Flow açıldığında sol tarafta **Design** sekmesi altında bileşen paleti (Design Palette) görünür. Listeyi aşağı kaydırın; **Distributed (Spark)** adlı bir kategori varsa kurulum başarılıdır. Kategori adına tıklayarak genişletin — içinde şu bileşenler listelenmelidir:
 
 - `ArffHeaderSparkJob`
 - `WekaClassifierSparkJob`
@@ -155,9 +161,11 @@ ARFF versiyonuna Weka kurulum dizinindeki `data/` klasöründen de ulaşabilirsi
 
 ### Şablon Akışlar
 
-`distributedWekaSpark` paketi, hazır şablon akışlar (template flows) ile birlikte gelir. Knowledge Flow araç çubuğundaki **Templates** düğmesine tıklayın. Listede "Spark" ön ekiyle başlayan akışları göreceksiniz. Bu akışlar, herhangi bir Spark kümesi kurulumu gerektirmeden doğrudan çalıştırılabilir; Spark'ın **yerel modu** (local mode) devreye girerek makinenizin tüm CPU çekirdeklerini işlem düğümü olarak kullanır.
+`distributedWekaSpark` paketi, hazır şablon akışlar (template flows) ile birlikte gelir. Bu akışlar herhangi bir Spark kümesi kurulumu gerektirmeden doğrudan çalıştırılabilir; Spark'ın **yerel modu** (local mode) devreye girerek makinenizin tüm CPU çekirdeklerini işlem düğümü olarak kullanır.
 
-İlk adım olarak **"Spark — Create ARFF header"** şablonunu açın.
+Şablon yüklemek için Knowledge Flow araç çubuğundaki **Templates** düğmesine tıklayın. Düğme genellikle araç çubuğunun sağ tarafındadır ve üzerinde küçük bir belge ikonu bulunur. Açılan açılır menüde `Spark —` önekli satırlar görünür. **"Spark — Create ARFF header"** satırını tıklayın.
+
+Şablon yüklendiğinde tuvalde iki bileşen kendiliğinden yerleşir: solda `ArffHeaderSparkJob`, sağda `TextViewer`. Bu ikisi arasında bir ok (bağlantı) bulunur.
 
 ### Akış Yapısı
 
@@ -169,6 +177,21 @@ Bu akış yalnızca iki bileşenden oluşur:
 2. **`TextViewer`** — Sonucu metin olarak görüntüler.
 
 Bu iki bileşen arasındaki bağlantı tipi **`dataset`**tir: bir bileşen veri ürettiğinde, diğerine aktarır.
+
+### Giriş Dosyasını Ayarlama
+
+Şablonu çalıştırmadan önce `ArffHeaderSparkJob` bileşenini CSV dosyasına yönlendirmeniz gerekir.
+
+1. Tuvaldeki `ArffHeaderSparkJob` kutusuna **çift tıklayın**. İki sekmeli bir yapılandırma diyalogu açılır.
+2. Açılan diyalogda ilk sekme **Spark Config** sekmesidir. Bu sekmedeki **inputFile** alanını bulun.
+3. Alanın sağındaki **…** (üç nokta) düğmesine tıklayın; dosya seçici penceresi açılır.
+4. `hypothyroid.csv` dosyasını bulup seçin. Dosyanın konumu şudur:
+   - **Linux / macOS:** `~/wekafiles/packages/distributedWekaSpark/sample_data/hypothyroid.csv`
+   - **Windows:** `C:\Users\KullanıcıAdı\wekafiles\packages\distributedWekaSpark\sample_data\hypothyroid.csv`
+5. **outputDirectory** alanı varsayılan olarak `sparkOutput` değerini taşır; bu dizin çalışma sırasında otomatik oluşturulur, değiştirmenize gerek yoktur.
+6. Şimdi ikinci sekmeye geçin: **ArffHeaderSparkJob** sekmesi.
+7. **attributeNamesFile** alanının sağındaki **…** düğmesine tıklayın ve aynı dizindeki `hypothyroid.names` dosyasını seçin. Bu dosya her satırda bir öznitelik adı içerir; Weka sütunları bu adlarla etiketler.
+8. **OK** düğmesine tıklayarak diyalogu kapatın.
 
 ### Akışı Çalıştırma
 
@@ -251,11 +274,11 @@ Knowledge Flow'daki her bileşen, bağımsız olarak yapılandırılabilir. Herh
 
 ## İki Sınıflandırıcı Eğitmek
 
-Templates menüsünden **"Spark — Train and save two classifiers"** şablonunu açın.
+Knowledge Flow araç çubuğundaki **Templates** düğmesine tıklayın, açılan menüden **"Spark — Train and save two classifiers"** satırını seçin.
 
 ![İki Sınıflandırıcı Eğitim Akışı](images/kf-iki-siniflandirici-akis.svg)
 
-Akış şu bileşenlerden oluşur:
+Akış dört bileşenden oluşur:
 
 1. **`ArffHeaderSparkJob`** — CSV verisini yükler ve RDD'ye dönüştürür. Daha önce oluşturulmuş bir başlık dosyası varsa (`pathToExistingHeader` dolu ise) yeniden analiz yapmaz.
 2. **`WekaClassifierSparkJob`** (Naive Bayes) — İlk sınıflandırıcıyı eğitir.
@@ -264,18 +287,50 @@ Akış şu bileşenlerden oluşur:
 
 Her iki `WekaClassifierSparkJob` bileşeni de bir `TextViewer`'a `text` bağlantısıyla bağlıdır; model açıklaması ekranda görüntülenir.
 
-### WekaClassifierSparkJob Yapılandırması
+### Bileşen Yapılandırması — Adım Adım
 
-Bileşene çift tıklandığında açılan diyalogda:
+#### 1. ArffHeaderSparkJob yapılandırması
 
-- **Sınıf özniteliği adı** — hangi sütunun tahmin hedefi olduğu
-- **Model dosyası adı** — serileştirilmiş model dosyasının çıkış dizinine yazılacak adı
-- **Sınıflandırıcı seçimi** — masaüstü Weka'daki gibi herhangi bir sınıflandırıcı seçilir ve parametreleri ayarlanır
-- **Filtre seçeneği** — isteğe bağlı olarak bir ön işleme filtresi tanımlanabilir; birden fazla filtre için `MultiFilter` kullanılır
+Tuvaldeki `ArffHeaderSparkJob` kutusuna çift tıklayın.
+
+- **Spark Config** sekmesi → **inputFile** alanının sağındaki **…** düğmesine tıklayın → `hypothyroid.csv` dosyasını seçin.
+- **ArffHeaderSparkJob** sekmesi → **attributeNamesFile** alanına `hypothyroid.names` dosyasının yolunu girin.
+- **OK** tıklayın.
+
+#### 2. Naive Bayes için WekaClassifierSparkJob yapılandırması
+
+`ArffHeaderSparkJob`'dan çıkan `success` oku ile bağlı olan ilk `WekaClassifierSparkJob` kutusuna çift tıklayın.
+
+- **Spark Config** sekmesi:
+  - **inputFile**: `hypothyroid.csv` yolunu girin.
+  - **outputDirectory**: `sparkOutput` (varsayılan; değiştirmenize gerek yok).
+- **WekaClassifierSparkJob** sekmesi:
+  - **classAttribute**: `Class` yazın (veri kümesindeki tahmin hedefi sütunu).
+  - **modelFileName**: `naiveBayes.model` yazın.
+  - **classifier** alanının yanındaki **Edit...** düğmesine tıklayın. Açılan sınıflandırıcı seçicisinde `weka.classifiers.bayes.NaiveBayes` seçili olduğunu doğrulayın; değilse listeden seçin.
+- **OK** tıklayın.
+
+#### 3. RandomlyShuffleDataSparkJob yapılandırması
+
+Bu bileşene çift tıklayın.
+
+- **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
+- **OK** tıklayın.
+
+#### 4. JRip için WekaClassifierSparkJob yapılandırması
+
+`RandomlyShuffleDataSparkJob`'dan çıkan okla bağlı ikinci `WekaClassifierSparkJob` kutusuna çift tıklayın.
+
+- **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
+- **WekaClassifierSparkJob** sekmesi:
+  - **classAttribute**: `Class`.
+  - **modelFileName**: `jripVoted.model`.
+  - **classifier** → **Edit...** düğmesine tıklayın → listeden `weka.classifiers.rules.JRip` seçin.
+- **OK** tıklayın.
 
 ### Akışı Çalıştırmak ve Sonuçları Okumak
 
-▶ Başlat düğmesine tıklayın. İki sınıflandırıcı sırayla eğitilir. Akış tamamlandığında `TextViewer`'da iki giriş görünür:
+Araç çubuğundaki **▶ Başlat** düğmesine tıklayın. Log alanında "Successfully stopped SparkContext" satırı görünene kadar bekleyin. İki sınıflandırıcı sırayla eğitilir. Akış tamamlandığında her `TextViewer` kutusuna ayrı ayrı **sağ tıklayın → Show results**:
 
 **Naive Bayes çıktısı:** Beklediğiniz gibi, tek bir Naive Bayes modeli — masaüstü Weka çıktısıyla neredeyse özdeş.
 
@@ -330,7 +385,26 @@ Naive Bayes bu sorundan etkilenmez: olasılık tahminleri örnek sırasından ba
 
 ## Dağıtık Çapraz Doğrulama
 
-Templates menüsünden **"Spark — Cross-validate two classifiers"** şablonunu açın. Bu akışta iki `WekaClassifierEvaluationSparkJob` bileşeni bulunur: biri Naive Bayes için, diğeri Random Forest için. Her ikisi de 10 katlı çapraz doğrulama (10-fold cross-validation) gerçekleştirir.
+Knowledge Flow araç çubuğundaki **Templates** düğmesine tıklayın, açılan menüden **"Spark — Cross-validate two classifiers"** satırını seçin. Bu akışta iki `WekaClassifierEvaluationSparkJob` bileşeni bulunur: biri Naive Bayes için, diğeri Random Forest için. Her ikisi de 10 katlı çapraz doğrulama (10-fold cross-validation) gerçekleştirir.
+
+### Bileşenleri Yapılandırma
+
+1. `ArffHeaderSparkJob` kutusuna **çift tıklayın**:
+   - **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
+   - **ArffHeaderSparkJob** sekmesi → **attributeNamesFile**: `hypothyroid.names` yolunu girin.
+   - **OK** tıklayın.
+
+2. Naive Bayes `WekaClassifierEvaluationSparkJob` kutusuna **çift tıklayın**:
+   - **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
+   - **WekaClassifierEvaluationSparkJob** sekmesi → **classAttribute**: `Class`, **numFolds**: `10`, **classifier**: `weka.classifiers.bayes.NaiveBayes`.
+   - **OK** tıklayın.
+
+3. Random Forest `WekaClassifierEvaluationSparkJob` kutusuna **çift tıklayın** ve aynı alanları doldurun; **classifier** için `weka.classifiers.trees.RandomForest` seçin.
+   - **OK** tıklayın.
+
+4. Araç çubuğundaki **▶ Başlat** düğmesine tıklayın.
+
+5. İş tamamlandığında her `TextViewer` kutusuna **sağ tıklayın → Show results**.
 
 Dağıtık çapraz doğrulama iki ayrı aşamadan oluşur.
 
@@ -356,7 +430,7 @@ Her nihai model, kendi holdout katına (eğitimde kullanılmayan kat) uygulanır
 
 ## Korelasyon Matrisi ve Temel Bileşenler Analizi
 
-Templates menüsünden **"Spark — Compute a correlation matrix and run PCA"** şablonunu açın.
+**Templates** düğmesine tıklayın, açılan menüden **"Spark — Compute a correlation matrix and run PCA"** satırını seçin.
 
 Bu akış üç bileşenden oluşur:
 
@@ -365,24 +439,49 @@ ArffHeaderSparkJob → CorrelationMatrixSparkJob → TextViewer
                                                → ImageViewer
 ```
 
-`CorrelationMatrixSparkJob` (Korelasyon Matrisi Spark İşi) yapılandırma diyaloğu iki temel seçenek sunar:
+### Bileşenleri Yapılandırma ve Çalıştırma
 
-- **Matris türü:** Korelasyon matrisi (correlation matrix) ya da kovaryans matrisi (covariance matrix)
-- **PCA:** Temel Bileşenler Analizi (Principal Components Analysis — PCA) seçeneği açılabilir; giriş olarak hesaplanan matris kullanılır
+1. `ArffHeaderSparkJob` kutusuna **çift tıklayın** → **inputFile** ve **attributeNamesFile** alanlarını doldurun → **OK**.
+
+2. `CorrelationMatrixSparkJob` kutusuna **çift tıklayın**:
+   - **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
+   - **CorrelationMatrixSparkJob** sekmesinde:
+     - **matrixType**: `Correlation` ya da `Covariance` seçin (varsayılan `Correlation`).
+     - PCA sonuçları istiyorsanız **runPCA** onay kutusunu işaretleyin.
+   - **OK** tıklayın.
+
+3. Araç çubuğundaki **▶ Başlat** düğmesine tıklayın.
+
+4. İş tamamlandığında:
+   - `TextViewer` kutusuna **sağ tıklayın → Show results** — korelasyon matrisi ve varsa PCA çıktısı görünür.
+   - `ImageViewer` kutusuna **sağ tıklayın → Show results** — ısı haritası (heat map) açılır; renk yoğunluğu korelasyonun büyüklüğünü temsil eder.
 
 Yalnızca sayısal öznitelikler bu analize dahil edilir; nominal öznitelikler atlanır.
-
-`TextViewer` korelasyon matrisini ve PCA sonuçlarını metin olarak gösterir. `ImageViewer` ise korelasyon matrisini bir ısı haritası (heat map) olarak görselleştirir: renk yoğunluğu korelasyonun büyüklüğünü temsil eder.
 
 ---
 
 ## Paralel K-Means
 
-Templates menüsündeki **"Spark — Run K-means||"** şablonu, K-Means algoritmasının paralel versiyonunu çalıştırır. K-Means|| (K-Means paralel, çift dikey çizgi paralel anlamında) özellikle büyük veri kümelerinde başlangıç küme merkezi seçimini dağıtık hale getirir.
+**Templates** düğmesine tıklayın, açılan menüden **"Spark — Run K-means||"** satırını seçin. K-Means|| (K-Means paralel; çift dikey çizgi "paralel" anlamındadır) özellikle büyük veri kümelerinde başlangıç küme merkezi seçimini dağıtık hale getirir.
 
-Kümeleme için dağıtık Weka neden yalnızca K-Means sunar? Çünkü sınıflandırmada kullanılan oy birliği (voted ensemble) hilesi kümeleme için çalışmaz: birbirinden bağımsız bölümler üzerinde eğitilen kümeleme modelleri, küme etiketleri tutarsız olduğu için doğrudan birleştirilemez. K-Means, iteratif bir algoritma olduğundan yeniden yazılarak dağıtık hale getirilmiştir.
+### K-Means Yapılandırması ve Çalıştırma
 
-Yerel modda küçük bir veri kümesiyle çalıştırıldığında K-Means|| **masaüstü Weka'dan yavaş** çalışabilir. Bunun nedeni Spark'ın RDD yapılarını oluşturma ve düğümler arası iletişim maliyetinin, paralel işlemenin kazandırdığı hızı geçmesidir. Bu durum normaldir ve yerel modun sınırlılığını gösterir. Gerçek bir kümede büyük veriyle çalışıldığında denklem tersine döner.
+1. `ArffHeaderSparkJob` kutusuna **çift tıklayın** → **inputFile** ve **attributeNamesFile** alanlarını doldurun → **OK**.
+
+2. `WekaClustererSparkJob` kutusuna **çift tıklayın**:
+   - **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
+   - **WekaClustererSparkJob** sekmesinde:
+     - **numClusters**: küme sayısını girin (örneğin `4` — veri kümesindeki gerçek sınıf sayısı kadar).
+     - **classAttribute**: `Class` yazarsanız bu sütun kümeleme dışında tutulur; boş bırakırsanız tüm sütunlar dahil edilir.
+   - **OK** tıklayın.
+
+3. Araç çubuğundaki **▶ Başlat** düğmesine tıklayın.
+
+4. `TextViewer` kutusuna **sağ tıklayın → Show results**.
+
+Kümeleme için dağıtık Weka neden yalnızca K-Means sunar? Çünkü sınıflandırmada kullanılan oy birliği (voted ensemble) yaklaşımı kümeleme için çalışmaz: birbirinden bağımsız bölümler üzerinde eğitilen kümeleme modelleri, küme etiketleri tutarsız olduğu için doğrudan birleştirilemez. K-Means, iteratif bir algoritma olduğundan yeniden yazılarak dağıtık hale getirilmiştir.
+
+Yerel modda küçük bir veri kümesiyle çalıştırıldığında K-Means|| masaüstü Weka'dan yavaş çalışabilir. Bunun nedeni Spark'ın RDD yapılarını oluşturma ve düğümler arası iletişim maliyetinin paralel işlemenin kazandırdığı hızı geçmesidir. Bu durum normaldir ve yerel modun sınırlılığını gösterir; gerçek bir kümede büyük veriyle çalışıldığında denklem tersine döner.
 
 Çıktı, masaüstü Weka'nın K-Means çıktısıyla aynı biçimdedir.
 
