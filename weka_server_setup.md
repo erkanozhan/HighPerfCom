@@ -10,6 +10,12 @@ Ana sunucu, kendisine gelen her görev için önce kendi yükünü hesaplar:
 
 $$\text{yük} = \frac{(\text{çalışan görev} + \text{kuyruktaki görev}) \times \text{load-adjust}}{\text{slots}}$$
 
+```math
+\underbrace{\text{yük}}_{\substack{\text{sunucunun}\\\text{doluluk oranı}}} = \frac{\overbrace{(\text{çalışan görev} + \text{kuyruktaki görev})}^{\substack{\text{sunucudaki}\\\text{toplam görev}}} \times \overbrace{\text{load-adjust}}^{\substack{\text{yük}\\\text{çarpanı}}}}{\underbrace{\text{slots}}_{\substack{\text{aynı anda yürütülebilen}\\\text{görev sayısı}}}}
+```
+
+**Ne anlatıyor?** Sunucuda çalışan ve sırada bekleyen görevlerin toplamı, sunucunun aynı anda yürütebileceği görev sayısına bölünerek doluluk oranı bulunur; load-adjust çarpanı bu oranı yapay olarak büyütür ya da küçültür. Oranın 1'e ulaşması, sunucunun kapasitesinin dolduğunu gösterir.
+
 Kendi yükü 1'in altındaysa görevi kendisi yürütür; değilse görevi yükü en düşük yardımcı sunucuya gönderir.
 
 Bu nedenle WekaServer **veriyi bölmez**. Çok sayıda bağımsız görevi (farklı algoritmalar, farklı parametreler, farklı veri kümeleri) makinelere dağıtarak toplam süreyi kısaltır; tek bir büyük veri kümesinin parçalara ayrılıp paralel işlenmesi gerekiyorsa Spark tabanlı dağıtık Weka kullanılmalıdır (bkz. [weka_dagitik_spark_giris.md](weka_dagitik_spark_giris.md)).

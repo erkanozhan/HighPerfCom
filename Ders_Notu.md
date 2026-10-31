@@ -54,6 +54,12 @@ Genel formül:
 
 $$\text{Değer} = (-1)^{S} \times 1.\text{Mantis} \times 2^{(\text{Üs} - 127)}$$
 
+```math
+\underbrace{\text{Değer}}_{\substack{\text{saklanan}\\\text{sayı}}} = \overbrace{(-1)^{S}}^{\substack{\text{işaret}\\(+1 \text{ ya da } -1)}} \times \underbrace{1.\text{Mantis}}_{\substack{\text{gizli bit ve}\\\text{anlamlı basamaklar}}} \times \overbrace{2^{(\text{Üs} - 127)}}^{\substack{\text{gerçek üs kadar}\\\text{kaydırma}}}
+```
+
+**Ne anlatıyor?** Saklanan bit alanlarından sayının değeri geri elde edilir: İşaret biti sayının pozitif mi negatif mi olduğunu belirler, gizli bitle tamamlanan mantis anlamlı basamakları verir, bellekteki üsten sapma (127) çıkarılarak noktanın kaç basamak kaydırılacağı bulunur. Sapma sayesinde bellekte yalnızca negatif olmayan üs değerleri tutularak hem çok büyük hem çok küçük sayılar gösterilebilir.
+
 #### Örnek: $5.75$ Sayısının IEEE 754 Gösterimi
 
 **Adım 1 — İkili sisteme dönüştürme.** Tam sayı ve kesir kısımları ayrı ayrı dönüştürülür:
@@ -103,6 +109,12 @@ Saat frekansı da 1986–2003 arasında yılda yaklaşık %40 artmış, 2003 son
 Bir CMOS devrenin dinamik güç tüketimi yaklaşık olarak şu bağıntıyla verilir:
 
 $$P_{\text{dinamik}} \approx \alpha \cdot C \cdot V^{2} \cdot f$$
+
+```math
+\underbrace{P_{\text{dinamik}}}_{\substack{\text{dinamik}\\\text{güç}}} \approx \overbrace{\alpha}^{\substack{\text{anahtarlama}\\\text{etkinliği}}} \cdot \underbrace{C}_{\substack{\text{anahtarlanan}\\\text{sığa}}} \cdot \overbrace{V^{2}}^{\substack{\text{besleme gerilimi}\\\text{(karesi)}}} \cdot \underbrace{f}_{\substack{\text{saat}\\\text{frekansı}}}
+```
+
+**Ne anlatıyor?** Devrenin her saat çevriminde anahtarlanan sığayı doldurup boşaltmak için harcadığı güç verilir. Güç frekansla doğrusal, gerilimle ise karesel olarak arttığından, gerilimin düşürülemediği durumda frekans artışı güç tüketimini hızla büyütür.
 
 Burada $\alpha$ anahtarlama etkinliği, $C$ anahtarlanan sığa, $V$ besleme gerilimi ve $f$ saat frekansıdır. **Dennard ölçeklemesi** (Dennard scaling; Robert Dennard, 1974), transistörler küçüldükçe gerilim ve sığanın da aynı oranda küçüleceğini, böylece birim alandaki güç yoğunluğunun sabit kalacağını öngörüyordu. Yaklaşık 2005'ten itibaren sızıntı akımları ve eşik gerilimi nedeniyle gerilim artık düşürülemez hâle geldi. Bu durumda frekansı artırmak için gerilimin de artırılması gerektiğinden güç, frekansın yaklaşık küpüyle ($V \propto f$ varsayımıyla $P \propto f^3$) büyür. Ortaya çıkan ısı soğutma sınırlarına takılır; bu sınıra **güç duvarı** (power wall) denir.
 
@@ -173,6 +185,12 @@ Seri çalışma süresi $T_{\text{seri}}$, $p$ işlemcili paralel çalışma sü
 
 $$S(p) = \frac{T_{\text{seri}}}{T_{\text{paralel}}}$$
 
+```math
+\underbrace{S(p)}_{\substack{\text{p işlemcideki}\\\text{hızlanma}}} = \frac{\overbrace{T_{\text{seri}}}^{\substack{\text{seri çalışma}\\\text{süresi}}}}{\underbrace{T_{\text{paralel}}}_{\substack{\text{p işlemcili}\\\text{çalışma süresi}}}}
+```
+
+**Ne anlatıyor?** Seri çalışma süresinin paralel çalışma süresine oranı, paralel programın aynı işi kaç kat daha kısa sürede bitirdiğini gösterir. Oran ne kadar büyükse eklenen işlemcilerden o kadar çok yararlanılmış demektir.
+
 İdeal durumda $p$ işlemciyle $S = p$ beklenir. Bu hedefe neredeyse hiç ulaşılamaz; temel engel **ek yüktür** (overhead). İngilizce *overhead* sözcüğü, işin kendisine değil yönetimine harcanan "üstteki" maliyeti anlatır: hesaplama yerine eşgüdüm için harcanan her türlü zaman. Başlıca ek yük kaynakları şunlardır:
 
 - **Eşzamanlama (synchronization):** İş parçacıklarının ortak bir noktada birbirini beklemesi.
@@ -186,6 +204,12 @@ Büyük bir şantiyede yirmi işçiyi eşgüdümlü çalıştırmak için sabah 
 
 $$E(p) = \frac{S(p)}{p} = \frac{T_{\text{seri}}}{p \cdot T_{\text{paralel}}}$$
 
+```math
+\underbrace{E(p)}_{\text{verimlilik}} = \frac{\overbrace{S(p)}^{\substack{\text{elde edilen}\\\text{hızlanma}}}}{\underbrace{p}_{\substack{\text{ideal hızlanma}\\\text{(işlemci sayısı)}}}} = \frac{T_{\text{seri}}}{\underbrace{p \cdot T_{\text{paralel}}}_{\substack{\text{tüm işlemcilerin}\\\text{harcadığı toplam süre}}}}
+```
+
+**Ne anlatıyor?** Elde edilen hızlanmanın işlemci sayısına oranı, işlemcilerin zamanının ne kadarının yararlı hesaplamaya harcandığını gösterir. İkinci biçimde payda, $p$ işlemcinin birlikte harcadığı toplam süredir; bu süre seri süreye ne kadar yakınsa ek yük o kadar azdır.
+
 $E = 1$ mükemmel verimlilik demektir; $E < 1$ ek yük ya da yük dengesizliği olduğunu gösterir. Kabul edilebilir verimlilik eşiği uygulamaya ve sistemin maliyetine göre değişir; verimlilik düştükçe eklenen her işlemcinin kazandırdığı süre azalır.
 
 ### 4.2 Amdahl Yasası (Amdahl's Law)
@@ -194,9 +218,21 @@ Gene Amdahl (1967), bir programın **seri kalmak zorunda olan** kısmının en b
 
 $$S(p) = \frac{1}{r + \dfrac{1-r}{p}}$$
 
+```math
+\underbrace{S(p)}_{\text{hızlanma}} = \frac{1}{\underbrace{r}_{\substack{\text{seri pay}\\\text{(kısalmaz)}}} + \underbrace{\dfrac{1-r}{p}}_{\substack{\text{paralel pay,}\\\text{p işlemciye bölünür}}}}
+```
+
+**Ne anlatıyor?** Tek işlemcili süre 1 kabul edildiğinde paralel süre, kısaltılamayan seri pay ile işlemcilere bölünen paralel payın toplamıdır; hızlanma bu sürenin tersidir. İşlemci sayısı ne kadar artırılırsa artırılsın payda $r$'nin altına inemez.
+
 $p \to \infty$ sınırında kuramsal üst sınır elde edilir:
 
 $$S_{\max} = \frac{1}{r}$$
+
+```math
+\underbrace{S_{\max}}_{\substack{\text{ulaşılabilecek}\\\text{en büyük hızlanma}}} = \frac{1}{\underbrace{r}_{\text{seri pay}}}
+```
+
+**Ne anlatıyor?** İşlemci sayısı sonsuza giderken paralel payın süresi sıfıra iner ve geriye yalnızca seri pay kalır; bu nedenle hızlanma, seri payın tersini aşamaz.
 
 Bir fabrikanın üretim hattını düşünelim: Bantların taşıma hızı istenildiği kadar artırılabilir, ancak her partinin başındaki kalıp kurma süresi (seri bölüm) sabit kalır. Bant ne kadar hızlanırsa hızlansın, kalıp kurma süresi toplam sürenin alt sınırını belirler.
 
@@ -221,6 +257,12 @@ John Gustafson (1988), Ed Barsis'in gözlemlerine dayanarak bu bakış açısın
 $$S(p) = p - s\,(p - 1)$$
 
 Buradaki $s$, Amdahl'daki $r$'den farklı bir büyüklüktür: **$p$ işlemcili paralel çalışmanın süresi içindeki** seri paydır. Problem büyüdükçe seri kısım aynı kalıp paralel kısım büyüdüğünden, paralel çalışma süresine göre ölçülen bu pay, tek işlemcili süreye göre ölçülen Amdahl payından çok küçük olur.
+
+```math
+\underbrace{S(p)}_{\substack{\text{ölçeklenmiş}\\\text{hızlanma}}} = \overbrace{p}^{\substack{\text{ideal}\\\text{hızlanma}}} - \underbrace{s\,(p - 1)}_{\substack{\text{seri payın}\\\text{yol açtığı kayıp}}}
+```
+
+**Ne anlatıyor?** Problem işlemci sayısıyla birlikte büyütüldüğünde ideal hızlanmadan yalnızca seri bölüm yürütülürken boşta kalan $p - 1$ işlemcinin kaybı düşülür. Seri pay küçük kaldıkça hızlanma işlemci sayısıyla neredeyse doğrusal biçimde artar.
 
 $s = 0.1$, $p = 32$ için:
 
@@ -250,6 +292,12 @@ Karşılaştırma için Amdahl Yasası, $r = 0.1$ ve $p = 32$ için $S(32) = 1 /
 `Uygulamalar/OpenMP/hizlanma.c` programı, $\pi = \int_0^1 \frac{4}{1+x^2}\,dx$ integralini orta nokta kuralıyla $4 \times 10^8$ adımda 1, 2, 4 ve 8 iş parçacığıyla hesaplar; her ölçümü üç kez tekrarlayıp en kısa süreyi alır. Ayrıca **Karp–Flatt metriği** (Karp ve Flatt, 1990) ile ölçülen hızlanmadan deneysel seri payı kestirir:
 
 $$e(p) = \frac{1/S(p) - 1/p}{1 - 1/p}$$
+
+```math
+\underbrace{e(p)}_{\substack{\text{deneysel}\\\text{seri pay}}} = \frac{\overbrace{1/S(p)}^{\substack{\text{ölçülen hızlanmanın}\\\text{tersi}}} - \overbrace{1/p}^{\substack{\text{ideal hızlanmanın}\\\text{tersi}}}}{\underbrace{1 - 1/p}_{\substack{\text{normalleştirme}\\\text{terimi}}}}
+```
+
+**Ne anlatıyor?** Amdahl Yasası, ölçülen hızlanma değeri kullanılarak seri pay için çözülür; böylece ölçülen davranışı açıklayan deneysel seri pay elde edilir. $p$ arttıkça $e(p)$'nin de büyümesi, hızlanmayı seri bölümden çok ek yükün sınırladığını gösterir.
 
 Aşağıdaki değerler Intel Core i7-4790K (4 fiziksel çekirdek, Hyper-Threading ile 8 mantıksal çekirdek, 4.0 GHz), Windows 11 ve MSYS2 GCC 14.2 (`gcc -O2 -fopenmp`) ile ölçülmüştür:
 
@@ -514,6 +562,12 @@ Roofline modeli (Williams, Waterman ve Patterson, 2009), bir uygulamanın donan�
 
 $$P_{\text{ulaşılabilir}} = \min\left(P_{\text{tepe}},\; \text{bant genişliği} \times \text{aritmetik yoğunluk}\right)$$
 
+```math
+\underbrace{P_{\text{ulaşılabilir}}}_{\substack{\text{ulaşılabilir}\\\text{başarım}}} = \min\left(\overbrace{P_{\text{tepe}}}^{\substack{\text{hesaplama sınırı}\\\text{(yatay çatı)}}},\; \overbrace{\underbrace{\text{bant genişliği}}_{\text{bayt/s}} \times \underbrace{\text{aritmetik yoğunluk}}_{\text{FLOP/bayt}}}^{\substack{\text{bellek sınırı}\\\text{(eğimli çizgi)}}}\right)
+```
+
+**Ne anlatıyor?** Bir uygulamanın başarımı, işlemcinin tepe hesaplama hızı ile belleğin taşıyabildiği veriyle yapılabilecek işlem hızından hangisi küçükse onunla sınırlanır. Aritmetik yoğunluk düşükse bellek, yüksekse işlemci darboğaz olur.
+
 Model, "Hız yapmamıza motor mu izin vermiyor, yoksa yol mu dar?" sorusunun teknik karşılığıdır. Saatte 300 km hız yapabilen bir yarış arabası (güçlü işlemci) dar ve tek şeritli bir köy yolunda (düşük bellek bant genişliği) kullanıldığında gerçek potansiyeline ulaşamaz; başarımı sınırlayan motor değil yoldur (memory-bound, bellek sınırlı).
 
 ![Şekil 15: Örnek Roofline modeli](images/roofline.svg)
@@ -549,6 +603,12 @@ Grama ve ark. (2003), bir ayrıştırmanın ne kadar iyi paralelleşebileceğini
 - **Ortalama eşzamanlılık derecesi (average degree of concurrency):** Ortalamada aynı anda yürütülebilen görev sayısı. *Concurrency* sözcüğü Latince *concurrere* (birlikte koşmak) kökünden gelir.
 
 $$\text{Ortalama eşzamanlılık} = \frac{W}{L}$$
+
+```math
+\underbrace{\text{Ortalama eşzamanlılık}}_{\substack{\text{aynı anda ortalama}\\\text{yürütülen görev}}} = \frac{\overbrace{W}^{\text{toplam iş}}}{\underbrace{L}_{\substack{\text{kritik yol}\\\text{uzunluğu}}}}
+```
+
+**Ne anlatıyor?** Toplam iş, sonsuz sayıda işlemciyle bile kısaltılamayan kritik yol süresine bölünür; sonuç, ayrıştırmanın ortalamada kaç işlemciyi meşgul edebileceğini gösterir. Bu değer, söz konusu ayrıştırmayla ulaşılabilecek hızlanmanın da üst sınırıdır.
 
 ### 9.2 Örnek: Veritabanı Sorgusunun İki Ayrıştırması
 
