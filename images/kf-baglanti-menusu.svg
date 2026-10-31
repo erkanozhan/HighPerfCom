@@ -31,15 +31,15 @@
   <text x="590" y="390" text-anchor="middle" fill="#e74c3c" font-size="10" font-weight="bold">Hedef bilesene</text>
   <text x="590" y="403" text-anchor="middle" fill="#e74c3c" font-size="10" font-weight="bold">sol tikla</text>
 
-  <!-- Component 1: CSVToARFFHeader -->
+  <!-- Component 1: ArffHeaderSparkJob -->
   <g filter="url(#sh)">
     <rect x="30" y="100" width="215" height="65" rx="6" fill="white" stroke="#2e6da4" stroke-width="2.5"/>
     <rect x="30" y="100" width="215" height="22" rx="6" fill="#2e6da4"/>
     <rect x="30" y="114" width="215" height="8" fill="#2e6da4"/>
-    <text x="137" y="116" text-anchor="middle" fill="white" font-size="9" font-weight="bold">CSVToARFFHeaderSparkJob</text>
-    <text x="137" y="134" text-anchor="middle" fill="#2c3e50" font-size="9">Giris: /veri/egitim.csv</text>
-    <text x="137" y="148" text-anchor="middle" fill="#7f8c8d" font-size="9">master: local[4]</text>
-    <text x="137" y="160" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: /veri/header</text>
+    <text x="137" y="116" text-anchor="middle" fill="white" font-size="9" font-weight="bold">ArffHeaderSparkJob</text>
+    <text x="137" y="134" text-anchor="middle" fill="#2c3e50" font-size="9">Giris: hypothyroid.csv</text>
+    <text x="137" y="148" text-anchor="middle" fill="#7f8c8d" font-size="9">master: local[*]</text>
+    <text x="137" y="160" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: sparkOutput/arff</text>
   </g>
   <!-- Right port -->
   <circle cx="245" cy="132" r="6" fill="#2e6da4" stroke="white" stroke-width="2"/>
@@ -55,8 +55,8 @@
     <rect x="477" y="114" width="215" height="8" fill="#c8622a"/>
     <text x="584" y="116" text-anchor="middle" fill="white" font-size="9" font-weight="bold">WekaClassifierSparkJob</text>
     <text x="584" y="134" text-anchor="middle" fill="#2c3e50" font-size="9">Siniflandirici: J48</text>
-    <text x="584" y="148" text-anchor="middle" fill="#7f8c8d" font-size="9">Iterasyon: 16</text>
-    <text x="584" y="160" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: /veri/model</text>
+    <text x="584" y="148" text-anchor="middle" fill="#7f8c8d" font-size="9">numIterations: 1</text>
+    <text x="584" y="160" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: sparkOutput/model</text>
   </g>
   <!-- Left port (target) -->
   <circle cx="477" cy="132" r="6" fill="#c8622a" stroke="white" stroke-width="2"/>
@@ -67,7 +67,7 @@
     <!-- Menu title bar -->
     <rect x="245" y="176" width="195" height="24" rx="5" fill="#2e6da4"/>
     <rect x="245" y="188" width="195" height="12" fill="#2e6da4"/>
-    <text x="342" y="192" text-anchor="middle" fill="white" font-size="10" font-weight="bold">CSVToARFFHeader...</text>
+    <text x="342" y="192" text-anchor="middle" fill="white" font-size="10" font-weight="bold">ArffHeaderSpark...</text>
 
     <!-- Menu item: Configure -->
     <rect x="245" y="200" width="195" height="28" fill="white"/>

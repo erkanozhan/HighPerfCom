@@ -1,0 +1,18 @@
+# Derlenmiş çıktılar
+*.exe
+*.o
+*.obj
+*.out
+a.out
+
+# IDE ve editör ayarları
+.idea/
+.vscode/
+cmake-build-*/
+
+# İşletim sistemi dosyaları
+Thumbs.db
+.DS_Store
+
+# Weka/Spark çalışma çıktıları
+sparkOutput/

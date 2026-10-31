@@ -21,57 +21,57 @@
 
     <!-- Tabs -->
     <rect x="25" y="52" width="155" height="28" rx="4" fill="#c8622a"/>
-    <text x="103" y="70" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Spark Ayarlari</text>
+    <text x="103" y="70" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Spark configuration</text>
     <rect x="185" y="56" width="145" height="24" rx="4" fill="#ecf0f1" stroke="#bdc3c7"/>
-    <text x="257" y="72" text-anchor="middle" fill="#7f8c8d" font-size="11">Siniflandirici</text>
+    <text x="257" y="72" text-anchor="middle" fill="#7f8c8d" font-size="11">WekaClassifierSparkJob</text>
     <rect x="335" y="56" width="145" height="24" rx="4" fill="#ecf0f1" stroke="#bdc3c7"/>
-    <text x="407" y="72" text-anchor="middle" fill="#7f8c8d" font-size="11">Gelismis</text>
+    <text x="407" y="72" text-anchor="middle" fill="#7f8c8d" font-size="11">ARFF header/CSV</text>
 
     <!-- Divider below tabs -->
     <line x1="25" y1="80" x2="715" y2="80" stroke="#bdc3c7" stroke-width="1"/>
 
     <!-- ── FIELD 1: Spark Master URL ── -->
-    <text x="36" y="104" fill="#2c3e50" font-size="12" font-weight="bold">Spark Master URL</text>
-    <text x="36" y="120" fill="#7f8c8d" font-size="10">local[N] = yerel, spark://host:7077 = bagimsiz kume, yarn = Hadoop</text>
+    <text x="36" y="104" fill="#2c3e50" font-size="12" font-weight="bold">masterHost</text>
+    <text x="36" y="120" fill="#7f8c8d" font-size="10">local[*] = yerel (tum cekirdekler), spark://host = bagimsiz kume, yarn-client = YARN</text>
     <rect x="36" y="126" width="662" height="30" rx="4" fill="white" stroke="#2e6da4" stroke-width="2"/>
-    <text x="50" y="146" fill="#2c3e50" font-size="12">local[4]</text>
+    <text x="50" y="146" fill="#2c3e50" font-size="12">local[*]</text>
     <rect x="672" y="126" width="26" height="30" rx="4" fill="#ecf0f1" stroke="#bdc3c7"/>
     <text x="685" y="146" text-anchor="middle" fill="#7f8c8d" font-size="16">&#9660;</text>
 
     <!-- ── FIELD 2: Input path ── -->
-    <text x="36" y="175" fill="#2c3e50" font-size="12" font-weight="bold">Giris Dosyasi / Dizini</text>
-    <text x="36" y="191" fill="#7f8c8d" font-size="10">ARFF dosya yolu veya dizin  (yerel yol ya da hdfs://...)</text>
+    <text x="36" y="175" fill="#2c3e50" font-size="12" font-weight="bold">inputFile</text>
+    <text x="36" y="191" fill="#7f8c8d" font-size="10">CSV dosyasinin yolu  (yerel yol ya da hdfs://...)</text>
     <rect x="36" y="197" width="604" height="30" rx="4" fill="white" stroke="#bdc3c7" stroke-width="1.5"/>
-    <text x="50" y="217" fill="#2c3e50" font-size="12">/veri/karisik/</text>
+    <text x="50" y="217" fill="#2c3e50" font-size="12">${WEKA_HOME}/packages/distributedWekaSpark/sample_data/hypothyroid.csv</text>
     <rect x="646" y="197" width="52" height="30" rx="4" fill="#ecf0f1" stroke="#bdc3c7"/>
     <text x="672" y="216" text-anchor="middle" fill="#2c3e50" font-size="11">Goz At</text>
 
     <!-- ── FIELD 3: Output directory ── -->
-    <text x="36" y="247" fill="#2c3e50" font-size="12" font-weight="bold">Cikis Dizini</text>
+    <text x="36" y="247" fill="#2c3e50" font-size="12" font-weight="bold">outputDir</text>
     <rect x="36" y="257" width="604" height="30" rx="4" fill="white" stroke="#bdc3c7" stroke-width="1.5"/>
-    <text x="50" y="277" fill="#2c3e50" font-size="12">/veri/model</text>
+    <text x="50" y="277" fill="#2c3e50" font-size="12">${user.home}/sparkOutput</text>
     <rect x="646" y="257" width="52" height="30" rx="4" fill="#ecf0f1" stroke="#bdc3c7"/>
     <text x="672" y="276" text-anchor="middle" fill="#2c3e50" font-size="11">Goz At</text>
 
     <!-- ── FIELD 4: Num iterations ── -->
-    <text x="36" y="310" fill="#2c3e50" font-size="12" font-weight="bold">Iterasyon Sayisi  (-num-iterations)</text>
-    <text x="36" y="326" fill="#7f8c8d" font-size="10">Veri bolum sayisi. Toplam cekirdek sayisinin 2-3 kati iyi bir baslangictor.</text>
+    <text x="36" y="310" fill="#2c3e50" font-size="12" font-weight="bold">numIterations  (-num-iterations)</text>
+    <text x="36" y="326" fill="#7f8c8d" font-size="10">Veri uzerinden gecis sayisi; 1&apos;den buyuk deger yalnizca SGD gibi artimli yontemlerde anlamlidir.</text>
     <rect x="36" y="332" width="110" height="30" rx="4" fill="white" stroke="#bdc3c7" stroke-width="1.5"/>
-    <text x="50" y="352" fill="#2c3e50" font-size="13">16</text>
+    <text x="50" y="352" fill="#2c3e50" font-size="13">1</text>
 
     <!-- ── FIELD 5: Classifier chooser ── -->
-    <text x="36" y="385" fill="#2c3e50" font-size="12" font-weight="bold">Siniflandirici (Classifier)</text>
+    <text x="36" y="385" fill="#2c3e50" font-size="12" font-weight="bold">classifier</text>
     <text x="36" y="401" fill="#7f8c8d" font-size="10">Weka siniflandirici sinif adi ve secenekleri</text>
     <rect x="36" y="407" width="564" height="30" rx="4" fill="white" stroke="#2e6da4" stroke-width="2"/>
-    <text x="50" y="427" fill="#1a4a8a" font-size="11">weka.classifiers.trees.RandomForest    -I 100  -K 0  -depth 0</text>
+    <text x="50" y="427" fill="#1a4a8a" font-size="11">weka.classifiers.trees.RandomForest    -I 100</text>
     <rect x="606" y="407" width="92" height="30" rx="4" fill="#2e6da4"/>
     <text x="652" y="427" text-anchor="middle" fill="white" font-size="11" font-weight="bold">Sec / Ayarla</text>
 
     <!-- ── FIELD 6: ARFF header (auto-filled) ── -->
-    <text x="36" y="460" fill="#2c3e50" font-size="12" font-weight="bold">ARFF Baslik Dosyasi  (Opsiyon)</text>
-    <text x="36" y="476" fill="#7f8c8d" font-size="10">Onceki adimdan (CSVToARFFHeaderSparkJob) otomatik aktarilir.</text>
+    <text x="36" y="460" fill="#2c3e50" font-size="12" font-weight="bold">minInputSlices  (Spark configuration sekmesi)</text>
+    <text x="36" y="476" fill="#7f8c8d" font-size="10">Verinin en az kac bolume ayrilacagi; paralellik derecesini belirler.</text>
     <rect x="36" y="482" width="662" height="30" rx="4" fill="#f0f3f7" stroke="#bdc3c7" stroke-width="1"/>
-    <text x="50" y="502" fill="#95a5a6" font-size="11">/veri/header/schema.arff   (otomatik)</text>
+    <text x="50" y="502" fill="#95a5a6" font-size="11">4</text>
 
     <!-- Bottom divider -->
     <line x1="25" y1="525" x2="715" y2="525" stroke="#ecf0f1" stroke-width="1.5"/>

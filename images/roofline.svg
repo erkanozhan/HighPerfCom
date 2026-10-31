@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420">
+  <defs>
+    <style>
+      .sf { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+    </style>
+  </defs>
+  <rect width="640" height="420" fill="#ffffff"/>
+
+  <!-- Başlık -->
+  <text x="320" y="20" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a252f" class="sf">Roofline Modeli (örnek değerler: tepe 500 GFLOP/s, bant genişliği 50 GB/s)</text>
+  <text x="320" y="36" text-anchor="middle" font-size="10" fill="#7f8c8d" class="sf">İki eksen de logaritmik · Kırılma noktası: 500 / 50 = 10 FLOP/bayt</text>
+
+  <!-- Çizim alanı: x = 0.1..1000 (80..560, 120 px/onluk), y = 1..1000 (340..40, 100 px/onluk) -->
+  <rect x="80" y="40" width="480" height="300" fill="#f9fafb" stroke="#bbbbbb" stroke-width="1"/>
+
+  <!-- Dikey ızgara: 1, 10, 100 -->
+  <line x1="200" y1="40" x2="200" y2="340" stroke="#e5e5e5" stroke-width="1"/>
+  <line x1="320" y1="40" x2="320" y2="340" stroke="#e5e5e5" stroke-width="1"/>
+  <line x1="440" y1="40" x2="440" y2="340" stroke="#e5e5e5" stroke-width="1"/>
+  <!-- Yatay ızgara: 10, 100 -->
+  <line x1="80" y1="240" x2="560" y2="240" stroke="#e5e5e5" stroke-width="1"/>
+  <line x1="80" y1="140" x2="560" y2="140" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- Eksen etiketleri -->
+  <text x="80"  y="356" text-anchor="middle" font-size="10" fill="#555" class="sf">0.1</text>
+  <text x="200" y="356" text-anchor="middle" font-size="10" fill="#555" class="sf">1</text>
+  <text x="320" y="356" text-anchor="middle" font-size="10" fill="#555" class="sf">10</text>
+  <text x="440" y="356" text-anchor="middle" font-size="10" fill="#555" class="sf">100</text>
+  <text x="560" y="356" text-anchor="middle" font-size="10" fill="#555" class="sf">1000</text>
+  <text x="72" y="344" text-anchor="end" font-size="10" fill="#555" class="sf">1</text>
+  <text x="72" y="244" text-anchor="end" font-size="10" fill="#555" class="sf">10</text>
+  <text x="72" y="144" text-anchor="end" font-size="10" fill="#555" class="sf">100</text>
+  <text x="72" y="44"  text-anchor="end" font-size="10" fill="#555" class="sf">1000</text>
+  <text x="320" y="378" text-anchor="middle" font-size="11" fill="#333" class="sf">Aritmetik yoğunluk (FLOP/bayt)</text>
+  <text x="24" y="190" text-anchor="middle" font-size="11" fill="#333" class="sf" transform="rotate(-90 24 190)">Ulaşılabilir başarım (GFLOP/s)</text>
+
+  <!-- Bellek çatısı: P = 50 x AI, x=0.1 -> y=5 (py=270.1); x=10 -> y=500 (py=70.1) -->
+  <line x1="80" y1="270.1" x2="320" y2="70.1" stroke="#2471a3" stroke-width="3"/>
+  <!-- Hesaplama çatısı: P = 500 -->
+  <line x1="320" y1="70.1" x2="560" y2="70.1" stroke="#c0392b" stroke-width="3"/>
+  <!-- Kırılma noktası -->
+  <line x1="320" y1="70.1" x2="320" y2="340" stroke="#7f8c8d" stroke-width="1" stroke-dasharray="4,3"/>
+  <circle cx="320" cy="70.1" r="4" fill="#1a252f"/>
+  <text x="326" y="88" font-size="10" fill="#1a252f" class="sf">kırılma noktası (10 FLOP/bayt)</text>
+
+  <text x="150" y="200" font-size="11" fill="#2471a3" class="sf" transform="rotate(-39.8 150 200)">bellek sınırı: 50 GB/s × yoğunluk</text>
+  <text x="440" y="62" text-anchor="middle" font-size="11" fill="#c0392b" class="sf">hesaplama sınırı: 500 GFLOP/s</text>
+
+  <!-- Örnek uygulamalar -->
+  <!-- A: AI = 0.5, ulaşılabilir = 25 GFLOP/s; gerçekleşen 15 -> px = 80+120*(log10(0.5)+1) = 163.9; py(15) = 340-117.6 = 222.4 -->
+  <circle cx="163.9" cy="222.4" r="5" fill="#2471a3"/>
+  <text x="172" y="236" font-size="10" fill="#1a252f" class="sf">A: bellek sınırlı (yoğunluk 0.5)</text>
+  <!-- B: AI = 50, gerçekleşen 300 -> px = 80+120*2.699 = 403.9; py(300) = 340-247.7 = 92.3 -->
+  <circle cx="403.9" cy="92.3" r="5" fill="#c0392b"/>
+  <text x="410" y="110" font-size="10" fill="#1a252f" class="sf">B: hesaplama sınırlı (yoğunluk 50)</text>
+
+  <text x="320" y="402" text-anchor="middle" font-size="10" fill="#7f8c8d" class="sf">Uygulama hangi çatının altındaysa başarımını o kaynak sınırlar; çatıya uzaklık iyileştirme payını gösterir.</text>
+</svg>

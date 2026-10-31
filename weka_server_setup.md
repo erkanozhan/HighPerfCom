@@ -1,197 +1,162 @@
+# Weka ile Dağıtık İşlem: WekaServer ile Ana–Yardımcı Sunucu Kurulumu
 
-# Weka ile Dağıtık İşlem: Master-Slave Kurulumu ve Kullanımı
+Bu rehber, Weka'nın `wekaServer` paketini kullanarak analiz görevlerinin ağdaki birden fazla makinede nasıl yürütüleceğini adım adım açıklar. Mimari, bir **ana sunucu** (master) ve ona bağlı bir veya daha fazla **yardımcı sunucudan** (slave) oluşur.
 
-Bu rehber, Weka'nın dağıtık işlem (WekaServer) özelliğini kullanarak büyük veri kümeleri üzerinde analiz görevlerini birden fazla makineye (slave) dağıtarak nasıl çalıştırılacağını adım adım açıklar. Bu mimari, bir "master" sunucu ve ona bağlı bir veya daha fazla "slave" sunucudan oluşur.
+## 0. WekaServer Ne Yapar, Ne Yapmaz?
+
+WekaServer (Mark Hall), HTTP üzerinden görev kabul eden küçük bir sunucudur. Bir görev, örneğin Explorer'da başlatılan bir sınıflandırıcı değerlendirmesi ya da bir Knowledge Flow akışı, **bütün olarak** bir sunucuda çalışır.
+
+Ana sunucu, kendisine gelen her görev için önce kendi yükünü hesaplar:
+
+$$\text{yük} = \frac{(\text{çalışan görev} + \text{kuyruktaki görev}) \times \text{load-adjust}}{\text{slots}}$$
+
+Kendi yükü 1'in altındaysa görevi kendisi yürütür; değilse görevi yükü en düşük yardımcı sunucuya gönderir.
+
+Bu nedenle WekaServer **veriyi bölmez**. Çok sayıda bağımsız görevi (farklı algoritmalar, farklı parametreler, farklı veri kümeleri) makinelere dağıtarak toplam süreyi kısaltır; tek bir büyük veri kümesinin parçalara ayrılıp paralel işlenmesi gerekiyorsa Spark tabanlı dağıtık Weka kullanılmalıdır (bkz. [weka_dagitik_spark_giris.md](weka_dagitik_spark_giris.md)).
 
 ## 1. Önkoşullar
 
-Tüm master ve slave makinelerde aşağıdaki gereksinimlerin karşılandığından emin olun:
+Tüm ana ve yardımcı makinelerde aşağıdaki gereksinimler karşılanmalıdır.
 
-### a. Java Runtime Environment (JRE)
+### a. Weka ve Java
 
-Weka, Java tabanlıdır. Genellikle Java 8 (1.8) sürümü önerilir.
+- Weka 3.8.x kurulu olmalıdır. Windows kurulumu kendi Java çalışma ortamıyla gelir (Weka 3.8.6'da `C:\Program Files\Weka-3-8-6\jre` dizinindeki Java 17).
+- Komut satırından çalıştırırken kullanılan `java` komutunun sürümü şu komutla görülebilir:
 
-**Ubuntu/Debian için Java 1.8 JRE Kurulumu:**
-
-```bash
-sudo apt update
-sudo apt install openjdk-8-jre-headless
-```
-
-**Linux'te Yüklü Java Sürümlerini Görme ve İstenilen Sürümü Aktif Etme:**
-
-Eğer sisteminizde birden fazla Java sürümü yüklüyse, aşağıdaki komutu kullanarak yüklü sürümleri listeleyebilir ve varsayılan olarak kullanılacak sürümü seçebilirsiniz:
-
-```bash
-sudo update-alternatives --config java
-```
-
-Bu komutu çalıştırdığınızda, yüklü olan Java sürümleri listelenecektir. İstenilen sürümün karşısındaki numarayı yazıp "Enter" tuşuna basarak o sürümü aktif hale getirebilirsiniz.
-
-**Java Sürümünü Doğrulama:**
-
-```bash
-java -version
-```
-
-Çıktı şuna benzer olmalıdır:
-
-```bash
-java version "1.8.0_XYZ"
-Java(TM) SE Runtime Environment (build 1.8.0_XYZ-bAA)
-Java HotSpot(TM) 64-Bit Server VM (build DD.XYZ-bAA, mixed mode)
-```
-
-**Windows için Java:**
-
-Oracle veya AdoptOpenJDK (Temurin) gibi resmi kaynaklardan Java 8 JRE veya JDK'yı indirip kurun. Windows'ta birden fazla Java sürümünü yönetmek için şu adımları izleyin:
-
-- Java 1.8'i yükleyin.
-- Daha yüksek Java sürümlerine ihtiyaç duyan yazılımlarınız varsa, bu sürümleri kaldırmayın.
-- Java 1.8'i öncelikli yapmak için:
-  1. Windows ortam değişkenlerini açın.
-  2. `JAVA_HOME` değişkenini "C:\Program Files\Java\jre-1.8" olarak ayarlayın.
-  3. Ortamda örneğin Java 21 de yüklüyse System Variables başlığı altında bulunan Path değişkeninin içeriğini açarak Java 1.8'in yolunu diğer sürümlerin üstüne taşıyın.
-  
-  Alternatif olarak, birden fazla Java sürümünü yönetmek için `jenv` gibi bir Java sürüm yöneticisi kullanabilirsiniz. Bu araç, farklı projeler için kolayca Java sürümleri arasında geçiş yapmanıza olanak tanır.
-
-  Değişikliklerden sonra aktif Java sürümünü doğrulamak için aşağıdaki komutu çalıştırın:
   ```bash
   java -version
   ```
-  Bu komut, sistemde etkin olan Java sürümünü gösterecektir.
-   - `JAVA_HOME` değişkenini "C:\Program Files\Java\jre-1.8" olarak ayarlayın.
 
-2. Eğer sistemde birden fazla Java sürümü yüklüyse:
-   - `Path` değişkenini düzenleyin ve "C:\Program Files\Common Files\Oracle\Java\javapath" yolunun sonuna bir rakam ekleyerek (örneğin, "2") Java 21'in devreye girmesini engelleyin.
+- **Windows'ta birden fazla Java sürümü varsa:** `java` komutu, `Path` değişkeninde ilk sırada bulunan Java'yı çalıştırır. İstenen Java'nın `bin` dizinini `Path` listesinde yukarı taşıyın ya da Weka ile gelen Java'yı tam yoluyla çağırın:
 
-3. Java 21'e tekrar ihtiyaç duyarsanız:
-   - "2" rakamını kaldırın veya `JAVA_HOME` değerini istediğiniz Java sürümüne ayarlayın.
+  ```bat
+  "C:\Program Files\Weka-3-8-6\jre\zulu17.32.13-ca-fx-jre17.0.2-win_x64\bin\java.exe" -version
+  ```
 
-**Örnek:**
-- `JAVA_HOME`: "C:\Program Files\Java\jre-1.8"
-- `Path`: "C:\Program Files\Common Files\Oracle\Java\javapath2"
-  2. PATH değişkeninde Java 1.8'in yolunu bulun ve diğer sürümlerin üstüne taşıyın.
+  (Dizin adı Weka sürümüne göre değişir; kendi kurulumunuzdaki `jre` klasörüne bakınız.)
+- **Linux'ta (Ubuntu/Debian):**
 
-### b. Weka JAR Dosyası
+  ```bash
+  sudo apt update
+  sudo apt install openjdk-17-jre-headless
+  # Birden fazla Java varsa varsayılanı seçmek için:
+  sudo update-alternatives --config java
+  ```
 
-Weka'nın ana `.jar` dosyasına (örneğin, `weka.jar` veya `weka-3-8-6.jar`) ihtiyacınız olacak. Bu dosya, hem master hem de tüm slave makinelerde bulunmalı ve komutlar çalıştırılırken erişilebilir olmalıdır.
+### b. `wekaServer` Paketi
 
-**Bulunması Gereken Klasör (Örnek):**
+WekaServer, çekirdek `weka.jar` içinde **yer almaz**; ayrı bir pakettir ve her makineye kurulmalıdır.
 
-Windows'ta Weka kurulumu genellikle:
+- **Grafik arayüzle:** Weka GUI Chooser → **Tools → Package Manager** → listeden `wekaServer` → **Install**. Kurulumdan sonra Weka'yı yeniden başlatın.
+- **Komut satırıyla:**
 
-```
-C:\Program Files\Weka-3-8-6\
-```
+  ```bash
+  java -cp weka.jar weka.core.WekaPackageManager -install-package wekaServer
+  ```
 
-Altında olur ve `weka.jar` bu dizinde bulunur.
+Paket, kullanıcının ev dizinindeki `wekafiles/packages/wekaServer/` klasörüne kurulur. Aşağıdaki komutlarda kullanılan `weka.Run` sınıfı kurulu paketleri kendiliğinden yükler.
 
-### c. Ağ Yapılandırması ve Güvenlik Duvarı (Firewall)
+### c. Ağ Yapılandırması ve Güvenlik Duvarı
 
-Master ve slave makinelerin birbirleriyle belirtilen portlar üzerinden iletişim kurabilmesi gerekir.
+Ana ve yardımcı makinelerin belirtilen portlar üzerinden birbirine erişebilmesi gerekir.
 
-**Windows Güvenlik Duvarı:**
+**Windows Defender Güvenlik Duvarı:**
 
-1. Windows Defender Güvenlik Duvarı ayarlarında, Java'nın (`javaw.exe` veya `java.exe`) ağ erişimine izin verildiğinden emin olun.  
-2. Ayarlar:  
-   `Denetim Masası` → `Sistem ve Güvenlik` → `Windows Defender Güvenlik Duvarı` → `Bildirim ayarlarını değiştir`.  
-3. `Windows Defender Güvenlik Duvarı yeni bir uygulamayı engellediğinde bana bildir` seçeneğini işaretleyin.  
-4. Gerekirse, WekaServer'ın kullanacağı port (örneğin 8080 veya 8085) için manuel olarak gelen/giden kurallar ekleyin.
+1. Sunucu ilk kez başlatıldığında Windows bir uyarı penceresi gösterebilir; Java'nın ağ erişimine **İzin ver** seçeneğiyle onay verin.
+2. Uyarı görünmezse: Denetim Masası → Sistem ve Güvenlik → Windows Defender Güvenlik Duvarı → Gelişmiş ayarlar → Gelen Kuralları → Yeni Kural → Bağlantı Noktası → TCP 8085.
 
-**Linux Güvenlik Duvarı (örneğin `ufw`):**
+**Linux (`ufw`):**
 
 ```bash
-sudo ufw allow 8085/tcp
-sudo ufw reload
+sudo ufw status                 # durumu görüntüle
+sudo ufw allow 8085/tcp         # portu aç
+sudo ufw status                 # değişikliği doğrula
 ```
+
+### d. IP Adreslerinin Belirlenmesi
+
+- **Windows:** Komut isteminde `ipconfig` komutunu çalıştırıp "IPv4 Address" satırına bakın.
+- **Linux:** `ip addr` komutunun çıktısında `inet` ile başlayan satıra bakın.
+
+Bu rehberdeki örneklerde ana sunucunun adresi **192.168.1.10**, yardımcı sunucularınki **192.168.1.21** ve **192.168.1.22** olarak varsayılmıştır. Kendi adreslerinizi kullanınız.
 
 ---
 
-## 2. Master Server'ı Başlatma
+## 2. Ana Sunucunun (Master) Başlatılması
 
-Master server, Weka görevlerini kabul eder ve uygun slave'lere dağıtır. Master makinenin IP adresini öğrenmek için:
-
-- **Windows**: Komut istemcisini (cmd) açın ve `ipconfig` komutunu çalıştırın. Çıktıda "IPv4 Address" satırını bulun.
-- **Linux**: Terminalde `ifconfig` veya `ip addr` komutlarından birini çalıştırın. Çıktıda "inet" ile başlayan satırda IP adresini görebilirsiniz.
-
-**Genel Komut Yapısı:**
+**Genel komut yapısı:**
 
 ```bash
-java -cp <WEKA_JAR_YOLU> -Xmx<MAKS_BELLEK> -Djava.awt.headless=true weka.Run WekaServer \
-  -host <MASTER_IP_ADRESİ_VEYA_LOCALHOST> -port <PORT_NUMARASI> \
-  -load-adjust <YÜK_AYARI> -slots <SLOT_SAYISI> -staleTime -1
+java -cp <WEKA_JAR_YOLU> -Xmx<EN_FAZLA_BELLEK> -Djava.awt.headless=true weka.Run WekaServer \
+  -host <ANA_SUNUCU_IP> -port <PORT> -slots <SLOT_SAYISI> -load-adjust <KATSAYI> -staleTime <MİLİSANİYE>
 ```
 
-**Parametre Açıklamaları:**
+**Örnek (Windows, 8 GB bellek):**
 
-- `-cp <WEKA_JAR_YOLU>`: Weka'nın .jar dosyasının yolu.
-- `-Xmx<MAKS_BELLEK>`: Master server'a ayrılacak maksimum Java heap belleği.
-- `-Djava.awt.headless=true`: GUI olmayan ortamlarda çalışmayı sağlar.
-- `-host`: Master sunucunun IP adresi veya `localhost`.
-- `-port`: Dinlenecek port.
-- `-load-adjust`: Genelde `4` olarak ayarlanır.
-- `-slots`: Slave ve Master'ın kaç görevi eş zamanlı işleyebileceği.
-- `-staleTime -1`: Görev zaman aşımı yoktur. Buraya dakika cinsinden maksiumum server'ın çalışacağı süreyi girebilirsiniz. Ancak bazı hesaplamaların slave'ler tarafından ne zaman bitirileceğini kestiremezsiniz. Dolayısı ile buraya bir süre koymak Örneğin 20 (dakika) slave'lerden biri 45 dak. sonunda hesaplamayı tamamladığında server kapandığı için hesaplama sonucunu gönderemeyecektir. Bir slave'den bile hesaplama sonucu gelmezse tüm hesaplama boşa çıkar ve sonuç alınamaz.
-
-**Örnek Master Başlatma Komutu (localhost, 5GB RAM):**
-
-```bash
-java -cp weka.jar -Xmx5000m -Djava.awt.headless=true weka.Run WekaServer -host localhost -port 8085 -load-adjust 4 -slots 1 -staleTime -1
+```bat
+java -cp "C:\Program Files\Weka-3-8-6\weka.jar" -Xmx8G -Djava.awt.headless=true weka.Run WekaServer -host 192.168.1.10 -port 8085 -slots 1 -load-adjust 4 -staleTime 3600000
 ```
-Bu komutu başlattıktan sonra, **Windows** ortamlarında güvenlik duvarı uyarı ekranı çıkabilir. Bu durum diğer işletim sistemlerinde görülmeyebilir. Eğer bir uyarı alırsanız, "İzin Ver" seçeneğini tıklayarak ilgili portun WekaServer tarafından kullanılmasına izin vermelisiniz. Localhost yerine bilgisayarınızın-server IP sini yazmak DNS probmleri yaşamamak adına tavsiye edilir.
 
-**Linux için**, ilgili portun izinli olduğundan emin olmak için aşağıdaki adımları izleyin:
-1. Güvenlik duvarı durumunu kontrol edin:
-   ```bash
-   sudo ufw status
-   ```
-2. Eğer port izinli değilse, aşağıdaki komutla izin verin:
-   ```bash
-   sudo ufw allow <PORT_NUMARASI>/tcp
-   ```
-3. Değişiklikleri doğrulamak için güvenlik duvarı durumunu tekrar kontrol edin:
-   ```bash
-   sudo ufw status
-   ```
-4. Gerekirse güvenlik duvarını yeniden başlatın:
-   ```bash
-   sudo ufw reload
-   ```
+**Parametreler** (anlamları paketin kaynak kodundan, `weka.server.WekaServer`, doğrulanmıştır):
 
-**Örnek Komut (IP üzerinden, Windows):**
+| Parametre | Anlamı | Varsayılan |
+| :--- | :--- | :--- |
+| `-cp` / `-classpath` | `weka.jar` dosyasının yolu | — |
+| `-Xmx8G` | Java sanal makinesine ayrılan en fazla yığın bellek (Java seçeneği) | Java'ya bağlı |
+| `-Djava.awt.headless=true` | Grafik arayüzü olmayan ortamda çalışmayı sağlar (Java seçeneği) | — |
+| `-host` | Sunucunun dinleyeceği adres. Yalnızca kendi makinenizde deneme yapacaksanız `localhost`; ağda çalışacaksanız makinenin IP adresi | makine adı |
+| `-port` | Dinlenecek TCP portu | 8085 |
+| `-slots` | Bu sunucunun aynı anda yürütebileceği görev sayısı | 2 |
+| `-load-adjust` | Yük hesabındaki çarpan (bkz. Bölüm 0). 1'den büyük bir değer, ana sunucunun kendisini daha yüklü saymasına ve görevleri daha erken yardımcı sunuculara devretmesine yol açar | 1.0 |
+| `-staleTime` | Tamamlanmış ya da başarısız olmuş görevlerin sunucudan **temizlenme** süresi, **milisaniye** cinsinden. `-1` temizlemeyi kapatır | 3600000 (1 saat) |
+| `-daemon` | Sunucuyu arka plan hizmeti olarak çalıştırır | kapalı |
 
-```bash
-java -classpath "C:\Program Files\Weka-3-8-6\weka.jar" -Xmx8G -Djava.awt.headless=true weka.Run WekaServer -host 10.222.18.190 -port 8085 -load-adjust 4 -slots 1 -staleTime -1
-```
+`-staleTime` değeri sunucunun çalışma süresini sınırlamaz ve **çalışmakta olan** görevlere dokunmaz; yalnızca bitmiş görevlerin sonuçlarının bellekte ne kadar tutulacağını belirler. Çok kısa bir değer verilirse istemci, uzun süren bir görevin sonucunu almadan önce sonuç silinmiş olabilir; sonuçları geç toplayacaksanız değeri büyütün ya da `-1` kullanın.
+
+Sunucu çalışırken bir tarayıcıda `http://192.168.1.10:8085/` adresi açılarak çalışan ve kuyruktaki görevler ile kayıtlı yardımcı sunucular görülebilir.
 
 ---
 
-## 3. Slave Makineleri Master'a Bağlama
+## 3. Yardımcı Sunucuların (Slave) Ana Sunucuya Bağlanması
 
-Slave makineler, master'dan aldıkları görevleri işleyen makinelerdir. Her bir slave, kendi komut ekranına (cmd) komut girilerek işlem olarak başlatılır. Slave'lerin doğru şekilde çalışabilmesi için, her birinin master server ile iletişim kurabilmesi adına doğru IP adresi ve port ayarlarıyla yapılandırıldığından emin olunmalıdır. Bu, bağlantı sorunlarını önlemek ve sistemin düzgün çalışmasını sağlamak için kritik bir adımdır.
+Her yardımcı sunucu kendi makinesinde ayrı bir komut olarak başlatılır ve `-master` seçeneğiyle ana sunucuya kaydolur.
 
-**Genel Komut Yapısı:**
-
-```bash
-java -cp <WEKA_JAR_YOLU> -Xmx<MAKS_BELLEK> -Djava.awt.headless=true weka.Run WekaServer \
-  -host <SLAVE_IP_ADRESİ> -port <SLAVE_PORTU> \
-  -master <MASTER_IP>:<MASTER_PORTU> -slots <SLOT_SAYISI> -staleTime -1
-```
-
-**Parametre Açıklamaları:**
-
-- `-host <SLAVE_IP_ADRESİ>`: Bu slave'in IP adresi.
-- `-port <SLAVE_PORTU>`: Bu slave'in dinleyeceği port.
-- `-master <MASTER_IP>:<MASTER_PORTU>`: Master adresi ve portu.
-- `-slots <SLOT_SAYISI>`: Bu makinenin eş zamanlı çalıştırabileceği görev sayısı.
-
-**Örnek Komut (Windows, 6GB RAM, 4 slot):**
+**Genel komut yapısı:**
 
 ```bash
-java -Djava.awt.headless=true -classpath "C:\Program Files\Weka-3-8-6\weka.jar" -Xmx6G weka.Run WekaServer -host 10.202.17.35 -port 8085 -master 10.202.16.171:8085 -slots 4 -staleTime -1
+java -cp <WEKA_JAR_YOLU> -Xmx<EN_FAZLA_BELLEK> -Djava.awt.headless=true weka.Run WekaServer \
+  -host <BU_MAKİNENİN_IP_ADRESİ> -port <PORT> -master <ANA_SUNUCU_IP>:<ANA_SUNUCU_PORTU> -slots <SLOT_SAYISI>
 ```
+
+**Örnek (Windows, 6 GB bellek, 4 görev yuvası; 192.168.1.21 adresli makinede):**
+
+```bat
+java -cp "C:\Program Files\Weka-3-8-6\weka.jar" -Xmx6G -Djava.awt.headless=true weka.Run WekaServer -host 192.168.1.21 -port 8085 -master 192.168.1.10:8085 -slots 4
+```
+
+İkinci yardımcı sunucu (192.168.1.22) için aynı komutta yalnızca `-host` değeri değiştirilir.
+
+- `-host`: Komutun çalıştırıldığı **yardımcı** makinenin kendi IP adresi.
+- `-master`: Ana sunucunun IP adresi ve portu.
+- `-slots 4`: Bu makinenin aynı anda dört görev yürütebileceğini belirtir. Değer, makinenin çekirdek sayısına ve belleğine göre seçilmelidir; her görev kendi veri kopyasını belleğe yükler.
+
+Bağlantı kurulduğunda ana sunucunun web sayfasında yardımcı sunucular "Slaves" başlığı altında listelenir.
 
 ---
 
-Bu kurulum sayesinde, Weka'nın dağıtık işlem altyapısını kullanarak büyük ölçekli veri işlemlerini birden fazla makineye dağıtabilir ve işlem süresini önemli ölçüde kısaltabilirsiniz. Denemeler yapalım arkadaşlar.
+## 4. Görevlerin Sunucuya Gönderilmesi
+
+`wekaServer` paketi Weka arayüzüne iki giriş noktası ekler:
+
+1. **Explorer → Classify sekmesi:** Paket kurulduktan sonra **Start** düğmesinin yanında **Run on server** düğmesi belirir. Bir sınıflandırıcı ve test seçeneği belirlendikten sonra bu düğmeye basılır, açılan pencerede sunucunun adresi ve portu girilir. Değerlendirme görevi sunucuya gönderilir; sonuç, görev bitince Explorer'daki sonuç listesine eklenir.
+2. **Knowledge Flow → "Remote host scheduler" görünümü (perspective):** Kaydedilmiş bir akış sunucuya gönderilir; isteğe bağlı olarak belirli zamanlarda yinelenecek biçimde zamanlanabilir.
+
+Ana sunucuya gönderilen görevler Bölüm 0'daki kurala göre ana sunucuda ya da yükü en düşük yardımcı sunucuda yürütülür. Örneğin on farklı sınıflandırıcı yapılandırması ayrı ayrı gönderildiğinde, görevler yuva sayısına göre makinelere yayılır ve toplam süre kısalır.
+
+---
+
+## 5. Sık Karşılaşılan Sorunlar
+
+- **`WekaServer` sınıfı bulunamıyor:** `wekaServer` paketi o makinede kurulu değildir (Bölüm 1.b).
+- **Yardımcı sunucu ana sunucuya kaydolmuyor:** Güvenlik duvarı ayarlarını, `-master` adresini ve iki makinenin birbirine `ping` ile erişip erişemediğini kontrol edin. `-host` değeri olarak `localhost` verilen bir sunucuya başka makineler bağlanamaz.
+- **Bellek yetersizliği (`OutOfMemoryError`):** `-Xmx` değerini artırın ya da `-slots` değerini azaltın.

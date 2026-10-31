@@ -60,17 +60,17 @@
 
   <!-- EXPANDED: Distributed (Spark) -->
   <rect x="4" y="268" width="217" height="24" rx="3" fill="#1a4a8a"/>
-  <text x="14" y="284" fill="white" font-size="11" font-weight="bold">&#9660; Distributed (Spark)</text>
+  <text x="14" y="284" fill="white" font-size="11" font-weight="bold">&#9660; Spark</text>
 
   <!-- Spark palette items -->
   <rect x="12" y="296" width="209" height="22" rx="3" fill="#eaf0fb" stroke="#a9b9d0"/>
-  <text x="22" y="311" fill="#2c3e50" font-size="10">CSVToARFFHeaderSparkJob</text>
+  <text x="22" y="311" fill="#2c3e50" font-size="10">ArffHeaderSparkJob</text>
 
   <rect x="12" y="322" width="209" height="22" rx="3" fill="#eaf0fb" stroke="#a9b9d0"/>
-  <text x="22" y="337" fill="#2c3e50" font-size="10">ArffHeaderSparkJob</text>
+  <text x="22" y="337" fill="#2c3e50" font-size="10">RandomizedDataSparkJob</text>
 
   <rect x="12" y="348" width="209" height="22" rx="3" fill="#eaf0fb" stroke="#a9b9d0"/>
-  <text x="22" y="363" fill="#2c3e50" font-size="10">RandomizedDataChunkSparkJob</text>
+  <text x="22" y="363" fill="#2c3e50" font-size="10">CorrelationMatrixSparkJob</text>
 
   <!-- Highlighted item (currently selected) -->
   <rect x="12" y="374" width="209" height="22" rx="3" fill="#1a4a8a" stroke="#0a2a5a" stroke-width="1.5"/>
@@ -80,13 +80,13 @@
   <text x="22" y="415" fill="#2c3e50" font-size="10">WekaClassifierEvaluationSparkJob</text>
 
   <rect x="12" y="426" width="209" height="22" rx="3" fill="#eaf0fb" stroke="#a9b9d0"/>
-  <text x="22" y="441" fill="#2c3e50" font-size="10">WekaFilterSparkJob</text>
+  <text x="22" y="441" fill="#2c3e50" font-size="10">WekaScoringSparkJob</text>
 
   <rect x="12" y="452" width="209" height="22" rx="3" fill="#eaf0fb" stroke="#a9b9d0"/>
-  <text x="22" y="467" fill="#2c3e50" font-size="10">WekaClustererSparkJob</text>
+  <text x="22" y="467" fill="#2c3e50" font-size="10">KMeansClustererSparkJob</text>
 
-  <text x="112" y="510" text-anchor="middle" fill="#bdc3c7" font-size="9">Cift tiklayarak veya surukleme</text>
-  <text x="112" y="523" text-anchor="middle" fill="#bdc3c7" font-size="9">ile tuvale ekleyin</text>
+  <text x="112" y="510" text-anchor="middle" fill="#bdc3c7" font-size="9">Bilesene tiklayip ardindan</text>
+  <text x="112" y="523" text-anchor="middle" fill="#bdc3c7" font-size="9">tuvalde bir noktaya tiklayin</text>
 
   <!-- Canvas area -->
   <rect x="225" y="96" width="695" height="514" fill="#eef1f5"/>
@@ -96,15 +96,15 @@
 
   <!-- ═══ WORKFLOW COMPONENTS ON CANVAS ═══ -->
 
-  <!-- Component 1: CSVToARFFHeader -->
+  <!-- Component 1: ArffHeaderSparkJob -->
   <g filter="url(#sh)">
     <rect x="248" y="148" width="205" height="68" rx="6" fill="white" stroke="#2e6da4" stroke-width="2"/>
     <rect x="248" y="148" width="205" height="22" rx="6" fill="#2e6da4"/>
     <rect x="248" y="162" width="205" height="8" fill="#2e6da4"/>
-    <text x="350" y="164" text-anchor="middle" fill="white" font-size="9" font-weight="bold">CSVToARFFHeaderSparkJob</text>
-    <text x="350" y="182" text-anchor="middle" fill="#2c3e50" font-size="9">Giris: /veri/egitim.csv</text>
-    <text x="350" y="196" text-anchor="middle" fill="#7f8c8d" font-size="9">master: local[4]  |  sinif: label</text>
-    <text x="350" y="208" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: /veri/header</text>
+    <text x="350" y="164" text-anchor="middle" fill="white" font-size="9" font-weight="bold">ArffHeaderSparkJob</text>
+    <text x="350" y="182" text-anchor="middle" fill="#2c3e50" font-size="9">Giris: hypothyroid.csv</text>
+    <text x="350" y="196" text-anchor="middle" fill="#7f8c8d" font-size="9">master: local[*]  |  bolum: 4</text>
+    <text x="350" y="208" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: sparkOutput/arff/hypo.arff</text>
   </g>
   <!-- Connection port right -->
   <circle cx="453" cy="182" r="5" fill="#2e6da4" stroke="white" stroke-width="1.5"/>
@@ -113,15 +113,15 @@
   <line x1="458" y1="182" x2="495" y2="182" stroke="#27ae60" stroke-width="2" marker-end="url(#arr-g)"/>
   <text x="477" y="174" text-anchor="middle" fill="#27ae60" font-size="9" font-weight="bold">success</text>
 
-  <!-- Component 2: RandomizedDataChunk -->
+  <!-- Component 2: RandomizedDataSparkJob -->
   <g filter="url(#sh)">
     <rect x="497" y="148" width="205" height="68" rx="6" fill="white" stroke="#7b52ab" stroke-width="2"/>
     <rect x="497" y="148" width="205" height="22" rx="6" fill="#7b52ab"/>
     <rect x="497" y="162" width="205" height="8" fill="#7b52ab"/>
-    <text x="599" y="164" text-anchor="middle" fill="white" font-size="9" font-weight="bold">RandomizedDataChunkSparkJob</text>
-    <text x="599" y="182" text-anchor="middle" fill="#2c3e50" font-size="9">Bolum sayisi: 16</text>
+    <text x="599" y="164" text-anchor="middle" fill="white" font-size="9" font-weight="bold">RandomizedDataSparkJob</text>
+    <text x="599" y="182" text-anchor="middle" fill="#2c3e50" font-size="9">Bolum sayisi (num-splits): 4</text>
     <text x="599" y="196" text-anchor="middle" fill="#7f8c8d" font-size="9">Tohum (seed): 1</text>
-    <text x="599" y="208" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: /veri/karisik</text>
+    <text x="599" y="208" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: sparkOutput/randomized</text>
   </g>
   <!-- Port bottom -->
   <circle cx="599" cy="216" r="5" fill="#7b52ab" stroke="white" stroke-width="1.5"/>
@@ -136,9 +136,9 @@
     <rect x="466" y="292" width="268" height="22" rx="6" fill="#c8622a"/>
     <rect x="466" y="306" width="268" height="8" fill="#c8622a"/>
     <text x="600" y="308" text-anchor="middle" fill="white" font-size="9" font-weight="bold">WekaClassifierSparkJob</text>
-    <text x="600" y="326" text-anchor="middle" fill="#2c3e50" font-size="9">Siniflandirici: RandomForest  -I 100  -K 0</text>
-    <text x="600" y="340" text-anchor="middle" fill="#7f8c8d" font-size="9">Iterasyon: 16  |  master: local[4]</text>
-    <text x="600" y="354" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: /veri/model</text>
+    <text x="600" y="326" text-anchor="middle" fill="#2c3e50" font-size="9">Siniflandirici: RandomForest  -I 100</text>
+    <text x="600" y="340" text-anchor="middle" fill="#7f8c8d" font-size="9">numIterations: 1  |  sinif: last</text>
+    <text x="600" y="354" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: sparkOutput/model/rf.model</text>
   </g>
   <!-- Port bottom -->
   <circle cx="600" cy="364" r="5" fill="#c8622a" stroke="white" stroke-width="1.5"/>
@@ -155,16 +155,16 @@
     <text x="600" y="454" text-anchor="middle" fill="white" font-size="9" font-weight="bold">WekaClassifierEvaluationSparkJob</text>
     <text x="600" y="472" text-anchor="middle" fill="#2c3e50" font-size="9">10-katli capraz dogrulama (CV)</text>
     <text x="600" y="486" text-anchor="middle" fill="#7f8c8d" font-size="9">Siniflandirici: RandomForest  -I 100</text>
-    <text x="600" y="500" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: /veri/degerlendirme</text>
+    <text x="600" y="500" text-anchor="middle" fill="#7f8c8d" font-size="9">Cikis: sparkOutput/eval/rf_cv</text>
   </g>
 
   <!-- Log area at bottom of canvas -->
   <rect x="225" y="560" width="695" height="50" fill="#2c3e50" rx="0"/>
-  <text x="235" y="576" fill="#2ecc71" font-size="10" font-family="Courier New, monospace">INFO: Starting Weka Spark job...</text>
-  <text x="235" y="592" fill="#bdc3c7" font-size="10" font-family="Courier New, monospace">INFO: CSVToARFFHeaderSparkJob completed in 4.2s | Partitions: 16</text>
-  <text x="235" y="607" fill="#bdc3c7" font-size="10" font-family="Courier New, monospace">INFO: WekaClassifierSparkJob — training RandomForest on 16 partitions...</text>
+  <text x="235" y="576" fill="#2ecc71" font-size="10" font-family="Courier New, monospace">Gunluk paneli: Spark ve is durum iletileri</text>
+  <text x="235" y="592" fill="#bdc3c7" font-size="10" font-family="Courier New, monospace">ArffHeaderSparkJob: veri 4 bolumde taraniyor...</text>
+  <text x="235" y="607" fill="#bdc3c7" font-size="10" font-family="Courier New, monospace">WekaClassifierSparkJob: 4 bolumde RandomForest egitiliyor...</text>
 
   <!-- Status bar -->
   <rect x="0" y="610" width="920" height="30" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="0.5"/>
-  <text x="14" y="628" fill="#636e72" font-size="10">Hazir  |  Bilesен: 4  |  Baglanti: 3  |  spark-akis-v1.kfml</text>
+  <text x="14" y="628" fill="#636e72" font-size="10">Hazir  |  Bilesen: 4  |  Baglanti: 3  |  spark-akis.kf</text>
 </svg>

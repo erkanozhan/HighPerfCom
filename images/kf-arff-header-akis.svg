@@ -34,7 +34,7 @@
 
   <!-- dataset connection arrow -->
   <line x1="472" y1="98" x2="530" y2="98" stroke="#27ae60" stroke-width="2" marker-end="url(#arr-g)"/>
-  <text x="501" y="90" text-anchor="middle" fill="#27ae60" font-size="9" font-weight="bold">dataset</text>
+  <text x="501" y="90" text-anchor="middle" fill="#27ae60" font-size="9" font-weight="bold">dataSet + text</text>
 
   <!-- TextViewer -->
   <g filter="url(#sh)">
@@ -55,7 +55,7 @@
 
   <!-- ARFF output content -->
   <text x="50" y="206" fill="#2e7d32" font-size="10" font-family="'Courier New', monospace" font-weight="bold">@relation hypothyroid</text>
-  <text x="50" y="220" fill="#2c3e50" font-size="10" font-family="'Courier New', monospace">@attribute age NUMERIC</text>
+  <text x="50" y="220" fill="#2c3e50" font-size="10" font-family="'Courier New', monospace">@attribute age numeric</text>
   <text x="50" y="234" fill="#2c3e50" font-size="10" font-family="'Courier New', monospace">@attribute sex {F,M}</text>
   <text x="50" y="248" fill="#7f8c8d" font-size="10" font-family="'Courier New', monospace">... (30 öznitelik) ...</text>
   <text x="50" y="262" fill="#2c3e50" font-size="10" font-family="'Courier New', monospace">@attribute Class {negative,compensated_hypothyroid,primary_hypothyroid,secondary_hypothyroid}</text>
@@ -64,7 +64,7 @@
   <line x1="45" y1="272" x2="775" y2="272" stroke="#ecf0f1" stroke-width="1"/>
 
   <!-- Summary stats -->
-  <text x="50" y="287" fill="#c8622a" font-size="10" font-family="'Courier New', monospace">% --- Ozet Istatistikler (Summary Statistics) ---</text>
-  <text x="50" y="301" fill="#7f8c8d" font-size="10" font-family="'Courier New', monospace">% age_count=3772  age_min=1  age_max=92  age_mean=41.4  age_stddev=21.5</text>
-  <text x="50" y="315" fill="#7f8c8d" font-size="10" font-family="'Courier New', monospace">% Class_negative=3481  Class_compensated_hypothyroid=194  Class_primary_hypothyroid=95  Class_secondary_hypothyroid=2</text>
+  <text x="50" y="287" fill="#c8622a" font-size="10" font-family="'Courier New', monospace">(özet istatistikler ek nominal öznitelikler olarak eklenir)</text>
+  <text x="50" y="301" fill="#7f8c8d" font-size="10" font-family="'Courier New', monospace">@attribute arff_summary_age {count_3771.0,...,min_1.0,max_455.0,missing_1.0,mean_51.74,stdDev_20.08}</text>
+  <text x="50" y="315" fill="#7f8c8d" font-size="10" font-family="'Courier New', monospace">@attribute arff_summary_Class {negative_3481,compensated_hypothyroid_194,primary_hypothyroid_95,secondary_hypothyroid_2,...}</text>
 </svg>

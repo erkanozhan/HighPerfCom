@@ -33,7 +33,7 @@
   <text x="165" y="108" text-anchor="middle" font-size="9" fill="#555" class="mf">Blok A</text>
   <text x="165" y="120" text-anchor="middle" font-size="9" fill="#555" class="sf">(ilk erişim)</text>
   <line x1="140" y1="118" x2="90" y2="118" stroke="#c62828" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#ahr)"/>
-  <text x="205" y="108" font-size="13" font-weight="bold" fill="#c62828" class="mf">✗</text>
+  <text x="205" y="108" font-size="13" font-weight="bold" fill="#c62828" class="mf">×</text>
 
   <!-- Divider -->
   <line x1="18" y1="172" x2="226" y2="172" stroke="#90caf9" stroke-width="0.8"/>
@@ -66,7 +66,7 @@
   <!-- A evicted -->
   <line x1="266" y1="87" x2="252" y2="87" stroke="#888" stroke-width="1" marker-end="url(#ah)"/>
   <text x="245" y="91" text-anchor="end" font-size="8" fill="#888" class="sf">evict</text>
-  <text x="445" y="112" font-size="13" font-weight="bold" fill="#c62828" class="mf">✗</text>
+  <text x="445" y="112" font-size="13" font-weight="bold" fill="#c62828" class="mf">×</text>
 
   <!-- Divider -->
   <line x1="256" y1="172" x2="464" y2="172" stroke="#ffcc80" stroke-width="0.8"/>

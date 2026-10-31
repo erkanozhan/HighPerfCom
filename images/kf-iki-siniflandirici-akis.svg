@@ -94,7 +94,7 @@
     <rect x="770" y="162" width="145" height="18" rx="6" fill="#6a3d9a"/>
     <rect x="770" y="172" width="145" height="8" fill="#6a3d9a"/>
     <text x="842" y="174" text-anchor="middle" fill="white" font-size="9" font-weight="bold">TextViewer</text>
-    <text x="842" y="194" text-anchor="middle" fill="#2c3e50" font-size="8">JRip — 4 model, oy birliği</text>
+    <text x="842" y="194" text-anchor="middle" fill="#2c3e50" font-size="8">JRip — 4 model, Vote (olasılık ortalaması)</text>
   </g>
 
   <!-- Output dir annotation -->
@@ -103,9 +103,9 @@
   <rect x="30" y="237" width="860" height="8" fill="#2c3e50"/>
   <text x="460" y="238" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Dosya Sistemi Çıktıları — sparkOutput/ dizini</text>
   <text x="55" y="258" fill="#2e7d32" font-size="10" font-family="'Courier New', monospace">sparkOutput/</text>
-  <text x="75" y="272" fill="#2c3e50" font-size="10" font-family="'Courier New', monospace">├── arffHeader/</text>
+  <text x="75" y="272" fill="#2c3e50" font-size="10" font-family="'Courier New', monospace">├── arff/</text>
   <text x="95" y="286" fill="#7f8c8d" font-size="10" font-family="'Courier New', monospace">│   └── hypo.arff          ← ArffHeaderSparkJob çıktısı</text>
   <text x="75" y="300" fill="#2c3e50" font-size="10" font-family="'Courier New', monospace">└── model/</text>
-  <text x="95" y="314" fill="#7f8c8d" font-size="10" font-family="'Courier New', monospace">    ├── naiveBayes.model    ← Tek NaiveBayes modeli</text>
+  <text x="95" y="314" fill="#7f8c8d" font-size="10" font-family="'Courier New', monospace">    └── naiveBayes.model (tek model), votedJRIP.model (4 JRip)</text>
   <!-- second line overlaps, skip -->
 </svg>

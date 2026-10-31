@@ -107,12 +107,12 @@
   <!-- Exponent annotation -->
   <line x1="208" y1="116" x2="208" y2="134" stroke="#1a5276" stroke-width="1" stroke-dasharray="3,2"/>
   <text x="208" y="148" text-anchor="middle" font-size="10" fill="#1a5276" class="label">10000001₂ = 129</text>
-  <text x="208" y="162" text-anchor="middle" font-size="10" fill="#1a5276" class="label">129 − 127 = 2  ✓</text>
+  <text x="208" y="162" text-anchor="middle" font-size="10" fill="#1a5276" class="label">129 − 127 = 2 (gerçek üs)</text>
 
   <!-- Mantissa annotation -->
   <line x1="490" y1="116" x2="490" y2="134" stroke="#1e8449" stroke-width="1" stroke-dasharray="3,2"/>
   <text x="490" y="148" text-anchor="middle" font-size="10" fill="#1e8449" class="label">0111 0000… (Gizli 1. dahil: 1.0111)</text>
 
   <!-- Result formula -->
-  <text x="360" y="195" text-anchor="middle" font-size="12" fill="#2c3e50" class="label">(−1)⁰ × 1.0111₂ × 2² = 1.0111₂ × 4 = 101.11₂ = 5.75 ✓</text>
+  <text x="360" y="195" text-anchor="middle" font-size="12" fill="#2c3e50" class="label">(−1)⁰ × 1.0111₂ × 2² = 1.0111₂ × 4 = 101.11₂ = 5.75</text>
 </svg>

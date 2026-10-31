@@ -1,20 +1,22 @@
 # Weka ile Apache Spark Kullanımı
 
+> **Sürüm notu.** Bu belgedeki sınıf ve seçenek adları, Weka 3.8.x ile uyumlu `distributedWekaSpark` 1.0.9 paketinin (bağımlılığı `distributedWekaBase` 1.0.17) kaynak kodundan doğrulanmıştır. Kavramsal giriş için önce [weka_dagitik_spark_giris.md](weka_dagitik_spark_giris.md) dosyasını okuyunuz.
+
 ## Tek Makinenin Sınırları
 
-Elinizdeki veri kümesi 200 GB, makinenizin RAM (Random Access Memory — Rastgele Erişimli Bellek) kapasitesi ise 32 GB. Tek bir Weka oturumunda bu veriyi yüklemek mümkün değildir; bellek taşar, süreç çöker. Daha ölçülü bir örnek verelim: milyonlarca satır içeren tıbbi kayıtlar, müşteri işlem geçmişleri ya da uydu görüntüsü meta verileri. Bunların her birinde aynı sorunla karşılaşabilirsiniz.
+Elinizdeki veri kümesi 200 GB, makinenizin belleği (RAM, Random Access Memory) ise 32 GB olsun. Tek bir Weka oturumunda bu veri yüklenemez; bellek taşar ve süreç durur. Milyonlarca satır içeren tıbbi kayıtlar, müşteri işlem geçmişleri ya da uydu görüntüsü üst verileri (metadata) bu türden örneklerdir.
 
-Bu noktada iki geleneksel çıkış yolu açılır. Birincisi **dikey ölçekleme** (vertical scaling): daha güçlü, daha fazla RAM'li bir tek makine satın almak. Bu yol bir noktadan sonra hem ekonomik hem teknik bir tavana çarpar. İkincisi **yatay ölçekleme** (horizontal scaling): hesabı birden fazla makineye dağıtmak. Büyük veri (big data) altyapılarının büyük çoğunluğu bu fikir üzerine kurulmuştur.
+Bu noktada iki yol vardır. Birincisi **dikey ölçekleme** (vertical scaling): daha güçlü ve daha fazla belleği olan tek bir makine almak. Bu yol bir noktadan sonra ekonomik ve teknik bir tavana dayanır. İkincisi **yatay ölçekleme** (horizontal scaling): hesabı birden fazla makineye dağıtmak. Büyük veri (big data) altyapılarının çoğu bu fikre dayanır.
 
-Dağıtımı koordine etmek için bir çerçeveye ihtiyaç vardır. Hangi makine hangi parçayı işler? Bir makine çökerse ne olur? İş bölüşümünü ve sonuç birleştirmeyi kim yönetir? Apache Spark bu soruları yanıtlamak üzere tasarlanmıştır.
+Dağıtımı yönetmek için bir çerçeveye ihtiyaç vardır: Hangi makine hangi parçayı işleyecek? Bir makine çökerse ne olacak? İş bölüşümünü ve sonuçların birleştirilmesini kim yönetecek? Apache Spark bu sorulara yanıt vermek üzere tasarlanmıştır.
 
 ---
 
 ## Apache Spark
 
-Apache Spark, 2009 yılında UC Berkeley'deki AMP Lab'da Matei Zaharia liderliğinde geliştirilmiş açık kaynaklı bir dağıtık hesaplama çerçevesidir (distributed computing framework). Bugün Apache Software Foundation bünyesinde sürdürülmektedir.
+Apache Spark, 2009 yılında Kaliforniya Üniversitesi Berkeley'de Matei Zaharia'nın öncülüğünde geliştirilmeye başlanan açık kaynaklı bir dağıtık hesaplama çerçevesidir (distributed computing framework). Bugün Apache Software Foundation bünyesinde sürdürülmektedir.
 
-Spark'ın tasarım motivasyonu, önceki nesil sistemin —Hadoop MapReduce (Harita-Küçültme)— bir zayıflığını gidermektir. MapReduce, her işlem adımı arasındaki ara sonuçları HDFS'e (Hadoop Distributed File System — Hadoop Dağıtık Dosya Sistemi) diske yazar. Makine öğrenimi gibi aynı veriyi defalarca okuyan iteratif algoritmalar bu disk döngüsü nedeniyle yavaş kalır. Spark, ara sonuçları mümkün olduğunca bellekte tutarak bu darboğazı aşar.
+Spark'ın çıkış noktası, önceki nesil sistem olan Hadoop MapReduce'un bir zayıflığını gidermektir. MapReduce, her işlem adımının ara sonuçlarını HDFS'e (Hadoop Distributed File System, Hadoop dağıtık dosya sistemi), yani diske yazar. Makine öğrenmesi gibi aynı veriyi defalarca okuyan yinelemeli (iterative) algoritmalar bu disk döngüsü nedeniyle yavaş kalır. Spark ara sonuçları mümkün olduğunca bellekte tutarak bu darboğazı aşar.
 
 ---
 
@@ -22,223 +24,184 @@ Spark'ın tasarım motivasyonu, önceki nesil sistemin —Hadoop MapReduce (Hari
 
 ### RDD: Resilient Distributed Dataset
 
-Spark'ın temel veri soyutlaması **RDD**'dir (Resilient Distributed Dataset — Dayanıklı Dağıtılmış Veri Kümesi). Adındaki üç sözcük, bu yapının üç temel özelliğini doğrudan anlatır:
+Spark'ın temel veri soyutlaması **RDD**'dir (Resilient Distributed Dataset, dayanıklı dağıtık veri kümesi). Adındaki üç sözcük yapının üç temel özelliğini anlatır:
 
-- **Resilient (Dayanıklı):** Bir makine arızalanırsa Spark, kaybolan veri bölümünü yeniden hesaplayabilir. Bunun için RDD, nasıl oluşturulduğunu —soy ağacını (lineage)— kaydeder; bu bilgiyi kullanarak veriyi yeniden üretir.
-- **Distributed (Dağıtılmış):** Veri, kümedeki birden fazla makinenin belleğine bölümler (partition) halinde yayılır.
-- **Dataset (Veri Kümesi):** Sıradan bir koleksiyon gibi düşünebilirsiniz; ancak paralel, dağıtılmış ve hata toleranslı biçimde.
+- **Resilient (dayanıklı):** Bir makine arızalanırsa Spark kaybolan veri bölümünü yeniden hesaplayabilir. Bunun için RDD'nin nasıl oluşturulduğu, yani **soy ağacı** (lineage) kaydedilir. *Resilient* sözcüğü Latince *resilire* (geri sıçramak) kökünden gelir.
+- **Distributed (dağıtık):** Veri, kümedeki birden fazla makinenin belleğine **bölümler** (partition) hâlinde yayılır.
+- **Dataset (veri kümesi):** Sıradan bir koleksiyon gibi kullanılır; ancak paralel, dağıtık ve hataya dayanıklıdır.
 
-Bunu somutlaştırmak için bir üretim hattı düşünün. Büyük bir siparişi tek bir tezgâhta bitirmeye çalışmak yerine, siparişi parçalara böler ve her parçayı farklı bir tezgâha verirsiniz. Tezgâhlar eş zamanlı çalışır; biri dursa diğerleri etkilenmez, duran tezgâhın işi yeniden atanır. RDD de tam olarak bu mantıkla veriyi bölümler ve her bölümü bir çalışan düğüme (worker node) gönderir.
+Bir üretim hattı düşünelim: Büyük bir sipariş tek bir tezgâhta bitirilmeye çalışılmaz; parçalara bölünür ve her parça farklı bir tezgâha verilir. Tezgâhlar eşzamanlı çalışır; biri durursa onun işi yeniden atanır. RDD de veriyi bölümlere ayırır ve her bölümü bir işçi düğüme (worker node) gönderir.
 
-```
-RDD Bölümleme (3 worker örneği):
+```text
+RDD bölümleme (3 işçi örneği):
 
-  Kaynak Veri (7,5 Milyon Satır)
+  Kaynak veri (7,5 milyon satır)
   ┌───────────────────────────────┐
-  │  Bölüm 1  (2,5 M satır)      │ ──► Worker 1
-  │  Bölüm 2  (2,5 M satır)      │ ──► Worker 2
-  │  Bölüm 3  (2,5 M satır)      │ ──► Worker 3
+  │  Bölüm 1  (2,5 M satır)       │ ──► İşçi 1
+  │  Bölüm 2  (2,5 M satır)       │ ──► İşçi 2
+  │  Bölüm 3  (2,5 M satır)       │ ──► İşçi 3
   └───────────────────────────────┘
 ```
 
-![RDD Dönüşüm Zinciri](images/rdd-donusum-zinciri.svg)
+![RDD dönüşüm zinciri](images/rdd-donusum-zinciri.svg)
 
 ### Tembel Değerlendirme (Lazy Evaluation)
 
-Spark işlemleri iki kategoriye ayrılır:
+Spark işlemleri iki gruba ayrılır:
 
-**Transformasyonlar (Transformations):** Bir RDD'den yeni bir RDD üretir. `map()`, `filter()`, `flatMap()`, `groupBy()` birer transformasyondur. Transformasyonlar **tembel** (lazy) çalışır: çağrıldıklarında hesaplama başlamaz, yalnızca "şu dönüşümü uygula" kaydı tutulur.
+**Dönüşümler (transformations):** Bir RDD'den yeni bir RDD üretir. `map()`, `filter()`, `flatMap()`, `groupBy()` birer dönüşümdür. Dönüşümler **tembel** çalışır: Çağrıldıklarında hesaplama başlamaz, yalnızca "şu dönüşüm uygulanacak" bilgisi kaydedilir.
 
-**Eylemler (Actions):** Birikmiş transformasyon planını tetikler ve somut bir sonuç döndürür. `collect()`, `count()`, `reduce()`, `saveAsTextFile()` birer eylemdir. Bir eylem çağrıldığında Spark tüm planı derler, optimize eder ve çalıştırır.
+**Eylemler (actions):** Birikmiş dönüşüm planını tetikler ve somut bir sonuç döndürür. `collect()`, `count()`, `reduce()`, `saveAsTextFile()` birer eylemdir. Bir eylem çağrıldığında Spark planın tamamını ele alır ve çalıştırır.
 
-Bu tasarım sayesinde Spark, gereksiz hesaplamalardan kaçınır ve işlem sırasını yeniden düzenleyerek performansı artırabilir.
+Bu tasarım sayesinde Spark gereksiz hesaplamalardan kaçınır ve ardışık dönüşümleri tek bir geçişte birleştirerek başarımı artırır.
 
 ### DAG: Directed Acyclic Graph
 
-Spark, transformasyon zincirini bir DAG'a (Directed Acyclic Graph — Yönlü Döngüsüz Çizge) dönüştürür. Çizgedeki her düğüm bir işlemi, her kenar ise veri akışını temsil eder. "Acyclic" sözcüğü Yunanca *kyklos* (çember) köküne dayanır; olumsuzluk eki *a-* ile birlikte döngüsüz anlamını verir. Bu özellik, bir işlemin çıktısının kendisine geri dönememesini garanti eder; deterministik çalışmayı ve kolay hata kurtarmayı sağlar.
+Spark, dönüşüm zincirini bir DAG'a (Directed Acyclic Graph, yönlü döngüsüz çizge) dönüştürür. Çizgedeki her düğüm bir işlemi, her kenar veri akışını gösterir. *Acyclic* sözcüğü, Yunanca *kyklos* (çember) kökünden gelen *cyclic* sözcüğüne olumsuzluk bildiren *a-* önekinin eklenmesiyle oluşur. Döngüsüzlük, bir işlemin çıktısının kendisine geri dönemeyeceğini garanti eder; bu da kaybolan bölümlerin soy ağacı üzerinden yeniden hesaplanmasını mümkün kılar.
 
-Spark, DAG'ı **aşamalara** (stage) böler. Bir aşama içindeki görevler ağ üzerinden veri taşımadan (shuffle olmadan) paralel çalışabilir. `groupBy()` veya `reduceByKey()` gibi operasyonlar tüm bölümler arasında veri karışımı (shuffle) gerektirir ve bir aşama sınırı oluşturur. Bu sınır, ağ trafiği gerektirdiğinden performansın en kırılgan noktasıdır.
+Spark, DAG'ı **aşamalara** (stage) böler. Bir aşama içindeki görevler ağ üzerinden veri taşımadan paralel çalışabilir. `groupBy()` veya `reduceByKey()` gibi işlemler tüm bölümler arasında veri **karıştırma** (shuffle) gerektirir ve bir aşama sınırı oluşturur. Bu sınırlar ağ trafiği gerektirdiğinden başarımın en hassas noktalarıdır.
 
-![Spark DAG Aşamaları](images/spark-dag-asamalari.svg)
+![Spark DAG aşamaları](images/spark-dag-asamalari.svg)
 
 ---
 
-## Weka–Spark Entegrasyonu
+## Weka–Spark Bütünleşmesi
 
-**Weka** (Waikato Environment for Knowledge Analysis — Waikato Bilgi Analizi Ortamı), Yeni Zelanda'daki Waikato Üniversitesi'nden gelen Java tabanlı bir makine öğrenimi kütüphanesi ve araç setidir. Tasarımı gereği tek bir JVM (Java Virtual Machine — Java Sanal Makinesi) üzerinde çalışır. Algoritma zenginliği açısından oldukça kapsamlı olsa da büyük veri kümelerinde bu tek-makine sınırıyla karşılaşılır.
+**Weka** (Waikato Environment for Knowledge Analysis, Waikato bilgi analizi ortamı), Yeni Zelanda'daki Waikato Üniversitesi'nde geliştirilen Java tabanlı bir makine öğrenmesi kitaplığı ve araç takımıdır. Tasarımı gereği tek bir JVM (Java Virtual Machine, Java sanal makinesi) üzerinde çalışır. Algoritma çeşitliliği çok geniş olsa da büyük veri kümelerinde bu tek makine sınırıyla karşılaşılır.
 
-Bu kısıtı aşmak için Weka ekibi **`distributedWekaSparkDev`** paketini geliştirmiştir. Paket, Weka'nın öğrenme algoritmalarını Spark kümesi üzerinde çalıştırmanın altyapısını sağlar. İşleyiş şu adımlarda özetlenebilir:
+Bu sınırı aşmak için Mark Hall tarafından **`distributedWekaSpark`** paketi geliştirilmiştir. Paket, Weka'nın öğrenme algoritmalarını bir Spark kümesi üzerinde çalıştırmanın altyapısını sağlar. İşleyiş şöyle özetlenebilir:
 
-1. Veri kümesi Spark RDD'lerine yüklenerek N bölüme ayrılır.
-2. Her bölümde bağımsız bir Weka sınıflandırıcı (ya da kümeleyici) eğitilir.
-3. Bölüm modelleri bir toplama adımında (aggregation) birleştirilir.
-4. Birleşik model sürücü programa (driver) geri döner.
+1. Veri kümesi Spark RDD'sine yüklenerek N bölüme ayrılır.
+2. Her bölümde bağımsız bir Weka sınıflandırıcısı eğitilir.
+3. Bölüm modelleri bir birleştirme (aggregation) adımında birleştirilir: Birleştirilebilir modeller (örneğin Naive Bayes) tek bir modele, diğerleri bir oylamalı topluluk (`Vote`) modeline dönüşür.
+4. Birleşik model sürücü programa (driver) döner ve diske kaydedilir.
 
-Bu yaklaşım, özellikle Random Forest gibi topluluk (ensemble) yöntemleriyle doğal bir uyum içindedir: zaten birden fazla bağımsız model birleştirilmektedir. Weka'nın mevcut sınıflandırıcılarını, dışarıya neredeyse hiçbir değişiklik yapmadan dağıtık ortamda kullanabilirsiniz.
+Bu yaklaşım, Rastgele Orman gibi zaten birden fazla bağımsız modeli birleştiren topluluk (ensemble) yöntemleriyle doğal bir uyum içindedir. Weka'nın mevcut sınıflandırıcıları değiştirilmeden dağıtık ortamda kullanılabilir.
 
-![Weka–Spark Dağıtık Mimari](images/weka-spark-mimarisi.svg)
+![Weka–Spark dağıtık mimari](images/weka-spark-mimarisi.svg)
 
 ---
 
 ## Kurulum
 
-### 1. Java Ortamı
+### 1. Java ve Weka
 
-Hem Weka hem Spark Java'ya dayanır. JDK (Java Development Kit — Java Geliştirme Kiti) 8 veya 11 önerilir. Spark 3.x sürümleri Java 11'i tam olarak destekler.
+Weka 3.8.x kurulu olmalıdır. Windows kurulumu kendi Java çalışma ortamıyla gelir. Komut satırında kullanılan Java sürümü `java -version` ile görülebilir. Paket Spark 1.1.1 kitaplıklarını içerir ve Java 8 döneminde hazırlanmıştır; yeni Java sürümlerinde sorun yaşanırsa Weka'yı bir Java 8 çalışma ortamıyla başlatmayı deneyiniz.
 
-```bash
-java -version
-# openjdk version "11.0.x" 2024-...
-```
+### 2. Paketin Kurulması
 
-### 2. Apache Spark İndirme ve Yapılandırma
+Yerel modda çalışmak için ayrıca Spark indirmek **gerekmez**; paket yerel mod için gerekli Spark kitaplıklarını içerir.
 
-[spark.apache.org/downloads](https://spark.apache.org/downloads.html) adresinden Spark'ı indirin. Hadoop entegrasyonu gerekmiyorsa "Pre-built without Hadoop" seçeneği yeterlidir.
+- **Grafik arayüzle:** Weka GUI Chooser → **Tools → Package Manager** → `distributedWekaSpark` → **Install**. `distributedWekaBase` bağımlılığı kendiliğinden kurulur.
+- **Komut satırıyla:**
 
-```bash
-tar -xzf spark-3.5.0-bin-without-hadoop.tgz -C /opt/
-export SPARK_HOME=/opt/spark-3.5.0
-export PATH=$SPARK_HOME/bin:$PATH
-```
+  ```bash
+  java -cp weka.jar weka.core.WekaPackageManager -install-package distributedWekaSpark
+  ```
 
-Kurulumu doğrulamak için:
+Paket yöneticisi, kurulu Weka sürümüyle uyumlu en yeni paket sürümünü seçer (Weka 3.8 için 1.0.9). Kurulumdan sonra paket `~/wekafiles/packages/distributedWekaSpark/` dizinindedir; örnek veriler `sample_data/` alt dizinindedir.
 
-```bash
-spark-shell --version
-# Spark version 3.5.0
-```
+### 3. İşlerin Komut Satırından Çalıştırılması
 
-### 3. Weka Paket Yöneticisi ile Entegrasyon Paketinin Kurulumu
-
-Weka GUI üzerinden: **Tools → Package Manager** → `distributedWekaSparkDev` araması → Install.
-
-Komut satırından:
+Spark işleri `weka.Run` sınıfı aracılığıyla çalıştırılır. `weka.Run` kurulu paketleri kendiliğinden yüklediği için sınıf yolunu (classpath) elle düzenlemek gerekmez:
 
 ```bash
-java -cp weka.jar weka.core.WekaPackageManager \
-  -install-package distributedWekaSparkDev
+java -Xmx4g -cp weka.jar weka.Run weka.distributed.spark.<İşSınıfı> [seçenekler]
 ```
 
-Kurulumun ardından `~/wekafiles/packages/distributedWekaSparkDev/` dizininde Spark entegrasyon jar'ları oluşur.
-
-### 4. Classpath Yapılandırması
-
-Weka-Spark işlerini terminalden çalıştırmak için Spark jar'larını classpath'e eklemeniz gerekir. Bu değişkeni `~/.bashrc` dosyanıza ekleyerek kalıcı hale getirin:
-
-```bash
-export WEKA_SPARK_CP=\
-$SPARK_HOME/jars/*:\
-$HOME/wekafiles/packages/distributedWekaSparkDev/distributedWekaSparkDev.jar:\
-$HOME/wekafiles/packages/distributedWekaSparkDev/lib/*
-```
+Bir işin tüm seçenekleri `-h` ile listelenir. Aşağıdaki örnekler bash sözdizimiyle yazılmıştır; Windows komut isteminde satır devamı için `\` yerine `^` kullanılır ya da komut tek satıra yazılır. `local[*]` ifadesi kabuğun joker karakter olarak yorumlamaması için tırnak içinde yazılmalıdır.
 
 ---
 
 ## Temel Kullanım
 
-Weka-Spark işlerinin tipik akışı üç adımdan oluşur: şema oluşturma, eğitim, değerlendirme. Bunları sırasıyla inceleyelim.
+Weka–Spark işlerinin tipik akışı üç adımdan oluşur: başlık oluşturma, eğitim ve değerlendirme. Tüm işlerde ortak olan Spark seçenekleri şunlardır:
+
+| Seçenek | Açıklama |
+| :--- | :--- |
+| `-master <adres>` | Spark ana süreci: `local[*]` (yerel, tüm çekirdekler), `local[4]`, `spark://sunucu` (bağımsız küme) ya da `yarn-client` |
+| `-port <port>` | Kümedeki ana sürecin portu (bağımsız Spark kümesinde varsayılan 7077) |
+| `-input-file <yol>` | Girdi CSV dosyası (yerel yol ya da `hdfs://...`) |
+| `-output-dir <yol>` | Çıktı dizini; her iş kendi alt dizinini kullanır (`arff/`, `model/`, `eval/` ...) |
+| `-min-slices <sayı>` | Verinin en az kaç bölüme (partition) ayrılacağı; paralellik derecesi |
+| `-max-slices <sayı>` | Bölüm sayısının üst sınırı |
 
 ### Adım 1: ARFF Başlığının Oluşturulması
 
-Weka, dağıtık işleme başlamadan önce veri kümesinin şemasını bilmek ister; öznitelik (attribute) adları, türleri, kategorik değerlerin listesi ve sınıf etiketi (class label). `CSVToARFFHeaderSparkJob`, bu şemayı Spark üzerinden paralel tarama ile oluşturur. Milyonlarca satırlık bir CSV'de tek makinede dakikalar sürebilecek bu tarama, paralel yapıda çok daha kısa sürer.
+Weka, dağıtık işleme başlamadan önce veri kümesinin şemasını bilmek ister: öznitelik (attribute) adları, türleri, kategorik değerlerin listesi. `ArffHeaderSparkJob` bu şemayı ve özet istatistikleri CSV dosyasını paralel olarak tarayarak oluşturur. Milyonlarca satırlık bir dosyada tek makinede uzun sürebilecek bu tarama, paralel yapıda çok daha kısa sürer.
 
 ```bash
-java -cp weka.jar:$WEKA_SPARK_CP \
-  weka.distributed.spark.CSVToARFFHeaderSparkJob \
-  -master local[4] \
-  -input /veri/egitim.csv \
-  -output /veri/cikti/header \
-  -names-file /veri/oznik-adlari.txt \
-  -class-attribute-name sinif \
-  -header-file-name schema.arff
+java -Xmx4g -cp weka.jar weka.Run weka.distributed.spark.ArffHeaderSparkJob \
+  -master "local[*]" -min-slices 4 \
+  -input-file ~/wekafiles/packages/distributedWekaSpark/sample_data/hypothyroid.csv \
+  -names-file ~/wekafiles/packages/distributedWekaSpark/sample_data/hypothyroid.names \
+  -header-file-name hypo.arff \
+  -output-dir ~/sparkOutput
 ```
 
-| Parametre | Açıklama |
-|---|---|
-| `-master local[4]` | Yerel modda 4 iş parçacığı (thread) kullan |
-| `-input` | Kaynak CSV dosyası (yerel yol ya da `hdfs://…`) |
-| `-output` | Oluşturulan şemanın yazılacağı dizin |
-| `-class-attribute-name` | Hedef değişkenin (bağımlı değişken) sütun adı |
-
-Veri ARFF formatında geliyorsa bu adımın yerine `ArffHeaderSparkJob` kullanılır:
-
-```bash
-java -cp weka.jar:$WEKA_SPARK_CP \
-  weka.distributed.spark.ArffHeaderSparkJob \
-  -master local[4] \
-  -input /veri/egitim.arff \
-  -output /veri/cikti/header
-```
+| Seçenek | Açıklama |
+| :--- | :--- |
+| `-names-file <yol>` | Her satırda bir öznitelik adı bulunan dosya (başlıksız CSV için) |
+| `-A <ad1,ad2,...>` | Öznitelik adlarının virgülle ayrılmış listesi (`-names-file` yerine) |
+| `-header-file-name <ad>` | Üretilecek başlık dosyasının adı; dosya `<output-dir>/arff/` altına yazılır |
+| `-existing-header <yol>` | Daha önce üretilmiş başlık; verilirse veri yeniden taranmaz |
+| `-F <ayırıcı>`, `-M <simge>` | Alan ayırıcı ve eksik değer simgesi |
 
 ### Adım 2: Sınıflandırıcı Eğitimi
 
-```bash
-java -cp weka.jar:$WEKA_SPARK_CP \
-  weka.distributed.spark.WekaClassifierSparkJob \
-  -master local[4] \
-  -input /veri/egitim.arff \
-  -output /veri/cikti/model \
-  -num-iterations 16 \
-  -W weka.classifiers.trees.RandomForest \
-  -- -I 100 -K 0 -depth 0
-```
-
-`-num-iterations` parametresi veriyi kaç bölüme ayıracağını belirtir; her bölümde bağımsız bir RandomForest eğitilir ve bölüm modelleri daha sonra bir ensemble oluşturmak üzere birleştirilir. `--` işaretinden sonra gelen argümanlar doğrudan Weka sınıflandırıcısına iletilir.
-
-İyi bir başlangıç noktası olarak `-num-iterations` değerini kümedeki toplam CPU çekirdeğinin 2–3 katına ayarlayın. 8 çekirdekli bir kümede 16–24 makul bir başlangıçtır.
-
-J48 karar ağacı ile aynı işlem:
+`WekaClassifierSparkJob`, gerekirse başlık işini kendi içinde çalıştırır; daha önce üretilmiş başlık `-existing-header` ile verilir:
 
 ```bash
-java -cp weka.jar:$WEKA_SPARK_CP \
-  weka.distributed.spark.WekaClassifierSparkJob \
-  -master local[4] \
-  -input /veri/egitim.arff \
-  -output /veri/cikti/model-j48 \
-  -num-iterations 16 \
-  -W weka.classifiers.trees.J48 \
-  -- -C 0.25 -M 2
+java -Xmx4g -cp weka.jar weka.Run weka.distributed.spark.WekaClassifierSparkJob \
+  -master "local[*]" -min-slices 4 \
+  -input-file ~/wekafiles/packages/distributedWekaSpark/sample_data/hypothyroid.csv \
+  -existing-header ~/sparkOutput/arff/hypo.arff \
+  -output-dir ~/sparkOutput \
+  -class last -model-file-name rf.model \
+  -randomize \
+  -W weka.classifiers.trees.RandomForest -- -I 100
 ```
+
+| Seçenek | Açıklama |
+| :--- | :--- |
+| `-class <ad ya da sıra>` | Sınıf özniteliği (varsayılan: son öznitelik) |
+| `-model-file-name <ad>` | Model `<output-dir>/model/<ad>` olarak kaydedilir |
+| `-W <sınıf>` ve `--` | Kullanılacak Weka sınıflandırıcısı; `--` işaretinden sonraki seçenekler doğrudan sınıflandırıcıya iletilir |
+| `-randomize` | Veriyi bölümlere ayırmadan önce karıştırır; sınıf nominal ise katmanlandırır (stratify) |
+| `-num-iterations <sayı>` | Veri üzerinden geçiş sayısı (varsayılan 1). 1'den büyük değerler yalnızca SGD gibi artımlı sınıflandırıcılarda anlamlıdır |
+
+**Bölüm sayısı ile `-num-iterations` karıştırılmamalıdır.** Veri, `-min-slices` (ya da karıştırma işindeki bölüm sayısı) kadar parçaya ayrılır ve her parçada ayrı bir model eğitilir. Rastgele Orman `Aggregateable` olmadığından dört bölümden dört orman elde edilir ve bunlar bir `Vote` topluluğunda birleştirilir. İyi bir başlangıç değeri olarak bölüm sayısını kümedeki toplam çekirdek sayısının 2–4 katı seçebilirsiniz; ancak her bölümün, anlamlı bir model eğitmeye yetecek kadar örnek içermesi gerekir.
 
 ### Adım 3: Değerlendirme
 
 ```bash
-java -cp weka.jar:$WEKA_SPARK_CP \
-  weka.distributed.spark.WekaClassifierEvaluationSparkJob \
-  -master local[4] \
-  -input /veri/egitim.arff \
-  -output /veri/cikti/degerlendirme \
-  -num-folds 10 \
-  -W weka.classifiers.trees.J48 \
-  -- -C 0.25 -M 2
+java -Xmx4g -cp weka.jar weka.Run weka.distributed.spark.WekaClassifierEvaluationSparkJob \
+  -master "local[*]" -min-slices 4 \
+  -input-file ~/wekafiles/packages/distributedWekaSpark/sample_data/hypothyroid.csv \
+  -existing-header ~/sparkOutput/arff/hypo.arff \
+  -output-dir ~/sparkOutput -output-subdir rf_cv \
+  -class last -randomize -total-folds 10 \
+  -W weka.classifiers.trees.RandomForest -- -I 100
 ```
 
-Bu komut 10 katlı çapraz doğrulama (10-fold cross-validation) gerçekleştirir. Standart Weka'da çapraz doğrulama tek çekirdek üzerinde sırayla yürütülürken, burada her kat Spark üzerinde paralel işlenir. Sonuçlar doğruluk (accuracy), F-ölçütü (F-measure), ROC alanı gibi metrikleri içerir.
+Bu komut 10 katlı çapraz doğrulama (10-fold cross-validation) yapar ve raporu `<output-dir>/eval/rf_cv/` altına yazar. Masaüstü Weka'da (Explorer) katlar tek bir JVM içinde değerlendirilir; burada her katın modelleri Spark üzerinde paralel oluşturulur ve değerlendirilir. Rapor doğruluk (accuracy), Kappa istatistiği, F-ölçütü (F-measure), ROC eğrisi altındaki alan gibi ölçütleri içerir. `-auc <oran>` seçeneği, ROC alanı hesabı için saklanacak tahminlerin oranını belirler.
 
 ---
 
-## Veri Ön İşleme: Dağıtık Filtreler
+## Diğer İşler
 
-`WekaFilterSparkJob`, Weka'nın mevcut filtrelerini dağıtık biçimde uygular. Filtreler her bölüme ayrı ayrı uygulanır; Weka'nın tüm `unsupervised` ve birçok `supervised` filtresi bu şekilde çalışabilir.
+| İş sınıfı | İşlev | Çıktı alt dizini |
+| :--- | :--- | :--- |
+| `ArffHeaderSparkJob` | CSV'den ARFF başlığı ve özet istatistikler üretir | `arff/` |
+| `RandomizedDataSparkJob` | Veriyi karıştırır, katmanlandırır ve bölümlere ayırır (`-num-splits`, `-seed`) | `randomized/` |
+| `WekaClassifierSparkJob` | Dağıtık sınıflandırıcı eğitir | `model/` |
+| `WekaClassifierEvaluationSparkJob` | Çapraz doğrulama ya da ayrı test kümesiyle (`-test-set-path`) değerlendirme | `eval/` |
+| `WekaScoringSparkJob` | Eğitilmiş bir modelle verinin tamamını puanlar (tahmin üretir) | — |
+| `CorrelationMatrixSparkJob` | Korelasyon ya da kovaryans matrisi, isteğe bağlı PCA (`-pca`) | `correlation/` |
+| `KMeansClustererSparkJob` | k-ortalamalar kümeleme, k-means‖ başlatma (`-num-clusters`, `-num-iterations`, `-num-runs`) | `kmeans/` |
+| `CanopyClustererSparkJob` | Kanopi kümeleme (yalnızca komut satırı ve Java API) | `canopy/` |
 
-`Normalize` filtresiyle tüm sayısal öznitelikleri [0, 1] aralığına çekmek:
-
-```bash
-java -cp weka.jar:$WEKA_SPARK_CP \
-  weka.distributed.spark.WekaFilterSparkJob \
-  -master local[4] \
-  -input /veri/ham.arff \
-  -output /veri/normalize \
-  -filter "weka.filters.unsupervised.attribute.Normalize -S 1.0 -T 0.0"
-```
-
-Eksik değerleri ortalama/mod ile doldurmak için:
-
-```bash
-  -filter "weka.filters.unsupervised.attribute.ReplaceMissingValues"
-```
-
-Normalleştirme gibi global istatistik gerektiren filtreler iki aşamada çalışır: önce her bölüm kendi min/max değerlerini hesaplar, ardından bu değerler bir reduce adımında birleştirilerek gerçek normalleştirme uygulanır. Bu, Weka-Spark'ın arka planda yönettiği bir süreçtir.
+Pakette Weka filtrelerini doğrudan uygulayan ayrı bir Spark işi **bulunmaz**. Bir ön işleme filtresi kullanılacaksa filtre masaüstü Weka'da (örneğin başlık üzerinde) yapılandırılıp kaydedilir ve `WekaClassifierSparkJob` işine `-preconstructed-filter <yol>` seçeneğiyle verilir; ya da sınıflandırıcı, filtreyi içeren `weka.classifiers.meta.FilteredClassifier` olarak seçilir.
 
 ---
 
@@ -246,172 +209,85 @@ Normalleştirme gibi global istatistik gerektiren filtreler iki aşamada çalı�
 
 ### Yerel Mod (Local Mode)
 
-Geliştirme ve hata ayıklama için idealdir; ağ iletişimi olmadığından en hızlı başlangıçtır.
+Geliştirme ve hata ayıklama için idealdir; ağ iletişimi gerektirmez ve tüm Spark süreçleri tek bir JVM içinde çalışır.
 
-```
--master local        # tek iş parçacığı — sıralı test
--master local[4]     # 4 iş parçacığı
--master local[*]     # mevcut tüm çekirdekler
+```text
+-master "local"      # tek iş parçacığı
+-master "local[4]"   # 4 iş parçacığı
+-master "local[*]"   # mevcut tüm çekirdekler
 ```
 
 ### Bağımsız Küme (Standalone Cluster)
 
-Spark'ın kendi yöneticisiyle birden fazla makineyi koordine etmek için master ve worker hizmetlerini başlatın:
+Spark'ın kendi küme yöneticisiyle birden fazla makine eşgüdümlenir: bir makinede ana süreç (master), diğerlerinde işçi süreçleri (worker) başlatılır. İş gönderilirken `-master spark://<ana-sunucu>` ve `-port 7077` verilir; girdi dosyası tüm işçilerin erişebileceği bir yerde (örneğin `hdfs://...`) bulunmalıdır.
 
-```bash
-# Master makinesinde:
-$SPARK_HOME/sbin/start-master.sh
+**Sürüm uyumu önemlidir.** Spark istemcisi ile kümenin aynı Spark sürümünü kullanması gerekir. `distributedWekaSpark` 1.0.9 paketi Spark 1.1.1 kitaplıklarını içerdiğinden güncel bir Spark 3.x kümesine doğrudan bağlanamaz. Gerçek bir küme için:
 
-# Her worker makinesinde (master-sunucu adresini kendi ortamınıza göre güncelleyin):
-$SPARK_HOME/sbin/start-worker.sh spark://master-sunucu:7077
-```
+- Kümede paketle uyumlu bir Spark sürümü çalıştırılmalı,
+- Paket açıklamasında belirtildiği gibi `wekafiles/packages/distributedWekaSpark/lib` dizinindeki Spark kitaplıkları, kümedeki Hadoop sürümü için derlenmiş `spark-assembly-...jar` dosyasıyla değiştirilmelidir.
 
-İşi kümeye gönderirken `-master` ve `-input` parametrelerini güncelleyin:
+### YARN (Yet Another Resource Negotiator)
 
-```bash
-java -cp weka.jar:$WEKA_SPARK_CP \
-  weka.distributed.spark.WekaClassifierSparkJob \
-  -master spark://master-sunucu:7077 \
-  -input hdfs://master-sunucu:9000/veri/egitim.arff \
-  -output hdfs://master-sunucu:9000/veri/cikti/model \
-  -num-iterations 48 \
-  -W weka.classifiers.trees.RandomForest \
-  -- -I 200 -K 0
-```
-
-### YARN (Yet Another Resource Negotiator — Bir Başka Kaynak Yöneticisi)
-
-Mevcut bir Hadoop kümesinde YARN'ı kaynak yöneticisi olarak kullanmak için:
-
-```bash
--master yarn
-```
-
-Uzun süreli üretim işlerinde `--deploy-mode cluster` seçeneği önerilir: bu modda Spark sürücüsü de YARN üzerinde çalışır, terminal kapansa bile iş devam eder.
+Mevcut bir Hadoop kümesinde YARN'ı kaynak yöneticisi olarak kullanmak için `-master yarn-client` verilir. Bu modda sürücü program işi gönderen makinede (Weka'nın çalıştığı yerde) kalır; bu nedenle iş bitene kadar Weka süreci açık tutulmalıdır.
 
 ---
 
-## Java API ile Doğrudan Entegrasyon
+## Java API ile Doğrudan Kullanım
 
-Komut satırı araçlarının yanı sıra Weka-Spark'ı doğrudan Java kodundan çağırabilirsiniz. Bu yaklaşım, dağıtık öğrenme adımını daha büyük bir Java uygulamasına gömmek istediğinizde kullanışlıdır.
+Spark işleri Java kodundan da çağrılabilir. Bu yaklaşım, dağıtık öğrenme adımını daha büyük bir Java uygulamasına gömmek için kullanışlıdır.
 
 ```java
-import weka.distributed.spark.WekaClassifierSparkJob;
 import weka.core.Utils;
+import weka.distributed.spark.WekaClassifierSparkJob;
 
 public class DagitikEgitim {
     public static void main(String[] args) throws Exception {
-
         WekaClassifierSparkJob job = new WekaClassifierSparkJob();
-
-        String[] options = Utils.splitOptions(
-            "-master local[8] " +
-            "-input /veri/egitim.arff " +
-            "-output /veri/model " +
-            "-num-iterations 16 " +
-            "-W weka.classifiers.bayes.NaiveBayes"
-        );
-
-        job.setOptions(options);
+        job.setOptions(Utils.splitOptions(
+            "-master local[*] -min-slices 4 "
+          + "-input-file /veri/egitim.csv "
+          + "-names-file /veri/oznitelik_adlari.txt "
+          + "-output-dir /veri/cikti "
+          + "-model-file-name nb.model "
+          + "-W weka.classifiers.bayes.NaiveBayes"));
         job.runJob();
     }
 }
 ```
 
-Derleme ve çalıştırma:
-
-```bash
-javac -cp weka.jar:$WEKA_SPARK_CP DagitikEgitim.java
-java  -cp .:weka.jar:$WEKA_SPARK_CP DagitikEgitim
-```
-
-Birden fazla işi art arda zincirlemek istiyorsanız — örneğin önce `WekaFilterSparkJob`, ardından `WekaClassifierSparkJob` — her birini ayrı bir nesne olarak örnekleyin ve sırayla çalıştırın.
+Derlemek ve çalıştırmak için `weka.jar` ile birlikte paket dizinlerindeki jar dosyaları sınıf yoluna eklenmelidir (`~/wekafiles/packages/distributedWekaBase/` ve `~/wekafiles/packages/distributedWekaSpark/` altındaki `.jar` dosyaları ve `lib/*`).
 
 ---
 
 ## Sık Karşılaşılan Sorunlar
 
-### `ClassNotFoundException` — Spark jar'ları bulunamıyor
+**`ClassNotFoundException` ya da işin bulunamaması.** Paket kurulu değildir ya da işler `weka.Run` kullanılmadan, paket jar'ları sınıf yoluna eklenmeden çalıştırılmıştır.
 
-`WEKA_SPARK_CP` değişkeninin `$SPARK_HOME/jars/*` yolunu içerdiğinden ve bu dizinin gerçekten dolu olduğundan emin olun:
+**Serileştirme hatası (serialization error).** Spark, nesneleri ağ üzerinden taşımak için serileştirir (serialization). Weka sınıflandırıcıları `java.io.Serializable` arayüzünü uygular; kendi yazdığınız sınıflandırıcıların da bu arayüzü uygulaması gerekir.
 
-```bash
-ls $SPARK_HOME/jars/ | wc -l
-# 200'den fazla satır beklenir
-```
+**Bellek yetersizliği (`OutOfMemoryError`).** Yerel modda tüm işlem Weka'nın JVM'inde yapıldığı için `-Xmx` değeri artırılmalıdır. Kümede ise bölüm sayısı (`-min-slices`) artırılarak bölüm başına düşen veri azaltılabilir; `-cluster-mem` seçeneği işçi belleğini belirler.
 
-### Serileştirme Hatası (Serialization Error)
-
-Spark, nesneleri ağ üzerinden taşımak için serileştirir. `distributedWekaSparkDev` paketi standart Weka sınıflandırıcıları için bu uyumluluğu sağlar. Özel yazılmış sınıflandırıcılar `java.io.Serializable` arayüzünü uygulamalıdır.
-
-### Worker'larda Bellek Yetersizliği (OutOfMemoryError)
-
-Bölüm boyutu fazla büyükse executor heap'i taşar. `-num-iterations` değerini artırarak bölüm başına düşen veri miktarını azaltın. Executor belleğini de açıkça belirtebilirsiniz:
-
-```bash
-java -Dspark.executor.memory=6g \
-     -Dspark.driver.memory=3g \
-     -cp weka.jar:$WEKA_SPARK_CP \
-     weka.distributed.spark.WekaClassifierSparkJob \
-     -master local[4] \
-     -input /veri/egitim.arff \
-     -output /veri/cikti/model \
-     -num-iterations 32 \
-     -W weka.classifiers.trees.RandomForest
-```
-
-### ARFF Şeması ile Veri Uyumsuzluğu
-
-`CSVToARFFHeaderSparkJob` ile üretilen şema, eğitim verisinin tamamından türetilir. Test verisinde bu şemada yer almayan yeni kategorik değerler varsa Weka hata verir. Şemayı eğitim ve test verisini birlikte içeren bir örnek üzerinde oluşturmak bu sorunu önler.
+**Başlık ile veri uyumsuzluğu.** Başlık, eğitim verisinin tamamından türetilir. Puanlanacak ya da test edilecek veride başlıkta bulunmayan yeni kategorik değerler varsa Weka hata verir. Başlığı, eğitim ve test verisinin birleşimi üzerinde oluşturmak bu sorunu önler.
 
 ---
 
-## Performans İpuçları
+## Başarım İpuçları
 
-**Bölüm sayısı:** İyi bir başlangıç noktası, kümedeki toplam CPU çekirdeğinin 2–4 katıdır. 24 çekirdekli bir kümede 48–96 bölüm makul bir aralıktır. Çok az bölüm paralelliği düşürür; çok fazla bölüm ise overhead'i artırır.
+**Bölüm sayısı.** Çok az bölüm paralelliği düşürür; çok fazla bölüm hem görev yönetimi ek yükünü artırır hem de her bölümde eğitilen modelin daha az veriyle eğitilmesine yol açar.
 
-**Kryo serileştirme:** Varsayılan Java serileştirmesi yerine Kryo kullanmak ağ trafiğini ve CPU yükünü azaltır:
+**Spark arayüzü.** İş çalışırken `http://localhost:4040` adresinden aşamaların (stage) sürelerini ve görev hatalarını izleyebilirsiniz. Hangi aşamanın darboğaz oluşturduğunu görmek eniyilemenin en hızlı yoludur.
 
-```bash
--Dspark.serializer=org.apache.spark.serializer.KryoSerializer
-```
+**Veri yerelliği (data locality).** Hesabı verinin bulunduğu makineye taşımak ağ trafiğini azaltır. HDFS kullanan yapılandırmalarda Spark görevleri mümkün olduğunca verinin bulunduğu düğümlerde çalıştırır.
 
-**Spark UI:** İş çalışırken `http://localhost:4040` adresinden DAG görselleştirmesini, aşama (stage) sürelerini ve görev başarısızlıklarını izleyebilirsiniz. Hangi aşamanın darboğaz oluşturduğunu buradan görmek, optimizasyonun en hızlı yoludur.
+**Önbellekleme (caching).** Aynı veri üzerinden birden fazla geçiş yapan işlerde (çapraz doğrulama gibi) RDD'yi bellekte tutmak disk okumalarını önler. Kendi Spark uygulamalarınızda bu `rdd.cache()` ya da `rdd.persist()` ile yapılır; Dağıtık Weka, art arda çalışan işler arasında veri kümelerini kendi içinde önbelleğe alır.
 
-**Veri yerelliliği (Data Locality):** Hesaplamayı verinin bulunduğu makineye taşımak ağ trafiğini ortadan kaldırır. HDFS kullanan yapılandırmalarda Spark bunu otomatik olarak optimize eder; mümkün olduğunca veriyi HDFS'e koyun.
-
-**Önbellekleme (Caching):** Aynı veri üzerinde birden fazla geçiş yapan işlerde (çapraz doğrulama gibi) RDD'yi bellekte tutmak tekrarlı disk okumalarını önler. Kendi Spark uygulamalarınızda bu `rdd.cache()` veya `rdd.persist()` ile yapılır; `distributedWekaSparkDev` bunu dahili olarak yönetir.
-
-**Veri karıştırma (Data Shuffling):** Eğitime başlamadan önce `RandomizedDataChunkSparkJob` ile veriyi karıştırmak, bölüm başına düşen sınıf dağılımını dengelediğinden model kalitesini artırabilir:
-
-```bash
-java -cp weka.jar:$WEKA_SPARK_CP \
-  weka.distributed.spark.RandomizedDataChunkSparkJob \
-  -master local[4] \
-  -input /veri/egitim.arff \
-  -output /veri/karisik \
-  -num-chunks 16
-```
-
----
-
-## Özet: Weka-Spark İş Sınıfları
-
-| İş Sınıfı | İşlev |
-|---|---|
-| `CSVToARFFHeaderSparkJob` | CSV'den ARFF şeması (header) üret |
-| `ArffHeaderSparkJob` | ARFF'ten başlık üret ve istatistik topla |
-| `RandomizedDataChunkSparkJob` | Veriyi karıştır ve rastgele bölümle |
-| `WekaFilterSparkJob` | Dağıtık filtre uygula |
-| `WekaClassifierSparkJob` | Dağıtık sınıflandırıcı eğit |
-| `WekaClassifierEvaluationSparkJob` | Dağıtık çapraz doğrulama ile değerlendir |
-| `WekaClustererSparkJob` | Dağıtık kümeleyici eğit |
+**Karıştırma (shuffling).** Oylamalı topluluk oluşturan sınıflandırıcılardan önce veriyi `-randomize` seçeneğiyle ya da `RandomizedDataSparkJob` ile karıştırmak, bölümlerdeki sınıf dağılımını dengeleyerek model kalitesini artırır.
 
 ---
 
 ## Kaynaklar
 
-- Apache Spark Belgeleri — [spark.apache.org/docs/latest](https://spark.apache.org/docs/latest/)
-- Weka Paketi Listesi — [waikato.github.io/weka-wiki/packages/list](https://waikato.github.io/weka-wiki/packages/list/)
-- Zaharia ve ark. (2012). *Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing.* NSDI'12.
-- Meng ve ark. (2016). *MLlib: Machine Learning in Apache Spark.* Journal of Machine Learning Research, 17(34).
+- Apache Spark belgeleri — [spark.apache.org/docs/latest](https://spark.apache.org/docs/latest/)
+- Weka paket listesi — [waikato.github.io/weka-wiki/packages/list](https://waikato.github.io/weka-wiki/packages/list/)
+- Hall, M. (2015). Weka and Spark. [markahall.blogspot.com/2015/03/weka-and-spark.html](http://markahall.blogspot.com/2015/03/weka-and-spark.html)
+- Zaharia, M. ve ark. (2012). Resilient distributed datasets: A fault-tolerant abstraction for in-memory cluster computing. *NSDI'12*.

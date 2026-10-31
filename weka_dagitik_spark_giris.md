@@ -1,78 +1,76 @@
 # Dağıtık Weka ile Apache Spark: Temel Kavramlar ve İlk Adımlar
 
+> **Sürüm notu.** Bu notlar Weka 3.8.x ile uyumlu **`distributedWekaSpark` 1.0.9** paketine (bağımlılığı `distributedWekaBase` 1.0.17) göre hazırlanmıştır. Sınıf adları, şablon adları ve varsayılan yollar bu paketin kaynak kodundan ve paket içindeki Knowledge Flow şablonlarından doğrulanmıştır. Aynı yazarın `distributedWekaSparkDev` paketi bu çalışmanın geliştirme devamıdır (Spark DataFrame kaynakları ve MLlib desteği ekler); bu notlarda kullanılmaz. Paketin 1.1.x sürümleri Weka 3.9 (geliştirici sürümü) gerektirir.
+
 ## Sorun: Veri Masaüstüne Sığmıyor
 
-Bir veri kümesi 200 GB büyüklüğündeyse ve makinenizin RAM'i 32 GB ise, tek bir Weka oturumunda o veriyle çalışmak mümkün değildir. Bu, kolayca görülebilen ama çözümü biraz düşünce gerektiren bir mühendislik problemidir.
+Bir veri kümesi 200 GB büyüklüğündeyse ve makinenin belleği (RAM) 32 GB ise, tek bir Weka oturumunda bu veriyle çalışmak mümkün değildir. Sorun kolayca görülür, ancak çözümü biraz düşünce gerektirir.
 
-İki farklı çözüm yolu açılır. Birincisi daha güçlü bir makine almak, yani dikey büyümek. Bu yol bir noktada teknik ve ekonomik sınıra çarpar; hiçbir masaüstü yüz terabaytlık veriyi belleğe sığdıramaz. İkincisi veriyi birden fazla makineye dağıtmak ve hesabı paralel yürütmek: yatay büyüme. İşte Dağıtık Weka (Distributed Weka), bu ikinci yolun Weka ekosistemindeki uygulamasıdır.
+İki çözüm yolu vardır. Birincisi daha güçlü bir makine almak, yani **dikey büyümektir** (vertical scaling). Bu yol bir noktada teknik ve ekonomik sınıra dayanır; hiçbir masaüstü yüz terabaytlık veriyi belleğe sığdıramaz. İkincisi veriyi birden fazla makineye dağıtıp hesabı paralel yürütmek, yani **yatay büyümektir** (horizontal scaling). Dağıtık Weka (Distributed Weka), bu ikinci yolun Weka ekosistemindeki uygulamasıdır.
 
-Aynı zamanda, bir algoritmanın tek makinede çok uzun sürdüğü durumlarda da dağıtık işleme devreye girer. Büyük bir Random Forest modelini yüz milyon örnek üzerinde eğitmek, tek çekirdekli bir süreçte saatlerce sürebilir; aynı iş paralel makinelerde dakikalara indirilebilir.
-
----
-
-## Veri Akışı Madenciliği ile Fark
-
-Daha önceki derslerde MOA (Massive Online Analysis — Büyük Ölçekli Çevrimiçi Analiz) çerçevesini ve Weka içinde veri akışı madenciliğini (data stream mining) gördünüz. O yaklaşımda algoritmalar sıralı (sequential) ve çevrimiçi (online) çalışır: veri gelirken bir örnek işlenir, model güncellenir, sıradaki örnek işlenir. Bellek taşmaz çünkü veri hiçbir zaman toplu olarak yüklenmez.
-
-Dağıtık Weka farklı bir kullanım senaryosunu hedefler. Burada veri büyük ama **sabit** (offline, batch): diske yazılmış devasa bir CSV dosyası. Amacınız bu verinin tamamını işleyerek bir model elde etmektir. MOA'nın akış yaklaşımı bu duruma uymaz; dağıtık toplu işleme (distributed batch processing) gerekir. Bu, fabrikada konveyör bantla gelen parçaları tek tek işlemek ile büyük bir depodan gelen tüm parçaları aynı anda birden fazla tezgâhta işlemek arasındaki fark gibidir.
+Dağıtık işleme, bir algoritmanın tek makinede çok uzun sürdüğü durumlarda da kullanılır. Büyük bir Rastgele Orman (Random Forest) modelini yüz milyon örnek üzerinde eğitmek tek bir süreçte saatler alabilir; aynı iş paralel makinelerde çok daha kısa sürede tamamlanabilir.
 
 ---
 
-## Map-Reduce: İki Aşamalı İş Modeli
+## Veri Akışı Madenciliğinden Farkı
 
-Dağıtık hesaplama çerçevelerinin büyük çoğunluğu — hem Hadoop hem Spark — **Map-Reduce** (Harita-Küçültme) programlama modelini kullanır. İsim Latince *mappa* (harita, plan) ve *reducere* (geri götürmek, birleştirmek) köklerinden gelir; ancak buradaki anlamı daha basit: veriyi dağıt ve işle (map), ardından sonuçları topla ve birleştir (reduce).
+Önceki derslerde MOA (Massive Online Analysis, büyük ölçekli çevrimiçi analiz) çerçevesi ve veri akışı madenciliği (data stream mining) ele alınmıştı. O yaklaşımda algoritmalar sıralı (sequential) ve çevrimiçi (online) çalışır: Bir örnek gelir, işlenir, model güncellenir, ardından sıradaki örnek işlenir. Veri hiçbir zaman toplu olarak yüklenmediği için bellek taşmaz.
 
-![Map-Reduce İş Modeli](images/mapreduce-akis.svg)
+Dağıtık Weka farklı bir senaryoyu hedefler. Burada veri büyüktür ama **sabittir** (çevrimdışı, toplu; offline, batch): diske yazılmış çok büyük bir CSV dosyası. Amaç bu verinin tamamını işleyerek bir model elde etmektir. Bu durumda dağıtık toplu işleme (distributed batch processing) gerekir. Fark, bir fabrikada konveyör bantla gelen parçaları tek tek işlemek ile büyük bir depodaki tüm parçaları aynı anda birden fazla tezgâhta işlemek arasındaki farka benzer.
+
+---
+
+## MapReduce: İki Aşamalı İş Modeli
+
+Dağıtık hesaplama çerçevelerinin önemli bir kısmı **MapReduce** (Türkçede "Eşle–İndirge" olarak karşılanabilir) programlama modeline dayanır (Dean ve Ghemawat, 2008). Adı, işlevsel programlamadaki *map* (her öğeye bir işlev uygulama, eşleme) ve *reduce* (öğeleri tek bir sonuçta birleştirme, indirgeme) işlemlerinden gelir. Hadoop MapReduce modeli doğrudan uygular; Spark ise bu modeli daha genel bir işlem çizgesine (DAG) genişletir.
+
+![MapReduce iş modeli](images/mapreduce-akis.svg)
 
 ### Map Aşaması
 
-Çerçeve, büyük veri kümesini birbirinden bağımsız parçalara (split) böler ve her parçayı ayrı bir işlem düğümüne gönderir. Her **map görevi** (map task), yalnızca kendi parçasını görür ve diğer görevlerin ne yaptığından habersizdir. Bu bağımsızlık önemlidir: map görevleri tam anlamıyla paralel çalışabilir, birbirini beklemez.
+Çerçeve, büyük veri kümesini birbirinden bağımsız parçalara (split) böler ve her parçayı ayrı bir işlem düğümüne gönderir. Her **map görevi** (map task) yalnızca kendi parçasını görür ve diğer görevlerin ne yaptığından habersizdir. Bu bağımsızlık sayesinde map görevleri birbirini beklemeden paralel çalışır.
 
-Map görevlerinin ürettiği çıktı, **anahtar-değer çiftleri** (key-value pairs) biçimindedir. Örneğin her map görevi kendi parçasındaki örneklerden kısmi bir model parametresi ya da özet istatistik hesaplar ve bunu belirli bir anahtarla etiketler.
+Map görevlerinin çıktısı **anahtar–değer çiftleridir** (key-value pairs). Örneğin her map görevi kendi parçasındaki örneklerden kısmi bir model ya da özet istatistik hesaplar ve bunu bir anahtarla etiketler.
 
-Mutfak benzetmesiyle: büyük bir restoranda yüz masalık siparişi karşılamak için hazırlık işini birden fazla aşçıya bölersiniz. Her aşçı kendi bölümündeki malzemeleri bağımsız olarak doğrar, pişirir ve tepsilere koyar. Bir aşçı diğerinin ne hazırladığını bilmek zorunda değildir.
+Mutfak benzetmesiyle: Yüz masalık bir siparişi karşılamak için hazırlık işi birden fazla aşçıya bölünür. Her aşçı kendi bölümündeki malzemeyi bağımsız olarak doğrar, pişirir ve tepsilere koyar.
 
-### Shuffle (Karıştırma) ve Sort (Sıralama)
+### Karıştırma (Shuffle) ve Sıralama (Sort)
 
-Map aşamasının çıktıları, çerçeve tarafından anahtarlarına göre gruplandırılır ve sıralanır. Aynı anahtara ait tüm kısmi sonuçlar bir araya getirilir. Bu adıma **shuffle** (karıştırma, Türkçede bazen "veri dağıtımı" olarak da geçer) denir ve ağ üzerinden gerçekleştiği için en maliyetli adımdır.
+Map aşamasının çıktıları anahtarlarına göre gruplanır ve sıralanır; aynı anahtara ait tüm kısmi sonuçlar aynı yere getirilir. Bu adıma **karıştırma** (shuffle) denir. Veri ağ üzerinden taşındığı için genellikle en maliyetli adımdır.
 
 ### Reduce Aşaması
 
-**Reduce görevi** (reduce task), belirli bir anahtara ait tüm kısmi sonuçları alır ve bunları birleştirir: toplar, ortalar, ya da başka bir birleştirme (aggregation) işlemi yapar. Çıktı, nihai sonuçtur — makine öğrenmesinde bu bir model, bir istatistik ya da bir değerlendirme raporu olabilir.
+**Reduce görevi** (reduce task), belirli bir anahtara ait tüm kısmi sonuçları alıp birleştirir: toplar, ortalamasını alır ya da başka bir birleştirme (aggregation) işlemi uygular. Çıktı nihai sonuçtur; makine öğrenmesinde bu bir model, bir istatistik ya da bir değerlendirme raporu olabilir. Restoran benzetmesiyle, şef aşçıların hazırladığı tepsileri birleştirerek yemeği servis eder.
 
-Restoran benzetmesiyle devam edersek: her aşçının hazırladığı tepsileri şef birleştirerek nihai yemeği tabakla servis eder.
-
-Çerçevenin kendi üstlendiği görevler şunlardır: veriyi bölmek, görevleri başlatmak ve izlemek, ve hata durumunda görevleri yeniden başlatmak. Bir düğüm çökse, o düğümün işini başka bir düğüm devralır. Bu **hata toleransı** (fault tolerance) Map-Reduce'un temel güçlerinden biridir.
+Çerçeve veriyi bölmeyi, görevleri başlatıp izlemeyi ve hata durumunda görevleri yeniden başlatmayı kendisi üstlenir. Bir düğüm çökerse işi başka bir düğüm devralır. Bu **hata toleransı** (fault tolerance) MapReduce'un temel güçlerinden biridir.
 
 ### Spark'ın Farkı
 
-Hadoop MapReduce, her iki aşama arasındaki ara sonuçları diske (HDFS'e) yazar. Makine öğrenimi algoritmaları genellikle aynı veri üzerinde defalarca geçiş yapar; her geçişte diskten okumak performansı ciddi biçimde düşürür. Spark, ara sonuçları mümkün olduğunca bellekte tutar. Bu yüzden iteratif öğrenme algoritmalarında Spark, Hadoop MapReduce'dan çok daha hızlıdır.
+Hadoop MapReduce, aşamalar arasındaki ara sonuçları diske (HDFS'e) yazar. Makine öğrenmesi algoritmaları genellikle aynı veri üzerinden defalarca geçer; her geçişte diskten okumak başarımı ciddi biçimde düşürür. Spark ara sonuçları mümkün olduğunca bellekte tutar; bu nedenle yinelemeli (iterative) öğrenme algoritmalarında Hadoop MapReduce'tan çok daha hızlıdır.
 
 ---
 
 ## Dağıtık Weka Paket Yapısı
 
-Dağıtık Weka, iki katmanlı bir paket mimarisinden oluşur.
+Dağıtık Weka iki katmanlı bir paket mimarisinden oluşur.
 
-![Dağıtık Weka Paket Mimarisi](images/dagitik-weka-paket.svg)
+![Dağıtık Weka paket mimarisi](images/dagitik-weka-paket.svg)
 
-**`distributedWekaBase`**, çerçeveden bağımsız genel makine öğrenimi görevlerini barındırır: sınıflandırıcı eğitimi, kümeleme, özet istatistik hesaplama, korelasyon. Bu görevler belirli bir dağıtık sisteme bağlı değildir; bir soyutlama katmanı işlevi görür.
+**`distributedWekaBase`**, belirli bir dağıtık sisteme bağlı olmayan genel görevleri içerir: CSV'den ARFF başlığı ve özet istatistik üretimi, sınıflandırıcı eğitimi ve değerlendirmesi, korelasyon matrisi, k-ortalamalar kümelemesi. Bu görevler bir soyutlama katmanı işlevi görür.
 
-**`distributedWekaSpark`**, bu temel görevleri Apache Spark platformunda çalıştırmak için bir sarmalayıcıdır (wrapper). Spark'a özgü veri yapılarını ve iletişim mekanizmalarını yönetir. Benzer biçimde, farklı Hadoop dağıtımları için `distributedWekaHadoop` paketleri de mevcuttur.
+**`distributedWekaSpark`**, bu görevleri Apache Spark üzerinde çalıştıran bir sarmalayıcıdır (wrapper); Spark'a özgü veri yapılarını ve iletişimi yönetir. Benzer biçimde Hadoop için `distributedWekaHadoop` paketleri vardır.
 
-Bu ayrımın pratik anlamı şudur: temel algoritmalar bir kez yazılır, farklı çerçeveler için ayrı ayrı yeniden yazılmaz. Eğer ileride yeni bir dağıtık platform için destek eklemek isteseydiniz, yalnızca yeni bir sarmalayıcı yazmanız yeterli olurdu.
+Bu ayrımın pratik anlamı şudur: Temel algoritmalar bir kez yazılır, her çerçeve için yeniden yazılmaz. Yeni bir dağıtık platform desteği eklemek için yalnızca yeni bir sarmalayıcı yazmak yeterlidir.
 
 ---
 
 ## Tasarım Hedefleri
 
-Dağıtık Weka tasarlanırken birkaç temel hedef gözetilmiştir.
+**Tanıdık deneyim.** Dağıtık Weka'nın çıktıları masaüstü Weka'nınkilerle aynı biçimdedir. Üretilen modeller standart Weka modelleridir: dosyaya kaydedilebilir, masaüstü Weka'ya yüklenebilir ve tahmin için kullanılabilir.
 
-**Tanıdık deneyim:** Standart masaüstü Weka'yı biliyorsanız, dağıtık versiyonunun çıktısı da tanıdık görünür. Değerlendirme raporları, model dosyaları — hepsi aynı biçimdedir. Dağıtık Weka'nın ürettiği modeller standart Weka modelleridir: dosya sistemine kaydedebilir, masaüstü Weka'ya yükleyebilir ve tahmin yapmak için kullanabilirsiniz.
+**Her sınıflandırıcı çalışabilir.** Weka'daki herhangi bir sınıflandırıcı ya da regresyon yöntemi dağıtık ortamda kullanılabilir. Kısaca, her veri parçası üzerinde bağımsız bir model eğitilir ve bu modeller birleştirilir (ayrıntılar aşağıda).
 
-**Her sınıflandırıcı çalışabilir:** Weka'daki herhangi bir sınıflandırıcı veya regresyon yöntemini dağıtık ortamda kullanabilirsiniz. Bunun nasıl mümkün olduğunu ileride ayrıca inceleyeceğiz; kısa cevap, her parça üzerinde bağımsız bir model eğitip ardından bunları birleştirmektir.
-
-**İlk hedef değil ama dikkate değer:** Her algoritmanın dağıtık uygulamasını yazmak başlangıç hedefleri arasında değildi. Bunun bir istisnası K-Means kümeleme algoritmasıdır; bu algoritma doğası gereği iteratif olduğundan, Spark ve Hadoop üzerinde çalışacak biçimde özel olarak yazılmıştır.
+**Algoritmaya özgü dağıtık uygulamalar.** Her algoritmanın ayrı bir dağıtık sürümünü yazmak başlangıç hedefleri arasında değildi. İstisnalardan biri k-ortalamalar (k-means) kümelemesidir; algoritma doğası gereği yinelemeli olduğundan Spark ve Hadoop üzerinde çalışacak biçimde özel olarak yazılmıştır.
 
 ---
 
@@ -80,80 +78,71 @@ Dağıtık Weka tasarlanırken birkaç temel hedef gözetilmiştir.
 
 ### Paket Yöneticisinden Kurulum
 
-Weka'yı başlatın. Karşınıza **GUI Chooser** adlı ana pencere çıkar. Bu penceredeki menü çubuğundan **Tools → Package Manager** seçin.
+Weka'yı başlatın. Karşınıza **GUI Chooser** penceresi çıkar. Menü çubuğundan **Tools → Package Manager** seçin.
 
-Package Manager penceresi açıldığında:
+1. Listede `distributedWekaSpark` paketini bulun ve satırına tıklayın; paket açıklaması alt panelde görünür.
+2. **Install** düğmesine tıklayın.
+3. Weka, `distributedWekaBase` bağımlılığının da kurulacağını bildirir; onay verin. İki paket birlikte indirilip kurulur.
 
-1. Pencerenin üst kısmındaki **arama kutusuna** `distributedWekaSpark` yazın.
-2. Listede beliren `distributedWekaSpark` satırını **tıklayın**; sağ panelde paket açıklaması görünür.
-3. Pencerenin sağ üst köşesindeki **Install** düğmesine tıklayın.
-
-Weka bir onay kutusu açar: "`distributedWekaBase` bağımlılığı da kurulsun mu?" Açılan iletişim kutusunda **Yes** seçin. Her iki paket birlikte indirilir ve kurulur.
-
-> İndirme çubuğu tamamlanana kadar Package Manager penceresini kapatmayın. Kurulum bitince listede paketin yanında "Installed" ibaresi belirir.
+> İndirme tamamlanana kadar Package Manager penceresini kapatmayın. Paket yaklaşık 60 MB büyüklüğündedir ve yerel modda çalışmak için gereken Spark 1.1.1 kitaplıklarını içerir; ayrıca Spark kurmanız gerekmez.
 
 ### Yeniden Başlatma
 
-Kurulum tamamlandıktan sonra Package Manager penceresini kapatın, ardından Weka GUI Chooser'ı da kapatın (**File → Exit** ya da pencere köşesindeki X). Weka'yı yeniden başlatın; yeni paketler ancak bu adımdan sonra aktif olur.
+Kurulum bittikten sonra Package Manager penceresini ve Weka GUI Chooser'ı kapatıp Weka'yı yeniden başlatın; yeni paketler ancak bu adımdan sonra etkin olur.
 
-### Knowledge Flow Nasıl Açılır
+### Kurulumun Doğrulanması
 
-Weka GUI Chooser penceresinde dört büyük düğme yer alır: **Explorer**, **Experimenter**, **KnowledgeFlow** ve **Workbench**. **KnowledgeFlow** düğmesine tıklayın.
-
-### Kurulumu Doğrulama
-
-Knowledge Flow açıldığında sol tarafta **Design** sekmesi altında bileşen paleti (Design Palette) görünür. Listeyi aşağı kaydırın; **Distributed (Spark)** adlı bir kategori varsa kurulum başarılıdır. Kategori adına tıklayarak genişletin — içinde şu bileşenler listelenmelidir:
+GUI Chooser'da **KnowledgeFlow** düğmesine tıklayın. Sol taraftaki **Design** paletinde **Spark** adlı bir klasör görünüyorsa kurulum başarılıdır. Klasör şu bileşenleri (step) içerir:
 
 - `ArffHeaderSparkJob`
 - `WekaClassifierSparkJob`
 - `WekaClassifierEvaluationSparkJob`
-- `WekaClustererSparkJob`
-- ve diğerleri.
+- `WekaScoringSparkJob`
+- `CorrelationMatrixSparkJob`
+- `RandomizedDataSparkJob`
+- `KMeansClustererSparkJob`
+
+Ayrıca **Templates** menüsünde `Spark:` ile başlayan hazır akışlar listelenir.
 
 ---
 
 ## Neden CSV? ARFF Değil?
 
-Bu sorunun cevabı, dağıtık sistemlerin veri depolamayı nasıl ele aldığını anlamakla doğrudan ilgilidir.
+Hadoop ve Spark, büyük dosyaları **bloklara** (block) bölerek kümedeki farklı disklere dağıtır. Bunun iki amacı vardır: büyük dosyaların dağıtık olarak saklanması ve **veri yerelliği** (data locality), yani veriyi ağ üzerinden taşımak yerine hesabı verinin bulunduğu makineye götürmek. Her düğüm kendi diskindeki bloğu işler.
 
-Hadoop ve Spark, büyük dosyaları **bloklara** (block) bölerek küme üzerindeki farklı disklere dağıtır. Bu yaklaşımın iki amacı vardır: büyük dosyaların dağıtık olarak depolanması ve **veri yerelliliği** (data locality) — yani hesabı verinin yanına götürmek, veriyi ağ üzerinden taşımak yerine. Her düğüm, kendi diskindeki bloğu işler.
+ARFF biçimi burada sorun çıkarır. Bir ARFF dosyasının **başlık bilgisi** (header) — öznitelik adları, türleri ve kategorik değerlerin listesi — yalnızca dosyanın başındadır. Dosya bloklara bölündüğünde bu bilgi yalnızca **ilk blokta** bulunur; diğer bloklar ne tür veri içerdiklerini bilmez.
 
-Bu noktada ARFF formatı bir sorun çıkarır. Bir ARFF dosyasının **başlık bilgisi** (header) — öznitelik adları, türleri, kategorik değerlerin listesi — yalnızca dosyanın başındadır. Dosya bloklara bölündüğünde, bu başlık bilgisi yalnızca **ilk blokta** bulunur. Diğer bloklar başlıksızdır ve ne tür veri içerdiklerini bilmezler.
+Bir gazetenin içindekiler sayfası yalnızca ilk sayfada olsun ve gazete kırk parçaya bölünüp kırk okuyucuya dağıtılsın. Okuyuculardan otuz dokuzu hangi haberin hangi bölümde olduğunu bilemez.
 
-Gazetenin tüm içindekiler tablosunu yalnızca ilk sayfaya koyup gazeteyi kırk parçaya böldüğünüzü düşünün. Kırk okuyucudan otuz dokuzu hangi haberin hangi bölümde olduğunu bilemez.
-
-Bu sorunu çözmek için ya ARFF'e özgü özel bir okuyucu (reader) yazmak gerekir ya da farklı bir format kullanılır. CSV (Comma-Separated Values — Virgülle Ayrılmış Değerler) dosyaları bu sorunu yaşamaz: her satır kendi başına bir kayıttır, başlık bilgisi içermez (ya da bazen sadece ilk satırda sütun adları bulunur ama bu olmadan da çalışılabilir). Spark ve Hadoop'ta CSV için hazır okuyucular mevcuttur.
-
-Bu nedenle Dağıtık Weka, CSV dosyaları üzerinde çalışır ve ARFF başlık bilgisini ayrı bir iş adımında (ArffHeaderSparkJob) oluşturur. Bu başlık bir kez oluşturulup saklanır; sonraki işler bu bilgiyi yeniden hesaplamadan kullanır.
+CSV (Comma-Separated Values, virgülle ayrılmış değerler) dosyalarında her satır kendi başına bir kayıttır ve başlık bilgisi içermez; bu nedenle bloklara bölünmeye uygundur. Dağıtık Weka bu yüzden CSV dosyalarıyla çalışır ve ARFF başlığını ayrı bir iş adımında (`ArffHeaderSparkJob`) bütün veriyi tarayarak oluşturur. Başlık bir kez oluşturulup saklanır; sonraki işler onu yeniden hesaplamadan kullanır.
 
 ---
 
 ## Örnek Veri Kümesi: Hypothyroid
 
-Bu derste kullanacağımız veri kümesi, UCI Machine Learning Repository'den alınan **hypothyroid** (hipotiroid — tiroid bezi yetersizliği) verisidir. Klinik amaçlı bir sınıflandırma problemidir: hastanın yaşı, cinsiyeti ve çeşitli tıbbi ölçümleri kullanılarak tiroid hastalığı türü tahmin edilmeye çalışılır.
+Bu derste UCI Machine Learning Repository'deki **hypothyroid** (hipotiroidi, tiroit bezinin yetersiz çalışması) veri kümesi kullanılır. Klinik bir sınıflandırma problemidir: Hastanın yaşı, cinsiyeti ve çeşitli tıbbi ölçümleri kullanılarak tiroit hastalığının türü tahmin edilir.
 
-| Özellik          | Değer |
-| ---------------- | ----- |
-| Örnek sayısı     | 3.772 |
-| Öznitelik sayısı | 30    |
-| Sınıf sayısı     | 4     |
+| Özellik | Değer |
+| :--- | :---: |
+| Örnek sayısı | 3772 |
+| Öznitelik sayısı (sınıf dahil) | 30 |
+| Sınıf sayısı | 4 |
 
-Sınıf dağılımı dengesizdir — bu, gerçek dünya verilerinde son derece sık karşılaşılan bir durumdur:
+Sınıf dağılımı dengesizdir; bu, gerçek dünya verilerinde çok sık karşılaşılan bir durumdur:
 
-| Sınıf                     | Sayı  |
-| ------------------------- | ----- |
-| `negative` (hastalık yok) | 3.481 |
-| `compensated_hypothyroid` | 194   |
-| `primary_hypothyroid`     | 95    |
-| `secondary_hypothyroid`   | 2     |
+| Sınıf | Sayı |
+| :--- | ---: |
+| `negative` (hastalık yok) | 3481 |
+| `compensated_hypothyroid` | 194 |
+| `primary_hypothyroid` | 95 |
+| `secondary_hypothyroid` | 2 |
 
-Verinin CSV versiyonu (başlık satırı olmadan), kurduğunuz `distributedWekaSpark` paketinin `sample_data/` dizininde bulunur:
+Verinin başlık satırı olmayan CSV sürümü ve öznitelik adlarını içeren `hypothyroid.names` dosyası, kurulan paketin `sample_data/` dizinindedir:
 
-```text
-~/wekafiles/packages/distributedWekaSpark/sample_data/hypothyroid.csv
-```
+- **Linux / macOS:** `~/wekafiles/packages/distributedWekaSpark/sample_data/`
+- **Windows:** `C:\Users\<KullanıcıAdı>\wekafiles\packages\distributedWekaSpark\sample_data\`
 
-ARFF versiyonuna Weka kurulum dizinindeki `data/` klasöründen de ulaşabilirsiniz; veriyi Weka Explorer'da incelemek istiyorsanız bu versiyonu kullanın.
+ARFF sürümü Weka kurulum dizinindeki `data/hypothyroid.arff` dosyasıdır; veriyi Explorer'da incelemek için bu sürüm kullanılabilir.
 
 ---
 
@@ -161,364 +150,283 @@ ARFF versiyonuna Weka kurulum dizinindeki `data/` klasöründen de ulaşabilirsi
 
 ### Şablon Akışlar
 
-`distributedWekaSpark` paketi, hazır şablon akışlar (template flows) ile birlikte gelir. Bu akışlar herhangi bir Spark kümesi kurulumu gerektirmeden doğrudan çalıştırılabilir; Spark'ın **yerel modu** (local mode) devreye girerek makinenizin tüm CPU çekirdeklerini işlem düğümü olarak kullanır.
+`distributedWekaSpark` paketi hazır şablon akışlarla (template flows) gelir. Bu akışlar Spark kümesi kurmadan doğrudan çalıştırılabilir; Spark'ın **yerel modu** (`local[*]`) makinenin tüm işlemci çekirdeklerini işçi olarak kullanır. Paketteki şablonlar şunlardır:
 
-Şablon yüklemek için Knowledge Flow araç çubuğundaki **Templates** düğmesine tıklayın. Düğme genellikle araç çubuğunun sağ tarafındadır ve üzerinde küçük bir belge ikonu bulunur. Açılan açılır menüde `Spark —` önekli satırlar görünür. **"Spark — Create ARFF header"** satırını tıklayın.
+| Şablon adı | İçerik |
+| :--- | :--- |
+| Spark: create an ARFF header | Başlık ve özet istatistik üretimi |
+| Spark: create header with quartiles and graphs | Başlığa çeyrek değerler ekler, öznitelik grafiklerini çizer |
+| Spark: compute a correlation matrix and run PCA | Korelasyon matrisi ve temel bileşenler analizi |
+| Spark: train and save two classifiers | İki sınıflandırıcı eğitip kaydeder |
+| Spark: cross-validate two classifiers | İki sınıflandırıcıyı çapraz doğrulamayla değerlendirir |
+| Spark: run k-means parallel | k-ortalamalar (k-means‖ başlatmalı) kümeleme |
+| Spark: train a random forest and score data | Rastgele orman eğitip veriyi puanlar (scoring) |
 
-Şablon yüklendiğinde tuvalde iki bileşen kendiliğinden yerleşir: solda `ArffHeaderSparkJob`, sağda `TextViewer`. Bu ikisi arasında bir ok (bağlantı) bulunur.
+Şablonu yüklemek için Knowledge Flow araç çubuğundaki **Templates** düğmesine tıklayın ve **"Spark: create an ARFF header"** satırını seçin. Tuvale iki bileşen yerleşir: `ArffHeaderSparkJob` ve `TextViewer`; aralarında bir bağlantı oku bulunur.
 
 ### Akış Yapısı
 
-![ARFF Başlığı Oluşturma Akışı](images/kf-arff-header-akis.svg)
+![ARFF başlığı oluşturma akışı](images/kf-arff-header-akis.svg)
 
-Bu akış yalnızca iki bileşenden oluşur:
-
-1. **`ArffHeaderSparkJob`** — CSV dosyasını Spark üzerinden tarayarak ARFF başlık bilgisini ve özet istatistikleri hesaplar.
+1. **`ArffHeaderSparkJob`** — CSV dosyasını Spark üzerinden tarayarak ARFF başlığını ve özet istatistikleri hesaplar.
 2. **`TextViewer`** — Sonucu metin olarak görüntüler.
 
-Bu iki bileşen arasındaki bağlantı tipi **`dataset`**tir: bir bileşen veri ürettiğinde, diğerine aktarır.
+Şablonda `ArffHeaderSparkJob` ile `TextViewer` arasında iki bağlantı vardır: `dataSet` (oluşturulan başlık bir veri kümesi nesnesi olarak) ve `text` (aynı başlık metin olarak). Spark işlerini birbirine bağlayan bağlantı türü ise `success`'tir; bkz. sonraki bölümler.
 
-### Giriş Dosyasını Ayarlama
+### Ayarların Kontrol Edilmesi
 
-Şablonu çalıştırmadan önce `ArffHeaderSparkJob` bileşenini CSV dosyasına yönlendirmeniz gerekir.
+Şablonlar, örnek veri için gereken ayarlarla hazır gelir. Çalıştırmadan önce ayarları görmek için tuvaldeki `ArffHeaderSparkJob` kutusuna çift tıklayın. Açılan pencerede iki sekme vardır:
 
-1. Tuvaldeki `ArffHeaderSparkJob` kutusuna **çift tıklayın**. İki sekmeli bir yapılandırma diyalogu açılır.
-2. Açılan diyalogda ilk sekme **Spark Config** sekmesidir. Bu sekmedeki **inputFile** alanını bulun.
-3. Alanın sağındaki **…** (üç nokta) düğmesine tıklayın; dosya seçici penceresi açılır.
-4. `hypothyroid.csv` dosyasını bulup seçin. Dosyanın konumu şudur:
-   - **Linux / macOS:** `~/wekafiles/packages/distributedWekaSpark/sample_data/hypothyroid.csv`
-   - **Windows:** `C:\Users\KullanıcıAdı\wekafiles\packages\distributedWekaSpark\sample_data\hypothyroid.csv`
-5. **outputDirectory** alanı varsayılan olarak `sparkOutput` değerini taşır; bu dizin çalışma sırasında otomatik oluşturulur, değiştirmenize gerek yoktur.
-6. Şimdi ikinci sekmeye geçin: **ArffHeaderSparkJob** sekmesi.
-7. **attributeNamesFile** alanının sağındaki **…** düğmesine tıklayın ve aynı dizindeki `hypothyroid.names` dosyasını seçin. Bu dosya her satırda bir öznitelik adı içerir; Weka sütunları bu adlarla etiketler.
-8. **OK** düğmesine tıklayarak diyalogu kapatın.
+1. **Spark configuration** sekmesi:
+   - **inputFile:** `${WEKA_HOME}/packages/distributedWekaSpark/sample_data/hypothyroid.csv`
+   - **outputDir:** `${user.home}/sparkOutput` — çıktıların yazılacağı dizin; çalışma sırasında kendiliğinden oluşturulur.
+   - **masterHost:** `local[*]` — yerel mod, tüm çekirdekler.
+   - **minInputSlices:** `4` — verinin en az kaç bölüme (partition) ayrılacağı.
+2. **ArffHeaderSparkJob** sekmesi:
+   - **attributeNamesFile:** `hypothyroid.names` dosyasının yolu. Bu dosya her satırda bir öznitelik adı içerir; Weka sütunları bu adlarla etiketler.
+   - **outputHeaderFileName:** `hypo.arff`.
 
-### Akışı Çalıştırma
+`${WEKA_HOME}` Weka'nın paket dizinini (`wekafiles`), `${user.home}` ise kullanıcının ev dizinini gösteren ortam değişkenleridir. Kendi verinizle çalışırken bu alanları değiştirmeniz yeterlidir.
 
-Knowledge Flow araç çubuğundaki **▶ Başlat** düğmesine tıklayın. Log alanını genişletin; Spark çok sayıda log satırı üretir ve iş durumunu buradan izleyebilirsiniz.
+### Akışın Çalıştırılması
 
-İş tamamlandığında log'da şuna benzer bir satır görünür:
+Araç çubuğundaki **çalıştır** (▶) düğmesine tıklayın. Spark çok sayıda günlük (log) satırı üretir; işin durumu Knowledge Flow'un alt kısmındaki günlük panelinden izlenebilir. İş bittiğinde günlükte Spark bağlamının (`SparkContext`) kapatıldığına ilişkin bir satır görülür. `SparkContext`, Spark'ın bir uygulamayı yürütmek için oluşturduğu merkezi nesnedir.
+
+### Sonuçların Okunması
+
+`TextViewer` bileşenine sağ tıklayıp **Show results** seçin. Çıktı standart bir ARFF başlığıdır; ancak her özniteliğin özet istatistikleri, adı `arff_summary_` ile başlayan ek nominal öznitelikler olarak başlığa eklenmiştir. Kısaltılmış biçimi şöyledir (değerler, `sample_data/hypothyroid.csv` dosyasından ayrıca hesaplanarak doğrulanmış ve yuvarlanmıştır):
 
 ```text
-INFO: Successfully stopped SparkContext
-```
-
-`SparkContext`, Spark'ın bir işi koordine etmek için başlattığı merkezi nesnedir. Bu satır, işin başarıyla tamamlandığını gösterir.
-
-### Sonuçları Okumak
-
-`TextViewer` bileşenine sağ tıklayın → **Show results**. Şuna benzer bir çıktı görürsünüz:
-
-```arff
 @relation hypothyroid
 
-@attribute age NUMERIC
+@attribute age numeric
 @attribute sex {F,M}
-@attribute on_thyroxine {f,t}
-... (diğer öznitelikler) ...
+...
 @attribute Class {negative,compensated_hypothyroid,primary_hypothyroid,secondary_hypothyroid}
+@attribute arff_summary_age {count_3771.0,sum_195096.0,sumSq_11614302.0,min_1.0,max_455.0,missing_1.0,mean_51.74,stdDev_20.08}
+@attribute arff_summary_sex {F_2480,M_1142,**missing**_150}
+...
+@attribute arff_summary_Class {negative_3481,compensated_hypothyroid_194,primary_hypothyroid_95,secondary_hypothyroid_2,**missing**_0}
 
 @data
-
-% === Ozet Istatistikler (Summary Statistics) ===
-%
-% age_count=3772 age_sum=156223 age_sumofsquares=8291047
-% age_min=1 age_max=92 age_mean=41.43 age_stddev=21.52
-%
-% sex_F=2480 sex_M=1292
-%
-% Class_negative=3481 Class_compensated_hypothyroid=194
-% Class_primary_hypothyroid=95 Class_secondary_hypothyroid=2
 ```
 
-Çıktı iki bölümden oluşur. İlk bölüm standart bir ARFF başlığıdır: öznitelik adları, türleri ve nominal özniteliklerin olası değerleri. İkinci bölüm, `%` ile başlayan yorum satırları biçiminde eklenmiş özet istatistiklerdir.
+**Sayısal öznitelikler için** adet (count), toplam (sum), kareler toplamı (sumSq), en küçük (min), en büyük (max), eksik değer sayısı (missing), ortalama (mean) ve standart sapma (stdDev) hesaplanır. Kareler toplamının saklanması rastlantı değildir: Ortalama ve standart sapma, parçalar üzerinde ayrı ayrı hesaplanan adet, toplam ve kareler toplamının basitçe toplanmasıyla elde edilebilir. Bu, MapReduce'a uygun bir istatistiktir.
 
-**Sayısal öznitelikler için:** adet (count), toplam (sum), karelerin toplamı (sum of squares), minimum, maksimum, ortalama (mean) ve standart sapma (standard deviation) hesaplanır.
+**Nominal öznitelikler için** her değerin kaç kez geçtiği (frekans dağılımı) ve eksik değer sayısı hesaplanır. Sınıf özniteliğinde `negative` sınıfının baskınlığı hemen görülür.
 
-**Nominal öznitelikler için:** her olası değerin kaç kez geçtiği, yani frekans dağılımı (frequency distribution) hesaplanır. Sınıf özniteliğine bakıldığında, `negative` sınıfının baskın olduğu hemen görülür — 3.481 örnek.
+**Özet istatistiklerin öğrettiği ilk ders: aykırı değer.** `age` özniteliğinin en büyük değeri **455**'tir. Bir insanın 455 yaşında olamayacağı açıktır; bu bir veri giriş hatasıdır ve verideki 3771 yaş değerinden yalnızca biridir (diğer en büyük değerler 93–94). Tek bir aykırı değer, ortalamayı 51,63'ten 51,74'e, standart sapmayı ise 18,98'den 20,08'e çıkarmaktadır. Büyük veri kümelerinde veriyi satır satır incelemek mümkün olmadığından, ilk özet istatistiklere bakarak bu tür hataları yakalamak veri hazırlamanın vazgeçilmez adımıdır.
 
 ### Bu İş Neden Önemli?
 
-ARFF başlığı, sonraki tüm Spark işleri için bir **ön koşul** niteliğindedir. Sınıflandırıcı eğitimi ya da değerlendirme işleri, CSV verisini işleyebilmek için öznitelik meta bilgisine ihtiyaç duyar. Bu başlık bir kez üretilip diske kaydedildiğinde, sonraki işler onu yeniden hesaplamak zorunda kalmaz. Bu, özellikle büyük veri kümelerinde önemli bir zaman tasarrufudur.
+ARFF başlığı sonraki tüm Spark işlerinin **ön koşuludur**. Sınıflandırıcı eğitimi ya da değerlendirme işleri, CSV verisini doğru yorumlayabilmek için öznitelik bilgisine ihtiyaç duyar. Başlık bir kez üretilip diske (`sparkOutput/arff/hypo.arff`) kaydedildiğinde sonraki işler onu yeniden hesaplamak zorunda kalmaz; bu, büyük veri kümelerinde önemli bir zaman tasarrufudur.
 
 ---
 
 ## İşlerin Yapılandırılması
 
-Knowledge Flow'daki her bileşen, bağımsız olarak yapılandırılabilir. Herhangi bir Spark bileşenine **çift tıklarsanız** ya da sağ tıklayıp **Configure...** seçerseniz iki sekmeli bir diyalog açılır.
+Her Spark bileşeni bağımsız olarak yapılandırılabilir. Bir bileşene çift tıklandığında ya da sağ tıklanıp **Configure...** seçildiğinde bir yapılandırma penceresi açılır.
 
-### Spark Yapılandırma Sekmesi
+### Spark Configuration Sekmesi
 
-İlk sekme, Spark altyapısına ait genel ayarları barındırır:
+İlk sekme Spark altyapısına ait genel ayarları içerir:
 
-| Parametre            | Açıklama                                                                                           |
-| -------------------- | -------------------------------------------------------------------------------------------------- |
-| **InputFile**        | İşlenecek CSV dosyasının yolu                                                                      |
-| **masterHost**       | Spark master sürecinin çalıştığı makine. Yerel çalışma için `localhost` ve `(*)` — tüm çekirdekler |
-| **masterPort**       | Gerçek küme kullanımında master'ın dinlediği port                                                  |
-| **outputDirectory**  | İşin sonuçlarını yazacağı dizin (yerel ya da HDFS yolu)                                            |
-| **minInputSlices**   | Veri kümesinin kaç mantıksal parçaya bölüneceği                                                    |
+| Parametre | Açıklama |
+| :--- | :--- |
+| **inputFile** | İşlenecek CSV dosyasının yolu (yerel yol ya da `hdfs://...`) |
+| **outputDir** | Sonuçların yazılacağı dizin (yerel ya da HDFS yolu) |
+| **masterHost** | Spark ana sürecinin adresi. Yerel çalışma için `local[*]` (tüm çekirdekler) ya da `local[4]` (dört iş parçacığı) |
+| **masterPort** | Gerçek bir kümede ana sürecin dinlediği port (bağımsız Spark kümesinde varsayılan 7077) |
+| **minInputSlices** | Verinin en az kaç mantıksal bölüme (partition) ayrılacağı; paralellik derecesini belirler |
+| **maxInputSlices** | Bölüm sayısının üst sınırı |
 
-`minInputSlices` parametresi paralellik derecesini belirler. 25 makineli, her biri 4 çekirdekli bir kümede en verimli çalışma için 100 veya daha az parça yeterlidir; bu, tüm veriyi tek bir görev dalgasında işler.
+`minInputSlices`, aynı anda kaç görevin çalışabileceğini doğrudan etkiler. Örneğin 25 makineli ve her biri 4 çekirdekli bir kümede en az 100 bölüm kullanmak, tüm çekirdeklere aynı anda iş verilmesini sağlar.
 
-### ArffHeaderSparkJob Sekmesi
+### İşe Özgü Sekmeler
 
-İkinci sekme, o bileşene özgü ayarları içerir. `ArffHeaderSparkJob` için bu sekme CSV ayrıştırma seçeneklerini kapsar:
+`ArffHeaderSparkJob` dışındaki işlerin penceresinde ayrıca **ARFF header/CSV parsing** sekmesi ve işin kendi sekmesi bulunur. `ArffHeaderSparkJob` için ayarlar şunlardır:
 
-- **Alan ayırıcı** (field separator), tarih formatı vb.
-- **Öznitelik adları:** Başlıksız CSV için öznitelik adlarını iki yoldan girebilirsiniz — virgülle ayrılmış liste ya da bir dosyadan okuma. Örnekte `hypothyroid.names` adlı dosya kullanılır; bu dosya her satırda bir öznitelik adı içerir.
-- **pathToExistingHeader:** Başlık dosyası daha önce oluşturulduysa bu alana yolunu girin. Weka dosyayı yeniden hesaplamaz, doğrudan yükler. Bu, büyük veri kümelerinde önemli bir zaman tasarrufudur.
-- **ARFF başlık dosyasının adı:** Oluşturulacak başlık dosyasına verilecek ad (ör. `hypo.arff`).
+- **CSV ayrıştırma seçenekleri:** alan ayırıcı, eksik değer simgesi, tarih biçimi vb.
+- **attributeNames / attributeNamesFile:** Başlıksız CSV için öznitelik adları virgülle ayrılmış bir liste olarak ya da her satırda bir ad bulunan bir dosyadan verilir.
+- **pathToExistingHeader:** Başlık daha önce oluşturulduysa dosya yolu buraya yazılır; Weka veriyi yeniden taramaz, başlığı doğrudan yükler.
+- **outputHeaderFileName:** Oluşturulacak başlık dosyasının adı (örneğin `hypo.arff`).
 
 ---
 
 ## İki Sınıflandırıcı Eğitmek
 
-Knowledge Flow araç çubuğundaki **Templates** düğmesine tıklayın, açılan menüden **"Spark — Train and save two classifiers"** satırını seçin.
+**Templates** menüsünden **"Spark: train and save two classifiers"** şablonunu seçin.
 
-![İki Sınıflandırıcı Eğitim Akışı](images/kf-iki-siniflandirici-akis.svg)
+![İki sınıflandırıcı eğitim akışı](images/kf-iki-siniflandirici-akis.svg)
 
-Akış dört bileşenden oluşur:
+Akış şu bileşenlerden oluşur:
 
-1. **`ArffHeaderSparkJob`** — CSV verisini yükler ve RDD'ye dönüştürür. Daha önce oluşturulmuş bir başlık dosyası varsa (`pathToExistingHeader` dolu ise) yeniden analiz yapmaz.
-2. **`WekaClassifierSparkJob`** (Naive Bayes) — İlk sınıflandırıcıyı eğitir.
-3. **`RandomlyShuffleDataSparkJob`** — Veri sıralamasını karıştırır (aşağıda ayrıca ele alınıyor).
-4. **`WekaClassifierSparkJob`** (JRip) — İkinci sınıflandırıcıyı eğitir.
+1. **`ArffHeaderSparkJob`** — CSV verisini yükler ve başlığı hazırlar. `pathToExistingHeader` alanı önceki işin ürettiği `sparkOutput/arff/hypo.arff` dosyasını gösterdiğinden veri yeniden taranmaz.
+2. **`WekaClassifierSparkJob`** — Naive Bayes sınıflandırıcısını eğitir; model `naiveBayes.model` adıyla kaydedilir.
+3. **`RandomlyShuffleDataSparkJob`** — Sınıfı `RandomizedDataSparkJob` olan bu bileşen, verinin sırasını karıştırır ve veriyi dört bölüme (`numRandomlyShuffledSplits = 4`) ayırır (aşağıda ayrıca ele alınmıştır).
+4. **`WekaClassifierSparkJob2`** — JRip kural öğrenicisini eğitir; model `votedJRIP.model` adıyla kaydedilir.
 
-Her iki `WekaClassifierSparkJob` bileşeni de bir `TextViewer`'a `text` bağlantısıyla bağlıdır; model açıklaması ekranda görüntülenir.
+Spark işleri birbirine `success` bağlantısıyla bağlanır: Bir iş başarıyla bittiğinde sonraki iş başlar. Her iki `WekaClassifierSparkJob` bileşeni de bir `TextViewer`'a `text` bağlantısıyla bağlıdır ve model açıklaması ekranda görüntülenir.
 
-### Bileşen Yapılandırması — Adım Adım
+### Ayarlar
 
-#### 1. ArffHeaderSparkJob yapılandırması
+Şablonun ayarları hazırdır; yapılandırma pencerelerinde şunları görebilirsiniz:
 
-Tuvaldeki `ArffHeaderSparkJob` kutusuna çift tıklayın.
+- Sınıflandırıcı işlerinin kendi sekmesinde **classAttribute** (`last`, yani son öznitelik `Class`), **modelFileName** ve **classifier** alanları bulunur. Sınıflandırıcıyı değiştirmek için classifier alanına tıklanıp Weka'nın sınıflandırıcı seçicisinden istenen yöntem seçilir.
+- **numIterations** alanı veri üzerinden kaç kez geçileceğini belirtir. Varsayılan değer 1'dir; 1'den büyük değerler yalnızca SGD gibi artımlı (incremental) sınıflandırıcılarda anlamlıdır. Bu alan verinin kaç parçaya bölüneceğini **belirlemez**; bölüm sayısını `minInputSlices` ve karıştırma işindeki bölüm sayısı belirler.
 
-- **Spark Config** sekmesi → **inputFile** alanının sağındaki **…** düğmesine tıklayın → `hypothyroid.csv` dosyasını seçin.
-- **ArffHeaderSparkJob** sekmesi → **attributeNamesFile** alanına `hypothyroid.names` dosyasının yolunu girin.
-- **OK** tıklayın.
+### Akışın Çalıştırılması ve Sonuçların Okunması
 
-#### 2. Naive Bayes için WekaClassifierSparkJob yapılandırması
+Çalıştır düğmesine tıklayın. İki sınıflandırıcı sırayla eğitilir. Akış bitince her `TextViewer` bileşenine sağ tıklayıp **Show results** seçin:
 
-`ArffHeaderSparkJob`'dan çıkan `success` oku ile bağlı olan ilk `WekaClassifierSparkJob` kutusuna çift tıklayın.
-
-- **Spark Config** sekmesi:
-  - **inputFile**: `hypothyroid.csv` yolunu girin.
-  - **outputDirectory**: `sparkOutput` (varsayılan; değiştirmenize gerek yok).
-- **WekaClassifierSparkJob** sekmesi:
-  - **classAttribute**: `Class` yazın (veri kümesindeki tahmin hedefi sütunu).
-  - **modelFileName**: `naiveBayes.model` yazın.
-  - **classifier** alanının yanındaki **Edit...** düğmesine tıklayın. Açılan sınıflandırıcı seçicisinde `weka.classifiers.bayes.NaiveBayes` seçili olduğunu doğrulayın; değilse listeden seçin.
-- **OK** tıklayın.
-
-#### 3. RandomlyShuffleDataSparkJob yapılandırması
-
-Bu bileşene çift tıklayın.
-
-- **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
-- **OK** tıklayın.
-
-#### 4. JRip için WekaClassifierSparkJob yapılandırması
-
-`RandomlyShuffleDataSparkJob`'dan çıkan okla bağlı ikinci `WekaClassifierSparkJob` kutusuna çift tıklayın.
-
-- **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
-- **WekaClassifierSparkJob** sekmesi:
-  - **classAttribute**: `Class`.
-  - **modelFileName**: `jripVoted.model`.
-  - **classifier** → **Edit...** düğmesine tıklayın → listeden `weka.classifiers.rules.JRip` seçin.
-- **OK** tıklayın.
-
-### Akışı Çalıştırmak ve Sonuçları Okumak
-
-Araç çubuğundaki **▶ Başlat** düğmesine tıklayın. Log alanında "Successfully stopped SparkContext" satırı görünene kadar bekleyin. İki sınıflandırıcı sırayla eğitilir. Akış tamamlandığında her `TextViewer` kutusuna ayrı ayrı **sağ tıklayın → Show results**:
-
-**Naive Bayes çıktısı:** Beklediğiniz gibi, tek bir Naive Bayes modeli — masaüstü Weka çıktısıyla neredeyse özdeş.
-
-**JRip çıktısı:** Beklenmedik bir şey: tek bir kural seti yerine dört ayrı JRip kural seti, `weka.classifiers.meta.BatchPredictorVote` adlı bir meta-sınıflandırıcı içinde birleştirilmiş olarak gelir. Bu neden böyle?
+- **Naive Bayes çıktısı:** Tek bir Naive Bayes modeli; masaüstü Weka'nın çıktısıyla aynı biçimdedir.
+- **JRip çıktısı:** Tek bir kural kümesi yerine, Weka'nın `Vote` meta sınıflandırıcısından türetilmiş `weka.classifiers.meta.BatchPredictorVote` içinde birleştirilmiş dört ayrı JRip kural kümesi görülür. Bunun nedeni bir sonraki başlıkta açıklanmıştır.
 
 ---
 
 ## Sınıflandırıcı Sonuçları: Neden Farklı Model Yapıları?
 
-![Dağıtık Model Birleştirme](images/dagitik-model-birlestirme.svg)
+![Dağıtık model birleştirme](images/dagitik-model-birlestirme.svg)
 
-Cevap, Dağıtık Weka'nın modelleri nasıl birleştirdiğinde yatar.
+Veri, bellekte N bölümlü bir Spark veri yapısı (RDD) olarak tutulur. Her bölüm bir işçi (worker; yerel modda bir işlemci çekirdeği) tarafından işlenir. Her map görevi kendi bölümünde **kısmi bir model** (partial model) eğitir; reduce aşaması bu modelleri birleştirir.
 
-`ArffHeaderSparkJob`, CSV verisini bellekte N bölümlü bir RDD olarak temsil eder. Her bölüm bir worker tarafından (ya da yerel modda bir CPU çekirdeği tarafından) işlenir. Her map görevi, kendi bölümü üzerinde **kısmi bir model** (partial model) eğitir.
+**Birleştirilebilir modeller (Naive Bayes).** Weka'da `Aggregateable` arayüzünü uygulayan sınıflandırıcıların kısmi modelleri tek bir modelde birleştirilebilir. Naive Bayes bunlardan biridir: Her bölümde hesaplanan sayımlar ve istatistikler toplanabilir. Bu nedenle reduce aşaması tek ve tam bir Naive Bayes modeli üretir; model, tüm veri üzerinde sıralı eğitimle elde edilen modelle aynıdır.
 
-**Naive Bayes durumu:** Bu algoritma, olasılık tahminlerini (probability estimators) artımlı ve toplanabilir biçimde hesaplar. Bölüm 1 üzerinde hesaplanan istatistikler ile bölüm 2 üzerinde hesaplananlar doğrudan toplanabilir; sonuç, tüm veri üzerinde sıralı çalıştırmayla elde edilen modelle **özdeştir**. Bu nedenle reduce aşaması tek ve tam bir Naive Bayes modeli üretir.
+**Birleştirilemeyen modeller (JRip, karar ağaçları).** Kural kümelerini ya da ağaçları matematiksel olarak tek bir modelde birleştirmek mümkün değildir. Dağıtık Weka burada pratik bir yol izler: Kısmi modelleri olduğu gibi alır ve bunları bir **oylamalı topluluk** (voted ensemble) modelinde bir araya getirir. Dört bölüm varsa dört JRip kural kümesi elde edilir. Tahmin sırasında Weka'nın `Vote` sınıflandırıcısının varsayılan kuralı uygulanır: Dört modelin sınıf olasılıklarının **ortalaması** alınır ve en yüksek ortalamalı sınıf seçilir.
 
-**JRip ve karar ağacı durumu:** Kural setlerini ya da ağaçları matematiksel olarak birleştirmek çok daha karmaşıktır; kısmi modeller doğrudan toplanamaz. Dağıtık Weka burada pratik bir yol seçer: kısmi modelleri olduğu gibi alır ve bunları **oy birliğiyle çalışan bir topluluk modeline** (voted ensemble) dönüştürür. Dört bölüm varsa dört ayrı JRip kural seti elde edilir ve tahmin zamanında çoğunluk oyu kullanılır.
-
-Bu yaklaşım, sıralı eğitimle özdeş bir sonuç vermez; ancak pratikte makul doğruluk değerleri üretir ve büyük veri kümelerinde uygulanabilir tek seçenektir. Algoritmanın bu konuda ne yapacağını bilmek, sonuçları yorumlarken yanılgıya düşmemizi önler.
+Bu yaklaşım sıralı eğitimle aynı modeli vermez; ancak pratikte makul doğruluk sağlar ve çok büyük veri kümelerinde uygulanabilir bir çözümdür. Algoritmanın bu konuda nasıl davrandığını bilmek, sonuçları yorumlarken yanılgıya düşmeyi önler.
 
 ---
 
 ## Çıktılar Dosya Sisteminde
 
-Akış tamamlandığında çıktılar, yapılandırmada belirtilen dizine yazılır (`outputDirectory`, varsayılan `sparkOutput`):
+Akış tamamlandığında çıktılar yapılandırmada belirtilen dizine (`outputDir`, şablonlarda `${user.home}/sparkOutput`) yazılır. Her iş kendi alt dizinini kullanır:
 
 ```text
 sparkOutput/
-├── arffHeader/
-│   └── hypo.arff          ← ArffHeaderSparkJob çıktısı
+├── arff/
+│   └── hypo.arff            ← ArffHeaderSparkJob çıktısı
+├── randomized/              ← RandomizedDataSparkJob çıktısı (karıştırılmış bölümler)
 └── model/
-    ├── naiveBayes.model    ← Tek Naive Bayes modeli
-    └── jripVoted.model     ← BatchPredictorVote (4 JRip modeli)
+    ├── naiveBayes.model     ← Tek Naive Bayes modeli
+    └── votedJRIP.model      ← BatchPredictorVote (4 JRip modeli)
 ```
 
-Bu model dosyaları standart Weka formatındadır. Masaüstü Weka'ya yüklenip tahmin yapmak için kullanılabilir; sanki masaüstünde eğitilmiş gibi davranırlar.
+Model dosyaları standart Weka biçimindedir; masaüstü Weka'ya yüklenip tahmin için kullanılabilir.
 
 ---
 
-## Veriyi Karıştırmak: RandomlyShuffleDataSparkJob
+## Verinin Karıştırılması: `RandomizedDataSparkJob`
 
-Bu bileşen, adından anlaşıldığı gibi, RDD içindeki örneklerin sırasını dağıtık biçimde rastgele karıştırır.
+Bu iş, veri kümesindeki örneklerin sırasını dağıtık biçimde rastgele karıştırır ve veriyi istenen sayıda bölüme ayırır. Sınıf özniteliği belirtilmişse bölümleri **katmanlandırır** (stratify): Her bölümdeki sınıf oranları tüm verideki oranlara yakın olur.
 
-Peki bu neden gerekli?
+Peki bu neden gereklidir? Veri sistematik biçimde toplanmışsa (örneğin önce tüm negatif vakalar, ardından pozitif vakalar sıralanmışsa) Spark'ın oluşturduğu bölümler sınıf dağılımı açısından dengesiz olabilir. En kötü durumda bir bölümde bazı sınıflar hiç bulunmaz ve o bölümde eğitilen kısmi model bu sınıfları hiç öğrenemez.
 
-Bir veri kümesi sistematik biçimde toplanmışsa — örneğin önce tüm negatif vakalar, ardından pozitif vakalar sıralanmışsa — Spark'ın oluşturduğu bölümler sınıf dağılımı açısından dengesiz olabilir. En kötü durumda bir bölümde belirli bir sınıf hiç temsil edilmez. Bu, o bölüm üzerinde eğitilen kısmi modelin ilgili sınıfı hiç öğrenmemesi anlamına gelir.
-
-Naive Bayes bu sorundan etkilenmez: olasılık tahminleri örnek sırasından bağımsız hesaplanır. Ancak karar ağaçları ve kural öğrenicileri gibi algoritmalar sınıf dağılımına duyarlıdır. Bu nedenle `RandomlyShuffleDataSparkJob`, ağaç ve kural tabanlı sınıflandırıcılardan önce akışa eklenir.
+Naive Bayes bu durumdan etkilenmez; çünkü kısmi modeller birleştirilerek tüm verinin istatistikleri elde edilir. Ancak her bölümde ayrı bir model eğitilip oylamayla birleştirilen karar ağacı ve kural öğrenicileri için karıştırma ve katmanlandırma önemlidir. Bu nedenle `RandomizedDataSparkJob`, bu tür sınıflandırıcılardan önce akışa eklenir.
 
 ---
 
 ## Dağıtık Çapraz Doğrulama
 
-Knowledge Flow araç çubuğundaki **Templates** düğmesine tıklayın, açılan menüden **"Spark — Cross-validate two classifiers"** satırını seçin. Bu akışta iki `WekaClassifierEvaluationSparkJob` bileşeni bulunur: biri Naive Bayes için, diğeri Random Forest için. Her ikisi de 10 katlı çapraz doğrulama (10-fold cross-validation) gerçekleştirir.
+**Templates** menüsünden **"Spark: cross-validate two classifiers"** şablonunu seçin. Akışta iki `WekaClassifierEvaluationSparkJob` bileşeni vardır: biri Naive Bayes, diğeri Rastgele Orman (Random Forest) için. Her ikisi de 10 katlı çapraz doğrulama (10-fold cross-validation) yapar; kat sayısı sınıflandırıcı ayarlarındaki **totalFolds** değeriyle belirlenir. Akışın sırası şöyledir: `ArffHeaderSparkJob` → `RandomlyShuffleDataSparkJob` → Naive Bayes değerlendirmesi → Rastgele Orman değerlendirmesi. Katlar, karıştırılmış ve katmanlandırılmış veri üzerinden oluşturulur.
 
-### Bileşenleri Yapılandırma
+Çalıştır düğmesine basın; iş bitince her `TextViewer` bileşenine sağ tıklayıp **Show results** seçin.
 
-1. `ArffHeaderSparkJob` kutusuna **çift tıklayın**:
-   - **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
-   - **ArffHeaderSparkJob** sekmesi → **attributeNamesFile**: `hypothyroid.names` yolunu girin.
-   - **OK** tıklayın.
+Dağıtık çapraz doğrulama iki aşamadan oluşur.
 
-2. Naive Bayes `WekaClassifierEvaluationSparkJob` kutusuna **çift tıklayın**:
-   - **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
-   - **WekaClassifierEvaluationSparkJob** sekmesi → **classAttribute**: `Class`, **numFolds**: `10`, **classifier**: `weka.classifiers.bayes.NaiveBayes`.
-   - **OK** tıklayın.
+![Dağıtık çapraz doğrulama mekanizması](images/dagitik-cv-mekanizma.svg)
 
-3. Random Forest `WekaClassifierEvaluationSparkJob` kutusuna **çift tıklayın** ve aynı alanları doldurun; **classifier** için `weka.classifiers.trees.RandomForest` seçin.
-   - **OK** tıklayın.
+### Aşama 1: Modellerin Oluşturulması
 
-4. Araç çubuğundaki **▶ Başlat** düğmesine tıklayın.
+3 katlı bir çapraz doğrulama düşünelim ve verinin 2 mantıksal bölüme ayrıldığını varsayalım. Her bölüm her katın bir kısmını içerir. Bu durumda:
 
-5. İş tamamlandığında her `TextViewer` kutusuna **sağ tıklayın → Show results**.
+- Model 1: Kat 2 ve Kat 3 üzerinde eğitilir → her bölümde bir tane, toplam 2 kısmi model.
+- Model 2: Kat 1 ve Kat 3 üzerinde eğitilir → 2 kısmi model.
+- Model 3: Kat 1 ve Kat 2 üzerinde eğitilir → 2 kısmi model.
 
-Dağıtık çapraz doğrulama iki ayrı aşamadan oluşur.
+Toplamda **6 kısmi model** üretilir. Reduce aşaması bunları birleştirerek beklenen **3 nihai modeli** oluşturur; her model ayrı bir reduce göreviyle birleştirilebildiği için bu aşama da paraleldir.
 
-![Dağıtık Çapraz Doğrulama Mekanizması](images/dagitik-cv-mekanizma.svg)
+### Aşama 2: Modellerin Değerlendirilmesi
 
-### Aşama 1: Model İnşası
+Her nihai model, eğitimde kullanılmayan kendi katına uygulanır. Map görevleri kısmi değerlendirme sonuçları üretir; reduce görevi bunları birleştirerek tek bir değerlendirme raporu oluşturur.
 
-3 katlı bir çapraz doğrulama düşünelim ve veri setinin 2 mantıksal bölüme ayrıldığını varsayalım. Her bölüm, her katın yarısını içerir. Bu durumda:
-
-- Model 1: Kat 2 ve Kat 3 üzerinde eğitilir → 2 bölüm × 1 model = 2 kısmi model
-- Model 2: Kat 1 ve Kat 3 üzerinde eğitilir → 2 kısmi model
-- Model 3: Kat 1 ve Kat 2 üzerinde eğitilir → 2 kısmi model
-
-Toplamda **6 kısmi model** üretilir. Reduce aşaması bu 6 kısmi modeli birleştirerek beklenen **3 nihai modeli** oluşturur. Her reducer bir modeli birleştirir; paralellik burada da devreye girer.
-
-### Aşama 2: Model Değerlendirme
-
-Her nihai model, kendi holdout katına (eğitimde kullanılmayan kat) uygulanır. Map görevleri kısmi değerlendirme sonuçları üretir; reduce görevi bunları birleştirerek tek bir nihai değerlendirme raporu oluşturur.
-
-Çıktı, masaüstü Weka'nın ürettiğiyle birebir aynı biçimdedir: doğruluk (accuracy), Kappa istatistiği, ROC alanı, sınıf başına TP/FP oranları ve karışıklık matrisi (confusion matrix).
+Rapor masaüstü Weka'nın raporuyla aynı biçimdedir: doğruluk (accuracy), Kappa istatistiği, sınıf başına TP ve FP oranları, ROC eğrisi altındaki alan ve karışıklık matrisi (confusion matrix).
 
 ---
 
 ## Korelasyon Matrisi ve Temel Bileşenler Analizi
 
-**Templates** düğmesine tıklayın, açılan menüden **"Spark — Compute a correlation matrix and run PCA"** satırını seçin.
-
-Bu akış üç bileşenden oluşur:
+**Templates** menüsünden **"Spark: compute a correlation matrix and run PCA"** şablonunu seçin. Akış şu bileşenlerden oluşur:
 
 ```text
 ArffHeaderSparkJob → CorrelationMatrixSparkJob → TextViewer
                                                → ImageViewer
 ```
 
-### Bileşenleri Yapılandırma ve Çalıştırma
+`CorrelationMatrixSparkJob` penceresinin kendi sekmesinde korelasyon yerine kovaryans matrisi hesaplanması ve **runPCA** seçeneğiyle temel bileşenler analizi (Principal Component Analysis, PCA) yapılması ayarlanabilir.
 
-1. `ArffHeaderSparkJob` kutusuna **çift tıklayın** → **inputFile** ve **attributeNamesFile** alanlarını doldurun → **OK**.
+İş bitince:
 
-2. `CorrelationMatrixSparkJob` kutusuna **çift tıklayın**:
-   - **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
-   - **CorrelationMatrixSparkJob** sekmesinde:
-     - **matrixType**: `Correlation` ya da `Covariance` seçin (varsayılan `Correlation`).
-     - PCA sonuçları istiyorsanız **runPCA** onay kutusunu işaretleyin.
-   - **OK** tıklayın.
+- `TextViewer` → **Show results**: korelasyon matrisi ve (seçildiyse) PCA çıktısı.
+- `ImageViewer` → **Show results**: korelasyon matrisinin ısı haritası (heat map); renk yoğunluğu korelasyonun büyüklüğünü gösterir.
 
-3. Araç çubuğundaki **▶ Başlat** düğmesine tıklayın.
-
-4. İş tamamlandığında:
-   - `TextViewer` kutusuna **sağ tıklayın → Show results** — korelasyon matrisi ve varsa PCA çıktısı görünür.
-   - `ImageViewer` kutusuna **sağ tıklayın → Show results** — ısı haritası (heat map) açılır; renk yoğunluğu korelasyonun büyüklüğünü temsil eder.
-
-Yalnızca sayısal öznitelikler bu analize dahil edilir; nominal öznitelikler atlanır.
+Bu analize yalnızca sayısal öznitelikler katılır; nominal öznitelikler atlanır.
 
 ---
 
-## Paralel K-Means
+## Paralel k-Ortalamalar
 
-**Templates** düğmesine tıklayın, açılan menüden **"Spark — Run K-means||"** satırını seçin. K-Means|| (K-Means paralel; çift dikey çizgi "paralel" anlamındadır) özellikle büyük veri kümelerinde başlangıç küme merkezi seçimini dağıtık hale getirir.
+**Templates** menüsünden **"Spark: run k-means parallel"** şablonunu seçin (akış: `ArffHeaderSparkJob` → `RandomlyShuffleDataSparkJob` → `KMeansClustererSparkJob` → `TextViewer`). Bu akış, k-ortalamalar algoritmasını başlangıç merkezlerini **k-means‖** (k-means parallel; Bahmani ve ark., 2012) yöntemiyle seçerek çalıştırır. k-means‖, k-means++ başlatma yönteminin, her turda birden fazla aday merkezi birlikte seçerek az sayıda turda tamamlanan paralel bir sürümüdür.
 
-### K-Means Yapılandırması ve Çalıştırma
+`KMeansClustererSparkJob` penceresinde şu alanlar bulunur:
 
-1. `ArffHeaderSparkJob` kutusuna **çift tıklayın** → **inputFile** ve **attributeNamesFile** alanlarını doldurun → **OK**.
+- **numClusters:** küme sayısı (şablonda 4; veri kümesindeki sınıf sayısı kadar).
+- **numIterations:** en fazla yineleme sayısı (şablonda 20).
+- **numRuns:** farklı başlangıçlarla kaç kez çalıştırılacağı.
+- **kMeansParallelInitSteps:** k-means‖ başlatma tur sayısı.
 
-2. `WekaClustererSparkJob` kutusuna **çift tıklayın**:
-   - **Spark Config** sekmesi → **inputFile**: `hypothyroid.csv` yolunu girin.
-   - **WekaClustererSparkJob** sekmesinde:
-     - **numClusters**: küme sayısını girin (örneğin `4` — veri kümesindeki gerçek sınıf sayısı kadar).
-     - **classAttribute**: `Class` yazarsanız bu sütun kümeleme dışında tutulur; boş bırakırsanız tüm sütunlar dahil edilir.
-   - **OK** tıklayın.
+İş bitince `TextViewer` → **Show results** ile sonuç görülür; çıktı masaüstü Weka'daki `SimpleKMeans` çıktısına benzer.
 
-3. Araç çubuğundaki **▶ Başlat** düğmesine tıklayın.
+Kümeleme için neden özel olarak yazılmış işlere ihtiyaç vardır? Sınıflandırmada kullanılan oylamalı topluluk yaklaşımı kümelemede işe yaramaz: Bağımsız bölümlerde eğitilen kümeleme modellerinin küme numaraları birbiriyle örtüşmediğinden modeller doğrudan birleştirilemez. Bu nedenle k-ortalamalar algoritması dağıtık çalışacak biçimde yeniden yazılmıştır. Paketin kaynak kodunda ayrıca `CanopyClustererSparkJob` adlı bir kanopi (canopy) kümeleme işi de bulunur; bu iş Knowledge Flow paletinde yer almaz, Java API'si ya da komut satırı üzerinden kullanılır.
 
-4. `TextViewer` kutusuna **sağ tıklayın → Show results**.
-
-Kümeleme için dağıtık Weka neden yalnızca K-Means sunar? Çünkü sınıflandırmada kullanılan oy birliği (voted ensemble) yaklaşımı kümeleme için çalışmaz: birbirinden bağımsız bölümler üzerinde eğitilen kümeleme modelleri, küme etiketleri tutarsız olduğu için doğrudan birleştirilemez. K-Means, iteratif bir algoritma olduğundan yeniden yazılarak dağıtık hale getirilmiştir.
-
-Yerel modda küçük bir veri kümesiyle çalıştırıldığında K-Means|| masaüstü Weka'dan yavaş çalışabilir. Bunun nedeni Spark'ın RDD yapılarını oluşturma ve düğümler arası iletişim maliyetinin paralel işlemenin kazandırdığı hızı geçmesidir. Bu durum normaldir ve yerel modun sınırlılığını gösterir; gerçek bir kümede büyük veriyle çalışıldığında denklem tersine döner.
-
-Çıktı, masaüstü Weka'nın K-Means çıktısıyla aynı biçimdedir.
+Yerel modda küçük bir veri kümesiyle çalışıldığında dağıtık k-ortalamalar, masaüstü Weka'dan yavaş olabilir. Bunun nedeni Spark'ın veri yapılarını oluşturma ve görevleri yönetme maliyetinin paralel işlemenin kazancını aşmasıdır. Bu durum olağandır; gerçek bir kümede büyük veriyle çalışıldığında denge tersine döner.
 
 ---
 
 ## Gerçek Kümeye Geçmek
 
-Yerel mod, Dağıtık Weka'yı öğrenmek ve denemek için doğal bir başlangıç noktasıdır: kurulum gerektirmez, JVM'in kendisi tüm Spark süreçlerini barındırır. Ancak gerçek büyük veri senaryolarında bir kümeye ihtiyaç vardır.
+Yerel mod, Dağıtık Weka'yı öğrenmek ve denemek için doğal bir başlangıç noktasıdır: Kurulum gerektirmez; tüm Spark süreçleri Weka'nın Java sanal makinesi (JVM) içinde çalışır.
 
-Spark için en basit seçenek **bağımsız küme modu** (standalone cluster mode)'dur. Bu modda ayrı Java süreçleri olarak çalışan bir master ve bir ya da birden fazla worker başlatılır; birbirlerinden farklı makinelerdeymiş gibi ağ üzerinden iletişim kurarlar.
+Gerçek bir kümede en basit seçenek Spark'ın **bağımsız küme modudur** (standalone cluster mode). Bu modda ayrı Java süreçleri olarak çalışan bir ana süreç (master) ve bir ya da daha fazla işçi (worker) başlatılır. Daha ileri seçenekler olarak Apache Mesos ve YARN (Yet Another Resource Negotiator) kullanılabilir; YARN, mevcut bir Hadoop kümesi üzerinde Spark çalıştırmanın standart yoludur. Hangi mod seçilirse seçilsin Knowledge Flow bileşenlerinde `masterHost` ve `masterPort` alanları kümenin adresine göre güncellenir.
 
-Daha ileri seçenekler olarak **Apache Mesos** ve **YARN** (Yet Another Resource Negotiator) kullanılabilir. YARN, mevcut bir Hadoop kümesi üzerinde Spark'ı çalıştırmanın standart yoludur. Hangi mod seçilirse seçilsin, `masterHost` parametresi Knowledge Flow bileşenlerinde o kümenin adresine güncellenir; geri kalan her şey yerel moda göre aynı kalır.
+**Sürüm uyumu.** Spark istemcisi ile kümenin aynı Spark sürümünü kullanması gerekir. `distributedWekaSpark` 1.0.9 paketi Spark 1.1.1 kitaplıklarını içerdiğinden güncel bir Spark 3.x kümesine doğrudan bağlanamaz. Paket açıklamasına göre HDFS ya da Hadoop kümesiyle çalışmak için `wekafiles/packages/distributedWekaSpark/lib` dizinindeki Spark kitaplıklarının, kümenin Hadoop sürümü için derlenmiş `spark-assembly-...-hadoop....jar` dosyasıyla değiştirilmesi gerekir.
 
 ---
 
 ## Özet
 
-- **Ne zaman kullanılır:** Veri RAM'e sığmıyorsa ya da tek makinede işlem çok yavaş kalıyorsa.
-- **Veri akışı madenciliğinden fark:** Toplu, çevrimdışı işleme — MOA'nın çevrimiçi yaklaşımından farklı.
-- **Map-Reduce:** Veriyi böl → bağımsız işle → anahtara göre grupla → birleştir.
-- **Paket yapısı:** `distributedWekaBase` + `distributedWekaSpark` (ya da Hadoop varyantları).
+- **Ne zaman kullanılır:** Veri belleğe sığmıyorsa ya da tek makinede işlem çok uzun sürüyorsa.
+- **Veri akışı madenciliğinden farkı:** Toplu ve çevrimdışı işleme; MOA ise çevrimiçidir.
+- **MapReduce:** Veriyi böl → bağımsız işle (map) → anahtara göre grupla (shuffle) → birleştir (reduce).
+- **Paket yapısı:** `distributedWekaBase` + `distributedWekaSpark` (ya da Hadoop sarmalayıcıları).
 - **Neden CSV:** ARFF başlığı yalnızca ilk blokta bulunur; CSV bloklara bölünmeye uygundur.
-- **İlk iş:** `ArffHeaderSparkJob` — CSV'yi tarar, başlık + özet istatistik üretir; sonraki işler bunu yeniden kullanır.
-- **Model birleştirme:** Toplamsal algoritmalar (Naive Bayes) tek model üretir; ağaç/kural tabanlı algoritmalar voted ensemble oluşturur.
-- **RandomlyShuffleDataSparkJob:** Ağaç/kural öğrenicilerinden önce sınıf dengesizliğini gidermek için kullanılır.
-- **Dağıtık CV:** İki aşama — model inşası (kısmi modeller → reduce → nihai modeller) ve değerlendirme.
+- **İlk iş:** `ArffHeaderSparkJob` CSV'yi tarar; başlık ve özet istatistikleri (`arff_summary_*`) üretir; sonraki işler bunu yeniden kullanır. Özet istatistikler aykırı değerleri (yaş = 455) yakalamanın ilk aracıdır.
+- **Model birleştirme:** Birleştirilebilir (`Aggregateable`) sınıflandırıcılar (Naive Bayes) tek model üretir; ağaç ve kural tabanlı sınıflandırıcılar olasılıkları ortalayan bir oylamalı topluluk (`Vote`) oluşturur.
+- **`RandomizedDataSparkJob`:** Oylamalı topluluk oluşturan öğrenicilerden önce veriyi karıştırıp katmanlandırır.
+- **Dağıtık çapraz doğrulama:** İki aşama — model oluşturma (kısmi modeller → reduce → nihai modeller) ve değerlendirme.
 - **Korelasyon / PCA:** `CorrelationMatrixSparkJob` hem metin hem ısı haritası çıktısı üretir.
-- **K-Means||:** Kümeleme için tek mevcut dağıtık algoritma; yerel modda küçük veriyle yavaş olabilir.
-- **Küme:** Öğrenme için yerel mod; üretim için standalone, Mesos veya YARN.
+- **Kümeleme:** `KMeansClustererSparkJob` (k-means‖ başlatmalı); kaynak kodda ayrıca `CanopyClustererSparkJob` vardır. Yerel modda küçük veriyle yavaş olabilir.
+- **Küme:** Öğrenme için yerel mod; gerçek kullanımda paketin Spark sürümüyle uyumlu bir bağımsız, Mesos ya da YARN kümesi.
 
 ---
 
 ## Kaynaklar
 
-- Weka Dağıtık Paket Deposu: [waikato.github.io/weka-wiki/packages/list](https://waikato.github.io/weka-wiki/packages/list/)
-- UCI ML Repository — Hypothyroid: [archive.ics.uci.edu/ml/datasets/Thyroid+Disease](https://archive.ics.uci.edu/ml/datasets/Thyroid+Disease)
-- Apache Spark Belgeleri — Küme Modu: [spark.apache.org/docs/latest/cluster-overview.html](https://spark.apache.org/docs/latest/cluster-overview.html)
-- Apache Spark — Standalone Mod: [spark.apache.org/docs/latest/spark-standalone.html](https://spark.apache.org/docs/latest/spark-standalone.html)
-- Dean, J. ve Ghemawat, S. (2008). *MapReduce: Simplified Data Processing on Large Clusters.* Communications of the ACM, 51(1), 107–113.
-- Zaharia ve ark. (2012). *Resilient Distributed Datasets.* NSDI'12.
+- Weka paket listesi: [waikato.github.io/weka-wiki/packages/list](https://waikato.github.io/weka-wiki/packages/list/)
+- distributedWekaSpark paket bilgisi: [weka.sourceforge.io/packageMetaData/distributedWekaSpark](https://weka.sourceforge.io/packageMetaData/distributedWekaSpark/index.html)
+- Hall, M. (2015). Weka and Spark. [markahall.blogspot.com/2015/03/weka-and-spark.html](http://markahall.blogspot.com/2015/03/weka-and-spark.html)
+- UCI ML Repository — Thyroid Disease: [archive.ics.uci.edu/dataset/102/thyroid+disease](https://archive.ics.uci.edu/dataset/102/thyroid+disease)
+- Apache Spark — Küme modu: [spark.apache.org/docs/latest/cluster-overview.html](https://spark.apache.org/docs/latest/cluster-overview.html)
+- Dean, J. ve Ghemawat, S. (2008). MapReduce: Simplified data processing on large clusters. *Communications of the ACM*, 51(1), 107–113.
+- Zaharia, M. ve ark. (2012). Resilient distributed datasets: A fault-tolerant abstraction for in-memory cluster computing. *NSDI'12*.
+- Bahmani, B., Moseley, B., Vattani, A., Kumar, R. ve Vassilvitskii, S. (2012). Scalable k-means++. *Proceedings of the VLDB Endowment*, 5(7), 622–633.
