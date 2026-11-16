@@ -2,11 +2,14 @@
 
 Bu depo, Tekirdağ Namık Kemal Üniversitesi Çorlu Mühendislik Fakültesi Bilgisayar Mühendisliği Bölümü lisansüstü **Yüksek Başarımlı Hesaplama** (High-Performance Computing, HPC) dersinin notlarını ve uygulamalarını içerir.
 
+- **Web sürümü:** [erkanozhan.github.io/HighPerfCom](https://erkanozhan.github.io/HighPerfCom/). Aynı notlar; bölüm listesi, tüm notlarda arama ve formüllerle birlikte.
+- **PDF / yazdırma:** [Notların tamamı tek sayfada](https://erkanozhan.github.io/HighPerfCom/yazdir.html) açılıp Ctrl+P ile "PDF olarak kaydet" seçilebilir. Aynı PDF `python araclar/pdf_olustur.py` komutuyla da üretilir (Chrome veya Edge gerekir).
+
 ## Önerilen Okuma Sırası
 
 | Sıra | Dosya | İçerik |
 | :---: | :--- | :--- |
-| 1 | [Ders_Notu.md](Ders_Notu.md) | Paralel mimariler, başarım ölçütleri (Amdahl, Gustafson), bellek hiyerarşisi, veri odaklı tasarım, Roofline modeli, görev bağımlılıkları ve OpenMP |
+| 1 | [Ders_Notu.md](Ders_Notu.md) | Paralel mimariler, başarım ölçütleri (Amdahl, Gustafson), bellek hiyerarşisi, veri odaklı tasarım, Roofline modeli, görev bağımlılıkları ve OpenMP. Bu dosya notun girişi ve içindekileridir; bölümler [`bolumler/`](bolumler/) klasöründe ayrı dosyalardır. |
 | 2 | [Uygulamalar/uygulamalar.md](Uygulamalar/uygulamalar.md) | OpenMP kurulumu, derleme ve ölçülmüş çıktılarıyla örnek programlar |
 | 3 | [weka_server_setup.md](weka_server_setup.md) | WekaServer paketiyle görevlerin ağdaki makinelere dağıtılması |
 | 4 | [weka_dagitik_spark_giris.md](weka_dagitik_spark_giris.md) | Dağıtık Weka ve Apache Spark: MapReduce, temel kavramlar, Knowledge Flow şablonları |
@@ -16,7 +19,8 @@ Bu depo, Tekirdağ Namık Kemal Üniversitesi Çorlu Mühendislik Fakültesi Bil
 ## Dizin Yapısı
 
 ```text
-Ders_Notu.md                 Ana ders notu
+Ders_Notu.md                 Ana ders notunun girişi ve içindekiler
+bolumler/                    Ders notunun bölümleri (01–10) ve kaynaklar
 Uygulamalar/
   uygulamalar.md             Uygulama kılavuzu
   OpenMP/
@@ -31,6 +35,10 @@ Uygulamalar/
     paylasim.c               private/firstprivate/lastprivate ve yanlış paylaşım
 weka_*.md                    Dağıtık Weka notları
 images/                      Şekiller (SVG)
+index.html, _sidebar.md,     Web sürümü: docsify sayfası, bölüm listesi,
+  docsify-ayar.js, docsify-stil.css   ayarlar ve stiller
+yazdir.html                  Notların tamamını tek sayfada gösteren yazdırma sayfası
+araclar/pdf_olustur.py       PDF üreten betik
 ```
 
 ## Gereksinimler
