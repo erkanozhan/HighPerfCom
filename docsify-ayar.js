@@ -19,8 +19,9 @@
   }
 
   // Markdown bağlantı ve görsellerinin göreli hedeflerini sırayla işler.
+  // Metin içinde bir düzey köşeli parantez olabilir: ![... input[type="email"] ...](yol)
   function goreliHedefler(md, islev) {
-    return md.replace(/(!?)\[([^\]\n]*)\]\(([^)\s]+)\)/g, function (tum, resim, metin, hedef) {
+    return md.replace(/(!?)\[((?:[^\[\]\n]|\[[^\[\]\n]*\])*)\]\(([^)\s]+)\)/g, function (tum, resim, metin, hedef) {
       if (!goreliMi(hedef)) return tum;
       var yeni = islev(hedef, !!resim);
       return yeni == null ? tum : resim + '[' + metin + '](' + yeni + ')';
@@ -65,6 +66,9 @@
   // yüklendikten sonra listenin başına ekler. yazdir.html ise her bölüme notuDuzenle'yi kendisi uygular.
   function notDuzenleEklentisi(hook, vm) {
     hook.beforeEach(function (md) {
+      // yazdir.html her bölümü kendi dosya yoluyla zaten düzenler; sayfa adresiyle ikinci kez düzenlenirse
+      // site alt klasörde yayımlandığında (erkanozhan.github.io/<depo>/) görsel yolları bozulur.
+      if (YAZDIR) return md;
       return notuDuzenle(md, (vm.route && vm.route.file) || '');
     });
     // Sayfa içi başlık bağlantısı hâlâ bir başlığa denk gelmiyorsa (docsify başlık adresini GitHub'dan farklı
